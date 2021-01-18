@@ -9,7 +9,7 @@ In this cases users advised to open broken file in MS Paint (or something simila
 WhatsApp Jpeg Image Repair application solves this problem and can repair many broken files at once.
 
 Follow these steps:
-1. Download archive. Navigate [this link](https://github.com/cdefgah/whatsapp-jpeg-repair/releases). Expand `Assets` section and download either `WhatsAppJpegRepair-1.0-Windows.zip` or `WhatsApp Jpeg Image Repair (Apple MacOS version)` according to your operating system.
+1. Download application archive. Navigate [this link](https://github.com/cdefgah/whatsapp-jpeg-repair/releases). Expand `Assets` section and download either `WhatsAppJpegRepair-1.0-Windows.zip` or `WhatsApp Jpeg Image Repair (Apple MacOS version)` according to your operating system.
 2. Extract application to an arbitrary folder. I recommend to use your home folder, for example `Documents` or `Desktop` folder, to prevent filesystem access control issues upon running the application.
 3. Open application folder `WhatsAppJpegRepair`.
 4. Place broken jpeg files from WhatsApp to the `whatsapp-files`.
