@@ -47,7 +47,7 @@ func main() {
 		destinationFilesPath = args[2]
 
 	case paramsAmountForPredefinedFolders:
-		currentWorkingFolder, err := os.Getwd()
+		currentWorkingFolder, err := filepath.Abs(filepath.Dir(os.Args[0]))
 		if err != nil {
 			log.Fatal(err)
 		}
