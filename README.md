@@ -25,6 +25,6 @@ If you are building the application from the source code, before using the built
 
 ## Building the application from the source
 
-1. Download and install [Golang] (https://golang.org/)
+1. Download and install Go language support: https://golang.org/
 2. In the application project folder run the following command:
 `go build WhatsAppJpegRepair.go`
