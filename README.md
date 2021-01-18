@@ -22,3 +22,9 @@ WhatsAppJpegRepair c:/Users/username/Documents/whats-app-files/ c:/Users/usernam
 ```
 
 If you are building the application from the source code, before using the built application, please delete `.gitkeep` files from the internal application folders.
+
+## Building the application from the source
+
+1. Download and install [Golang] (https://golang.org/)
+2. In the application project folder run the following command:
+`go build WhatsAppJpegRepair.go`
