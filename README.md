@@ -1,6 +1,6 @@
 # WhatsApp Jpeg Image Repair
 
-When you send jpeg files via WhatsApp and afterwards try to open received jpeg files in the Adobe Photoshop, you get the following error:
+When you send jpeg files via WhatsApp and afterwards try to open received jpeg files in the Adobe Photoshop, there is a chance to get the following error in Photoshop:
 
 `Could not complete your request because a SOFn, DQT, or DHT JPEG marker is missing before a JPEG SOS marker`
 
