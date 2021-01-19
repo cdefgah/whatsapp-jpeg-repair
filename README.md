@@ -10,7 +10,7 @@ WhatsApp Jpeg Image Repair application solves this problem and can repair many b
 
 Follow these steps:
 1. Download application archive. Navigate [this link](https://github.com/cdefgah/whatsapp-jpeg-repair/releases) to do that. Then expand `Assets` section and download either `WhatsAppJpegRepair-1.0-Windows.zip` or `WhatsAppJpegRepair-1.0-MacOS.zip` according to your operating system.
-2. Extract application to an arbitrary folder. I recommend to use your home folder, for example `Documents` or `Desktop` folder, to prevent filesystem access control issues upon running the application.
+2. Unzip application archive to an arbitrary folder. I recommend to use your home folder, for example `Documents` or `Desktop` folder, to prevent filesystem access control issues upon running the application.
 3. Open application folder `WhatsAppJpegRepair`.
 4. Place broken jpeg files from WhatsApp to the `whatsapp-files` directory, located in the application folder.
 5. Run the application.
