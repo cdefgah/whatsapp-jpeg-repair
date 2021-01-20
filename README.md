@@ -21,7 +21,7 @@ It is possible to specify custom source and destination folder for the applicati
 WhatsAppJpegRepair c:/Users/username/Documents/whats-app-files/ c:/Users/username/Documents/correct files/
 ```
 
-If you are building the application from the source code, before using the built application, please delete `.gitkeep` files from the internal application folders.
+If you are building the application from the source code, before using the built application, please delete `.gitkeep` files from the internal application folders: `fixed-files` and `whatsapp-files`.
 
 ## Building the application from the source
 
