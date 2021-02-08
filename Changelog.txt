@@ -1,0 +1,4 @@
+version 2.0
+
+Breaking changes.
+Introduced new command line options to control source and destination path, file modification time for fixed files, and user interface control option.

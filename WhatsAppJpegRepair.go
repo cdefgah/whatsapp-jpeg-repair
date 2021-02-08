@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"image"
 	"image/jpeg"
@@ -9,78 +10,102 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"runtime"
 )
 
 func main() {
+
+	fmt.Println(`WhatsAppJpegRepair version 2.0 Copyright (c) 2021 by Rafael Osipov (rafael.osipov@outlook.com)
+	Repairs jpeg images saved from WhatsApp application to prevent errors upon opening these images in the Adobe Photoshop.
+	Project web-site, source code and documentation: https://github.com/cdefgah/whatsapp-jpeg-repair`)
+
+	const sourceFilesPathParamKey string = "srcPath"
+	const destinationFilesPathParamKey string = "destPath"
+	const useCurrentModificationDateTimeParamKey = "useCurrentModificationDateTime"
+	const dontWaitToCloseParamKey string = "dontWaitToClose"
+
 	const predefinedSourceFilesFolder string = "whatsapp-files"
 	const predefinedDestinationFilesFolder string = "fixed-files"
-	const consoleTextDelimiter = "---------------------------------------"
 
-	fmt.Println("WhatsAppJpegRepair version 1.0 Copyright (c) 2021 by Rafael Osipov")
-	fmt.Println("\nRepairs jpeg images saved from WhatsApp application to prevent errors upon opening these images in the Adobe Photoshop.")
-	fmt.Println("Project web-site: https://github.com/cdefgah/whatsapp-jpeg-repair")
-	fmt.Println(consoleTextDelimiter)
+	const appExitCodeRepairProcessSucceed int = 0
+	const appExitCodeRepairProcessFailed int = -1
 
-	fmt.Println("Usage:")
-	fmt.Println("\nWhen launched without parameters, application uses predefined folders.")
-	fmt.Println("For broken jpeg files the application uses internal folder: ", predefinedSourceFilesFolder)
-	fmt.Println("Fixed files will be stored in the internal folder: ", predefinedDestinationFilesFolder)
-
-	fmt.Println("\nAlso it is possible to specify custom source and destination folders. Use the following approach:")
-	fmt.Println("\n\tWhatsAppJpegRepair <problematic-files-path> <processed-files-path>")
-	fmt.Println("\nExamples (for Windows, and MacOS respectively):")
-	fmt.Println("\n\tWhatsAppJpegRepair c:/temp/problem-files/ c:/temp/fixed-jpeg-files/")
-	fmt.Println("\n\tWhatsAppJpegRepair /home/username/Documents/broken-files /home/username/Documents/correct-files")
-	fmt.Println(consoleTextDelimiter)
-
-	const paramsAmountForCustomFolders int = 3
-	const paramsAmountForPredefinedFolders int = 1
-	const codeRepairProcessSucceed int = 0
-	const codeRepairProcessFailed int = -1
-
-	var sourceFilesPath string
-	var destinationFilesPath string
-
-	switch args := os.Args; len(args) {
-	case paramsAmountForCustomFolders:
-		sourceFilesPath = args[1]
-		destinationFilesPath = args[2]
-
-	case paramsAmountForPredefinedFolders:
-		currentWorkingFolder, err := filepath.Abs(filepath.Dir(os.Args[0]))
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		sourceFilesPath = filepath.Join(currentWorkingFolder, predefinedSourceFilesFolder)
-		destinationFilesPath = filepath.Join(currentWorkingFolder, predefinedDestinationFilesFolder)
-
-	default:
-		fmt.Println("Incorrect number of parameters. Either run this application without parameters or pass source and destination folder as described above.")
-		os.Exit(codeRepairProcessFailed)
+	currentWorkingFolder, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	var repairCompletedSuccessfully bool = repairImageFiles(sourceFilesPath, destinationFilesPath)
-	fmt.Println("\nPress Enter to close the application")
-	fmt.Scanln()
+	var sourceFilesPath = filepath.Join(currentWorkingFolder, predefinedSourceFilesFolder)
+	var destinationFilesPath = filepath.Join(currentWorkingFolder, predefinedDestinationFilesFolder)
+
+	var sampleSourceFilesPathDeclarationPrefix string = "-" + sourceFilesPathParamKey + "="
+	var sampleDestinationFilesPathDeclarationPrefix string = "-" + destinationFilesPathParamKey + "="
+	var sampleSourceFilesPathDeclaration string
+	var sampleDestinationFilesPathDeclaration string
+	if runtime.GOOS == "windows" {
+		sampleSourceFilesPathDeclaration = sampleSourceFilesPathDeclarationPrefix + "c:/Users/Username/Documents/brokenWhatsAppFiles\n"
+		sampleDestinationFilesPathDeclaration = sampleDestinationFilesPathDeclarationPrefix + "c:/Users/Username/Documents/fixedImageFiles\n"
+	} else {
+		sampleSourceFilesPathDeclaration = sampleSourceFilesPathDeclarationPrefix + "/home/username/Documents/brokenWhatsAppFiles\n"
+		sampleDestinationFilesPathDeclaration = sampleDestinationFilesPathDeclarationPrefix + "/home/username/Documents/fixedImageFiles\n"
+	}
+
+	sourcePathPtr := flag.String(sourceFilesPathParamKey,
+		sourceFilesPath, "Path to folder with broken whatsapp files. Declaration example: "+sampleSourceFilesPathDeclaration)
+	destPathPtr := flag.String(destinationFilesPathParamKey,
+		destinationFilesPath, `Path to folder where fixed files will be stored.
+		If folder does not exists, it will be created.
+		Declaration example: `+sampleDestinationFilesPathDeclaration)
+
+	useCurrentModificationDateTimePtr := flag.Bool(useCurrentModificationDateTimeParamKey, false, `If set to true, sets current date time as file modification time.
+	 By default uses source file modification date time.`)
+	dontWaitToClosePtr := flag.Bool(dontWaitToCloseParamKey, false, "If set to true, does not wait a key press until exits the application. By default is false.")
+
+	// parsing and loading app params
+	flag.Parse()
+	sourceFilesPath = *sourcePathPtr
+	destinationFilesPath = *destPathPtr
+	var useCurrentModificationDateTime = *useCurrentModificationDateTimePtr
+	var dontWaitToCloseApp bool = *dontWaitToClosePtr
+
+	fmt.Println("\n----------------------------------------------------------------------------------------")
+	flag.Usage()
+
+	// creating destination folder if it does not exist
+	if _, err := os.Stat(*destPathPtr); os.IsNotExist(err) {
+		os.Mkdir(*destPathPtr, os.ModeDir)
+	}
+
+	// displaying effective parameter values
+	fmt.Println("\n----------------------------------------------------------------------------------------")
+	fmt.Println("Source folder path:", sourceFilesPath)
+	fmt.Println("Destination folder path:", destinationFilesPath)
+	fmt.Println("Use current modification date time for fixed files:", useCurrentModificationDateTime)
+	fmt.Println("Don't wait app to close:", dontWaitToCloseApp)
+	fmt.Println("----------------------------------------------------------------------------------------")
+
+	var repairCompletedSuccessfully bool = repairImageFiles(sourceFilesPath, destinationFilesPath, useCurrentModificationDateTime)
+
+	if !*dontWaitToClosePtr {
+		fmt.Println("\nPress Enter to close the application")
+		fmt.Scanln()
+	}
 
 	if repairCompletedSuccessfully {
-		os.Exit(codeRepairProcessSucceed)
+		os.Exit(appExitCodeRepairProcessSucceed)
 	} else {
-		os.Exit(codeRepairProcessFailed)
+		os.Exit(appExitCodeRepairProcessFailed)
 	}
 }
 
 // Repairs broken jpeg image files
 // Gets location of broken files in sourceFolderPath variable
 // and the location of folder, where fixed files will be stored, in the destinationFolderPath variable
+// set useCurrentModificationDateTime as the relevant parameter value.
 // Returns true, if there were no errors upon files processing, false otherwise.
-func repairImageFiles(sourceFolderPath string, destinationFolderPath string) bool {
+func repairImageFiles(sourceFolderPath string, destinationFolderPath string, useCurrentModificationDateTime bool) bool {
 	var totalFilesCount int32
 	var processedFilesCount int32
-
-	fmt.Println("Source folder path: ", sourceFolderPath)
-	fmt.Println("Destination folder path: ", destinationFolderPath)
 
 	files, err := ioutil.ReadDir(sourceFolderPath)
 	if err != nil {
@@ -89,13 +114,15 @@ func repairImageFiles(sourceFolderPath string, destinationFolderPath string) boo
 	for _, f := range files {
 		if !f.IsDir() {
 			totalFilesCount++
-			if processSingleImageFile(sourceFolderPath, f.Name(), destinationFolderPath) {
+			if processSingleImageFile(sourceFolderPath, f.Name(), destinationFolderPath, useCurrentModificationDateTime) {
 				processedFilesCount++
 			}
 		}
 	}
 
 	fmt.Println("\nTotal files count: ", totalFilesCount, "Processed files count: ", processedFilesCount)
+
+	fmt.Println("All fixed files are located in folder: ", destinationFolderPath)
 	fmt.Println("\nDone!")
 
 	return totalFilesCount == processedFilesCount
@@ -105,15 +132,17 @@ func repairImageFiles(sourceFolderPath string, destinationFolderPath string) boo
 // sourceFolderPath - path to folder, where broken image files are located.
 // sourceFileNameWithExtension contains filename with extension of image file, that should be processed.
 // destinationFilesFolderPath contains path to folder, where fixed image file will be stored.
+// useCurrentModificationDateTime if true, setting current date/time as file modification time for generated file.
+// otherwise preserves source file modification date/time.
 // Returns true, if there were no errors upon file processing, false otherwise.
-func processSingleImageFile(sourceFolderPath string, sourceFileNameWithExtension string, destinationFilesFolderPath string) bool {
+func processSingleImageFile(sourceFolderPath string, sourceFileNameWithExtension string, destinationFilesFolderPath string, useCurrentModificationDateTime bool) bool {
 
 	var sourceFilePath = filepath.Join(sourceFolderPath, sourceFileNameWithExtension)
 	var sourceFileExtension = path.Ext(sourceFileNameWithExtension)
 	var destinationFileWithExtension = sourceFileNameWithExtension[0:len(sourceFileNameWithExtension)-len(sourceFileExtension)] + ".jpg"
 	var destinationFilePath = filepath.Join(destinationFilesFolderPath, destinationFileWithExtension)
 
-	fmt.Print("Processing file: ", sourceFilePath, " ............... ")
+	fmt.Print("Processing file: ", sourceFilePath, " .......................... ")
 
 	image, err := getImageFromFilePath(sourceFilePath)
 	if err != nil {
@@ -128,6 +157,20 @@ func processSingleImageFile(sourceFolderPath string, sourceFileNameWithExtension
 	}
 	defer f.Close()
 	jpeg.Encode(f, image, nil)
+
+	// setting modification time as in source file if necessary
+	if !useCurrentModificationDateTime {
+		sourceFileStats, err := os.Stat(sourceFilePath)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		var sourceFileModificationDateTime = sourceFileStats.ModTime()
+		err = os.Chtimes(destinationFilePath, sourceFileModificationDateTime, sourceFileModificationDateTime)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
 
 	fmt.Println("OK!")
 
