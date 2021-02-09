@@ -1,5 +1,7 @@
 # WhatsApp Jpeg Image Repair
 
+[![](https://github.com/cdefgah/whatsapp-jpeg-repair/workflows/build/badge.svg)](https://github.com/cdefgah/whatsapp-jpeg-repair/actions)
+
 When you send jpeg files via WhatsApp and afterwards try to open received jpeg files in the Adobe Photoshop, there is a chance to get the following error in Photoshop:
 
 `Could not complete your request because a SOFn, DQT, or DHT JPEG marker is missing before a JPEG SOS marker`
@@ -9,8 +11,8 @@ For such cases users advised to open the broken file in MS Paint (or something s
 WhatsApp Jpeg Image Repair application solves this problem and can repair many broken files at once.
 
 Follow these steps:
-1. Download application archive. Navigate to [the application releases](https://github.com/cdefgah/whatsapp-jpeg-repair/releases). Then expand `Assets` section and download either `WhatsAppJpegRepair-2.0-Windows.zip` or `WhatsAppJpegRepair-2.0-MacOS.zip` according to your operating system.
-2. Unzip application archive to an arbitrary folder. I recommend to use your home folder, for example `Documents` or `Desktop` folder, to prevent filesystem access control issues upon running the application.
+1. Download application archive. Navigate to [the application releases](https://github.com/cdefgah/whatsapp-jpeg-repair/releases). Then expand `Assets` section and download `whatsapp-jpeg-repair-{platform}-{version}.zip` file according to your operating system.
+2. Unzip application archive to an arbitrary folder. I recommend to use your home folder, for example `Documents` or `Desktop` folder, to prevent filesystem access control issues upon running the application. If you use MacOS, please note that MacOS Gatekeeper blocks this application when you try to launch it. To run downloaded application on MacOS your should either [disable MacOS Gatekeeper](https://www.google.com/search?q=disable+MacOS+Gatekeeper) or build the application from the source code as described hereinafter, and replace existing executable in downloaded archive with new executable file you have built from the source code.
 3. Open application folder `WhatsAppJpegRepair`.
 4. Place broken jpeg files from WhatsApp to the `whatsapp-files` directory, located in the application folder.
 5. Run the application.

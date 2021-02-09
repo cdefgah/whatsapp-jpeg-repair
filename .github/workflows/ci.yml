@@ -1,0 +1,192 @@
+name: build
+
+on: [push]
+
+env:
+  app_version_number: '2.0'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v2
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+           go-version: '^1.13.1'
+
+      - uses: mkrakowitzer/actions-makepdfs@master
+        name: Generate PDF-files
+        with:
+            markdown_dir: .
+            output_dir: .
+
+# Preparing folder structure for all platforms
+
+      - name: Create base folders for x86-based MacOS 64-bit, arm-based MacOS 64-bit, Windows 32 bit and Windows 64 bit
+        run: mkdir -p dist/whatsapp-jpeg-repair-macos-x86-v${{env.app_version_number}} dist/whatsapp-jpeg-repair-win32-v${{env.app_version_number}} dist/whatsapp-jpeg-repair-win-x64-v${{env.app_version_number}}
+
+      - name: Create internal folders for x86-based MacOS 64-bit, arm-based MacOS 64-bit, Windows 32 bit and Windows 64 bit
+        run: mkdir -p dist/whatsapp-jpeg-repair-macos-x86-v${{env.app_version_number}}/whatsapp-files dist/whatsapp-jpeg-repair-macos-x86-v${{env.app_version_number}}/fixed-files dist/whatsapp-jpeg-repair-win32-v${{env.app_version_number}}/whatsapp-files dist/whatsapp-jpeg-repair-win32-v${{env.app_version_number}}/fixed-files dist/whatsapp-jpeg-repair-win-x64-v${{env.app_version_number}}/whatsapp-files dist/whatsapp-jpeg-repair-win-x64-v${{env.app_version_number}}/fixed-files
+
+# Building the application for all platforms
+
+      - name: Run build for x86-based MacOS 64-bit
+        run: env GOOS=darwin GOARCH=amd64 go build -o dist/whatsapp-jpeg-repair-macos-x86-v${{env.app_version_number}} WhatsAppJpegRepair.go
+
+      - name: Run build for for Windows 32-bit
+        run: env GOOS=windows GOARCH=386 go build -o dist/whatsapp-jpeg-repair-win32-v${{env.app_version_number}} WhatsAppJpegRepair.go
+
+      - name: Run build for for Windows 64-bit
+        run: env GOOS=windows GOARCH=amd64 go build -o dist/whatsapp-jpeg-repair-win-x64-v${{env.app_version_number}} WhatsAppJpegRepair.go
+
+# Preparing zip-archives
+
+# Preparing zip-archive for MacOS x86 platform
+
+      - name: Copy license and readme files to MacOS x86 64bit folder
+        run: cp -t dist/whatsapp-jpeg-repair-macos-x86-v${{env.app_version_number}} LICENSE README.pdf Changelog.txt
+
+      - name: Copy sample broken whatsapp files to MacOS x86 64bit folder
+        run: cp -t dist/whatsapp-jpeg-repair-macos-x86-v${{env.app_version_number}}/whatsapp-files whatsapp-files/*.jpg
+
+      - uses: papeloto/action-zip@v1
+        with:
+          files: dist/whatsapp-jpeg-repair-macos-x86-v${{env.app_version_number}}
+          dest: dist/whatsapp-jpeg-repair-macos-x86-v${{env.app_version_number}}.zip
+
+# Preparing zip-archive for Windows 32bit platform
+
+      - name: Copy license and readme files to Windows 32 bit folder
+        run: cp -t dist/whatsapp-jpeg-repair-win32-v${{env.app_version_number}} LICENSE README.pdf Changelog.txt
+
+      - name: Copy sample broken whatsapp files to Windows 32 bit folder
+        run: cp -t dist/whatsapp-jpeg-repair-win32-v${{env.app_version_number}}/whatsapp-files whatsapp-files/*.jpg
+
+      - uses: papeloto/action-zip@v1
+        with:
+          files: dist/whatsapp-jpeg-repair-win32-v${{env.app_version_number}}
+          dest: dist/whatsapp-jpeg-repair-win32-v${{env.app_version_number}}.zip
+
+# Preparing zip-archive for Windows 64bit platform
+
+      - name: Copy license and readme files to Windows 64 bit folder
+        run: cp -t dist/whatsapp-jpeg-repair-win-x64-v${{env.app_version_number}} LICENSE README.pdf Changelog.txt
+
+      - name: Copy sample broken whatsapp files to Windows 64 bit folder
+        run: cp -t dist/whatsapp-jpeg-repair-win-x64-v${{env.app_version_number}}/whatsapp-files whatsapp-files/*.jpg
+
+      - uses: papeloto/action-zip@v1
+        with:
+          files: dist/whatsapp-jpeg-repair-win-x64-v${{env.app_version_number}}
+          dest: dist/whatsapp-jpeg-repair-win-x64-v${{env.app_version_number}}.zip
+
+# Upload artifacts for all platforms
+
+# Artifact for MacOS x86 64bit
+
+      - name: 'Upload Artifact for MacOS Intel x64'
+        uses: actions/upload-artifact@v2
+        with:
+          name: whatsapp-jpeg-repair-macos-x86-v${{env.app_version_number}}
+          path: dist/whatsapp-jpeg-repair-macos-x86-v${{env.app_version_number}}.zip
+
+      - name: Create Draft Release for MacOS Intel x64
+        id: create_release_macos_intel
+        uses: actions/create-release@v1
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+         body: 'This version built for MacOS 64-bit operating systems running on computers with Intel CPU'                
+         tag_name: v${{env.app_version_number}}-MacOS-x86
+         release_name: 'WhatsApp Jpeg Image Repair. Version ${{env.app_version_number}} (for MacOS)'
+         draft: true
+         prerelease: false
+
+      - uses: actions/upload-release-asset@v1.0.1
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+            upload_url: ${{ steps.create_release_macos_intel.outputs.upload_url }}
+            asset_path: dist/whatsapp-jpeg-repair-macos-x86-v${{env.app_version_number}}.zip
+            asset_name: whatsapp-jpeg-repair-macos-x86-v${{env.app_version_number}}.zip
+            asset_content_type: application/zip
+
+      - uses: eregon/publish-release@v1
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+            release_id: ${{ steps.create_release_macos_intel.outputs.id }}
+
+# Artifact for Windows 32 bit
+
+      - name: 'Upload Artifact for Windows 32 bit'
+        uses: actions/upload-artifact@v2
+        with:
+          name: whatsapp-jpeg-repair-win32-v${{env.app_version_number}}
+          path: dist/whatsapp-jpeg-repair-win32-v${{env.app_version_number}}.zip
+
+      - name: Create Draft Release for Windows 32 bit
+        id: create_release_windows_32bit
+        uses: actions/create-release@v1
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+         body: 'This version built for Windows 32-bit operating systems'
+         tag_name: v${{env.app_version_number}}-win32
+         release_name: 'WhatsApp Jpeg Image Repair. Version ${{env.app_version_number}} (for Windows 32-bit operating system)'
+         draft: true
+         prerelease: false
+
+      - uses: actions/upload-release-asset@v1.0.1
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+            upload_url: ${{ steps.create_release_windows_32bit.outputs.upload_url }}
+            asset_path: dist/whatsapp-jpeg-repair-win32-v${{env.app_version_number}}.zip
+            asset_name: whatsapp-jpeg-repair-win32-v${{env.app_version_number}}.zip
+            asset_content_type: application/zip
+
+      - uses: eregon/publish-release@v1
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+            release_id: ${{ steps.create_release_windows_32bit.outputs.id }}
+
+# Artifact for Windows 64 bit
+
+      - name: 'Upload Artifact for Windows 64 bit'
+        uses: actions/upload-artifact@v2
+        with:
+          name: whatsapp-jpeg-repair-win-x64
+          path: dist/whatsapp-jpeg-repair-win-x64-v${{env.app_version_number}}.zip
+
+      - name: Create Draft Release for Windows 64 bit
+        id: create_release_windows_64bit
+        uses: actions/create-release@v1
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+         body: 'This version built for Windows 64-bit operating systems'        
+         tag_name: v${{env.app_version_number}}-win-x64
+         release_name: 'WhatsApp Jpeg Image Repair. Version ${{env.app_version_number}} (for Windows 64-bit operating system)'
+         draft: true
+         prerelease: false
+
+      - uses: actions/upload-release-asset@v1.0.1
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+            upload_url: ${{ steps.create_release_windows_64bit.outputs.upload_url }}
+            asset_path: dist/whatsapp-jpeg-repair-win-x64-v${{env.app_version_number}}.zip
+            asset_name: whatsapp-jpeg-repair-win-x64-v${{env.app_version_number}}.zip
+            asset_content_type: application/zip
+
+      - uses: eregon/publish-release@v1
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+            release_id: ${{ steps.create_release_windows_64bit.outputs.id }}
