@@ -86,23 +86,28 @@ jobs:
 
 # Upload artifacts for all platforms
 
-# Artifact for MacOS x86 64bit
-
       - name: 'Upload Artifact for MacOS Intel x64'
         uses: actions/upload-artifact@v2
         with:
           name: whatsapp-jpeg-repair-macos-x86-v${{env.app_version_number}}
           path: dist/whatsapp-jpeg-repair-macos-x86-v${{env.app_version_number}}.zip
 
-      - name: Create Draft Release for MacOS Intel x64
-        id: create_release_macos_intel
+      - name: Create draft release
+        id: create_release
         uses: actions/create-release@v1
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-         body: 'This version built for MacOS 64-bit operating systems running on computers with Intel CPU'                
-         tag_name: v${{env.app_version_number}}-MacOS-x86
-         release_name: 'WhatsApp Jpeg Image Repair. Version ${{env.app_version_number}} (for MacOS)'
+         body: "Download application zip file relevant to your operating system:
+
+
+If you are using 64-bit Windows OS, download: whatsapp-jpeg-repair-win-x64-v${{env.app_version_number}}.zip
+
+If you are using 32-bit Windows OS, download: whatsapp-jpeg-repair-win32-v${{env.app_version_number}}.zip
+
+If you are using MacOS, download: whatsapp-jpeg-repair-macos-x86-v${{env.app_version_number}}.zip and note the comment for MacOS users in README.pdf file in the application archive."
+         tag_name: v${{env.app_version_number}}
+         release_name: 'WhatsApp Jpeg Image Repair. Version ${{env.app_version_number}}'
          draft: true
          prerelease: false
 
@@ -110,7 +115,25 @@ jobs:
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-            upload_url: ${{ steps.create_release_macos_intel.outputs.upload_url }}
+            upload_url: ${{ steps.create_release.outputs.upload_url }}
+            asset_path: dist/whatsapp-jpeg-repair-win-x64-v${{env.app_version_number}}.zip
+            asset_name: whatsapp-jpeg-repair-win-x64-v${{env.app_version_number}}.zip
+            asset_content_type: application/zip
+
+      - uses: actions/upload-release-asset@v1.0.1
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+            upload_url: ${{ steps.create_release.outputs.upload_url }}
+            asset_path: dist/whatsapp-jpeg-repair-win32-v${{env.app_version_number}}.zip
+            asset_name: whatsapp-jpeg-repair-win32-v${{env.app_version_number}}.zip
+            asset_content_type: application/zip            
+
+      - uses: actions/upload-release-asset@v1.0.1
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+            upload_url: ${{ steps.create_release.outputs.upload_url }}
             asset_path: dist/whatsapp-jpeg-repair-macos-x86-v${{env.app_version_number}}.zip
             asset_name: whatsapp-jpeg-repair-macos-x86-v${{env.app_version_number}}.zip
             asset_content_type: application/zip
@@ -119,74 +142,4 @@ jobs:
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-            release_id: ${{ steps.create_release_macos_intel.outputs.id }}
-
-# Artifact for Windows 32 bit
-
-      - name: 'Upload Artifact for Windows 32 bit'
-        uses: actions/upload-artifact@v2
-        with:
-          name: whatsapp-jpeg-repair-win32-v${{env.app_version_number}}
-          path: dist/whatsapp-jpeg-repair-win32-v${{env.app_version_number}}.zip
-
-      - name: Create Draft Release for Windows 32 bit
-        id: create_release_windows_32bit
-        uses: actions/create-release@v1
-        env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-         body: 'This version built for Windows 32-bit operating systems'
-         tag_name: v${{env.app_version_number}}-win32
-         release_name: 'WhatsApp Jpeg Image Repair. Version ${{env.app_version_number}} (for Windows 32-bit operating system)'
-         draft: true
-         prerelease: false
-
-      - uses: actions/upload-release-asset@v1.0.1
-        env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-            upload_url: ${{ steps.create_release_windows_32bit.outputs.upload_url }}
-            asset_path: dist/whatsapp-jpeg-repair-win32-v${{env.app_version_number}}.zip
-            asset_name: whatsapp-jpeg-repair-win32-v${{env.app_version_number}}.zip
-            asset_content_type: application/zip
-
-      - uses: eregon/publish-release@v1
-        env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-            release_id: ${{ steps.create_release_windows_32bit.outputs.id }}
-
-# Artifact for Windows 64 bit
-
-      - name: 'Upload Artifact for Windows 64 bit'
-        uses: actions/upload-artifact@v2
-        with:
-          name: whatsapp-jpeg-repair-win-x64
-          path: dist/whatsapp-jpeg-repair-win-x64-v${{env.app_version_number}}.zip
-
-      - name: Create Draft Release for Windows 64 bit
-        id: create_release_windows_64bit
-        uses: actions/create-release@v1
-        env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-         body: 'This version built for Windows 64-bit operating systems'        
-         tag_name: v${{env.app_version_number}}-win-x64
-         release_name: 'WhatsApp Jpeg Image Repair. Version ${{env.app_version_number}} (for Windows 64-bit operating system)'
-         draft: true
-         prerelease: false
-
-      - uses: actions/upload-release-asset@v1.0.1
-        env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-            upload_url: ${{ steps.create_release_windows_64bit.outputs.upload_url }}
-            asset_path: dist/whatsapp-jpeg-repair-win-x64-v${{env.app_version_number}}.zip
-            asset_name: whatsapp-jpeg-repair-win-x64-v${{env.app_version_number}}.zip
-            asset_content_type: application/zip
-
-      - uses: eregon/publish-release@v1
-        env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-            release_id: ${{ steps.create_release_windows_64bit.outputs.id }}
+            release_id: ${{ steps.create_release.outputs.id }}

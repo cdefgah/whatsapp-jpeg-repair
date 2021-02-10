@@ -11,7 +11,7 @@ For such cases users advised to open the broken file in MS Paint (or something s
 WhatsApp Jpeg Image Repair application solves this problem and can repair many broken files at once.
 
 Follow these steps:
-1. Download application archive. Navigate to [the application releases](https://github.com/cdefgah/whatsapp-jpeg-repair/releases). Then expand `Assets` section and download `whatsapp-jpeg-repair-{platform}-{version}.zip` file according to your operating system.
+1. Download application archive. Navigate to [the application releases](https://github.com/cdefgah/whatsapp-jpeg-repair/releases). Then expand `Assets` section and download application zip archive relevant to your operating system.
 2. Unzip application archive to an arbitrary folder. I recommend to use your home folder, for example `Documents` or `Desktop` folder, to prevent filesystem access control issues upon running the application. If you use MacOS, please note that MacOS Gatekeeper blocks this application when you try to launch it. To run downloaded application on MacOS your should either [disable MacOS Gatekeeper](https://www.google.com/search?q=disable+MacOS+Gatekeeper) or build the application from the source code as described hereinafter, and replace existing executable in downloaded archive with new executable file you have built from the source code.
 3. Open application folder `WhatsAppJpegRepair`.
 4. Place broken jpeg files from WhatsApp to the `whatsapp-files` directory, located in the application folder.
@@ -57,7 +57,7 @@ WhatsAppJpegRepair -useCurrentModificationDateTime=true
 this call will use default source and destination folders (check `-srcPath` and `-destPath` options above), will wait until user presses Enter when the application completed the file processing,
 and will set current date/time as file modification time for created fixed files.
 
-There are no mandatory options provided. You can run the application without parameters, and all default values for options will be used.
+There are no mandatory options provided. You can run the application without parameters, or set arbitrary set of parameters, for the rest of parameters default values will be applied.
 
 ## Building the application from the source
 
