@@ -18,11 +18,12 @@ jobs:
         with:
            go-version: '^1.13.1'
 
-      - uses: mkrakowitzer/actions-makepdfs@master
+      - uses: baileyjm02/markdown-to-pdf@v1
         name: Generate PDF-files
         with:
-            markdown_dir: .
+            input_dir: .
             output_dir: .
+            build_html: false
 
 # Preparing folder structure for all platforms
 
