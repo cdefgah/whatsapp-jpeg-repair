@@ -1,3 +1,8 @@
+/*
+SPDX-License-Identifier: GPL-3.0-only
+Copyright (c) 2020 - 2021 by Rafael Osipov <rafael.osipov@outlook.com>
+*/
+
 package main
 
 import (
@@ -98,11 +103,13 @@ func main() {
 	}
 }
 
-// Repairs broken jpeg image files
-// Gets location of broken files in sourceFolderPath variable
-// and the location of folder, where fixed files will be stored, in the destinationFolderPath variable
-// set useCurrentModificationDateTime as the relevant parameter value.
-// Returns true, if there were no errors upon files processing, false otherwise.
+/*
+Repairs broken jpeg image files
+Gets location of broken files in sourceFolderPath variable
+and the location of folder, where fixed files will be stored, in the destinationFolderPath variable
+set useCurrentModificationDateTime as the relevant parameter value.
+Returns true, if there were no errors upon files processing, false otherwise.
+*/
 func repairImageFiles(sourceFolderPath string, destinationFolderPath string, useCurrentModificationDateTime bool) bool {
 	var totalFilesCount int32
 	var processedFilesCount int32
