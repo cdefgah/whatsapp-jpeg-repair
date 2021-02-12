@@ -135,13 +135,15 @@ func repairImageFiles(sourceFolderPath string, destinationFolderPath string, use
 	return totalFilesCount == processedFilesCount
 }
 
-// Processes single jpeg image file.
-// sourceFolderPath - path to folder, where broken image files are located.
-// sourceFileNameWithExtension contains filename with extension of image file, that should be processed.
-// destinationFilesFolderPath contains path to folder, where fixed image file will be stored.
-// useCurrentModificationDateTime if true, setting current date/time as file modification time for generated file.
-// otherwise preserves source file modification date/time.
-// Returns true, if there were no errors upon file processing, false otherwise.
+/*
+Processes single jpeg image file.
+sourceFolderPath - path to folder, where broken image files are located.
+sourceFileNameWithExtension contains filename with extension of image file, that should be processed.
+destinationFilesFolderPath contains path to folder, where fixed image file will be stored.
+useCurrentModificationDateTime if true, setting current date/time as file modification time for generated file.
+otherwise preserves source file modification date/time.
+Returns true, if there were no errors upon file processing, false otherwise.
+*/
 func processSingleImageFile(sourceFolderPath string, sourceFileNameWithExtension string, destinationFilesFolderPath string, useCurrentModificationDateTime bool) bool {
 
 	var sourceFilePath = filepath.Join(sourceFolderPath, sourceFileNameWithExtension)
@@ -184,9 +186,11 @@ func processSingleImageFile(sourceFolderPath string, sourceFileNameWithExtension
 	return true
 }
 
-// Loads image from the file.
-// filePath contains path to the image file.
-// Returns object with saved image, or error, if something went wrong.
+/*
+Loads image from the file.
+filePath contains path to the image file.
+Returns object with saved image, or error, if something went wrong.
+*/
 func getImageFromFilePath(filePath string) (image.Image, error) {
 	f, err := os.Open(filePath)
 	if err != nil {
