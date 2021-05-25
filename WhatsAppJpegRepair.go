@@ -196,6 +196,9 @@ func getImageFromFilePath(filePath string) (image.Image, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	defer f.Close()
+
 	image, _, err := image.Decode(f)
 	return image, err
 }
