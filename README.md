@@ -16,7 +16,7 @@ Follow these steps:
 3. Open application folder `WhatsAppJpegRepair`.
 4. Place broken jpeg files from WhatsApp to the `whatsapp-files` directory, located in the application folder.
 5. Run the application.
-6. Go to the `fixed-files` folder to get repaired image files.
+6. Go to the `repaired-files` folder to get repaired image files.
 
 Options and switches:
 
@@ -32,14 +32,14 @@ WhatsAppJpegRepair -srcPath=/home/username/Documents/Photos/WhatsAppFiles
 this call will use `/home/username/Documents/Photos/WhatsAppFiles` folder as the source path to get broken whatsapp files.
 
 `-destPath` - contains path to the folder, where repaired files will be stored.
-By default the application internal folder `fixed-files` is being used.
+By default the application internal folder `repaired-files` is being used.
 If this folder does not exist, it will be created at runtime.
 
 Example:
 ```
-WhatsAppJpegRepair -srcPath=/home/username/Documents/Photos/WhatsAppFiles -destPath=/home/username/Documents/FixedPhotos
+WhatsAppJpegRepair -srcPath=/home/username/Documents/Photos/WhatsAppFiles -destPath=/home/username/Documents/RepairedPhotos
 ```
-this call will use `/home/username/Documents/Photos/WhatsAppFiles` folder to look for broken whatsapp files, and will use `/home/username/Documents/FixedPhotos` folder to store repaired images.
+this call will use `/home/username/Documents/Photos/WhatsAppFiles` folder to look for broken whatsapp files, and will use `/home/username/Documents/RepairedPhotos` folder to store repaired images.
 
 `-dontWaitToClose` - if it is set to `true`, the application wil close when done, otherwise it will wait until user presses 'Enter'. Default value is `false`.
 
@@ -47,7 +47,7 @@ Example:
 ```
 WhatsAppJpegRepair -srcPath=/home/username/Documents/Photos/WhatsAppFiles -dontWaitToClose=true
 ```
-this call will use folder `/home/username/Documents/Photos/WhatsAppFiles` as a source files path, and application will be closed as it finished files processing. All repaired files will be stored to the default destination folder `fixed-files` (check `-destPath` option description above).
+this call will use folder `/home/username/Documents/Photos/WhatsAppFiles` as a source files path, and application will be closed as it finished files processing. All repaired files will be stored to the default destination folder `repaired-files` (check `-destPath` option description above).
 
 `-useCurrentModificationDateTime` - when set to `true`, this switch sets current date/time as repaired files' 'modified' attribute. By default it is set `false`: all repaired files retain the same file modification date/time as source (broken) image files.
 
