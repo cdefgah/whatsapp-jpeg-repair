@@ -3,7 +3,7 @@ name: build
 on: [push]
 
 env:
-  app_version_number: '2.0'
+  app_version_number: '2.1.0'
 
 jobs:
   build:
@@ -27,11 +27,11 @@ jobs:
 
 # Preparing folder structure for all platforms
 
-      - name: Create base folders for x86-based MacOS 64-bit, arm-based MacOS 64-bit, Windows 32 bit and Windows 64 bit
+      - name: Create base folders for MacOS x86, Windows 32 bit and Windows 64 bit platforms
         run: mkdir -p dist/whatsapp-jpeg-repair-macos-x86-v${{env.app_version_number}} dist/whatsapp-jpeg-repair-win32-v${{env.app_version_number}} dist/whatsapp-jpeg-repair-win-x64-v${{env.app_version_number}}
 
-      - name: Create internal folders for x86-based MacOS 64-bit, arm-based MacOS 64-bit, Windows 32 bit and Windows 64 bit
-        run: mkdir -p dist/whatsapp-jpeg-repair-macos-x86-v${{env.app_version_number}}/whatsapp-files dist/whatsapp-jpeg-repair-macos-x86-v${{env.app_version_number}}/fixed-files dist/whatsapp-jpeg-repair-win32-v${{env.app_version_number}}/whatsapp-files dist/whatsapp-jpeg-repair-win32-v${{env.app_version_number}}/fixed-files dist/whatsapp-jpeg-repair-win-x64-v${{env.app_version_number}}/whatsapp-files dist/whatsapp-jpeg-repair-win-x64-v${{env.app_version_number}}/fixed-files
+      - name: Create internal folders for MacOS x86, Windows 32 bit and Windows 64 bit platforms
+        run: mkdir -p dist/whatsapp-jpeg-repair-macos-x86-v${{env.app_version_number}}/whatsapp-files dist/whatsapp-jpeg-repair-macos-x86-v${{env.app_version_number}}/repaired-files dist/whatsapp-jpeg-repair-win32-v${{env.app_version_number}}/whatsapp-files dist/whatsapp-jpeg-repair-win32-v${{env.app_version_number}}/repaired-files dist/whatsapp-jpeg-repair-win-x64-v${{env.app_version_number}}/whatsapp-files dist/whatsapp-jpeg-repair-win-x64-v${{env.app_version_number}}/repaired-files
 
 # Building the application for all platforms
 

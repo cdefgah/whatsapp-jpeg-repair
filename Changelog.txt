@@ -2,3 +2,8 @@ version 2.0
 
 Breaking changes.
 Introduced new command line options to control source and destination path, file modification time for fixed files, and user interface control option.
+
+version 2.0.1
+
++ Renamed default folder "fixed-files" to "repaired-files"
++ Introduced new option "-deleteWhatsAppFiles", when it is set to true, the application deletes source whatsapp files upon processing and only repaired files remain. By default it is false.

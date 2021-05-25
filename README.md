@@ -51,11 +51,20 @@ this call will use folder `/home/username/Documents/Photos/WhatsAppFiles` as a s
 
 `-useCurrentModificationDateTime` - when set to `true`, this switch sets current date/time as repaired files' 'modified' attribute. By default it is set `false`: all repaired files retain the same file modification date/time as source (broken) image files.
 
+Example:
 ```
 WhatsAppJpegRepair -useCurrentModificationDateTime=true
 ```
 this call will use default source and destination folders (check `-srcPath` and `-destPath` options above), the application will wait until user presses Enter to exit when all files are processed,
 and current date/time will be set as file modification time for created repaired files.
+
+`-deleteWhatsAppFiles` - when set to `true`, the application deletes every processed whatsapp file when done and only repaired files remain. By default is `false`. Usage example:
+
+Example:
+```
+WhatsAppJpegRepair -deleteWhatsAppFiles=true
+```
+this call will use default source and destination folders (check `-srcPath` and `-destPath` options above), will preserve repaired file modification date/times (check `-useCurrentModificationDateTime` option above), will remove all processed source whatsapp files and will wait until user presses Enter to exit when all files are processed.
 
 None of these options are mandatory. You can run the application without parameters, or set arbitrary set of parameters, default values will be applied for the rest.
 
