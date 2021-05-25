@@ -1,4 +1,5 @@
 # WhatsApp Jpeg Image Repair
+## version 2.1.0 (released on May 25, 2021)
 
 [![](https://github.com/cdefgah/whatsapp-jpeg-repair/workflows/build/badge.svg)](https://github.com/cdefgah/whatsapp-jpeg-repair/actions)
 
