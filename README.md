@@ -59,7 +59,7 @@ WhatsAppJpegRepair -useCurrentModificationDateTime=true
 this call will use default source and destination folders (check `-srcPath` and `-destPath` options above), the application will wait until user presses Enter to exit when all files are processed,
 and current date/time will be set as file modification time for created repaired files.
 
-`-deleteWhatsAppFiles` - when set to `true`, the application deletes every processed whatsapp file when done and only repaired files remain. By default is `false`. Usage example:
+`-deleteWhatsAppFiles` - when set to `true`, the application deletes every processed whatsapp file when done and only repaired files remain. By default it is `false`.
 
 Example:
 ```
