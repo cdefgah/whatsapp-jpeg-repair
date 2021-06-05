@@ -20,7 +20,7 @@ import (
 
 func main() {
 
-	fmt.Println(`WhatsAppJpegRepair version 2.1.0 Copyright (c) 2021 by Rafael Osipov (rafael.osipov@outlook.com)
+	fmt.Println(`WhatsAppJpegRepair version 2.1.1 Copyright (c) 2021 by Rafael Osipov (rafael.osipov@outlook.com)
 	Repairs jpeg images saved from WhatsApp application to prevent errors upon opening these images in the Adobe Photoshop.
 	Project web-site, source code and documentation: https://github.com/cdefgah/whatsapp-jpeg-repair`)
 

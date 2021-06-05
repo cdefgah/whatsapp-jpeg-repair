@@ -1,5 +1,5 @@
 # WhatsApp Jpeg Image Repair
-## version 2.1.0 (released on May 25, 2021)
+### version 2.1.1 (released on June 05, 2021)
 
 [![](https://github.com/cdefgah/whatsapp-jpeg-repair/workflows/build/badge.svg)](https://github.com/cdefgah/whatsapp-jpeg-repair/actions)
 
@@ -68,6 +68,18 @@ WhatsAppJpegRepair -deleteWhatsAppFiles=true
 this call will use default source and destination folders (check `-srcPath` and `-destPath` options above), will preserve repaired file modification date/times (check `-useCurrentModificationDateTime` option above), will remove all processed source whatsapp files and will wait until user presses Enter to exit when all files are processed.
 
 None of these options are mandatory. You can run the application without parameters, or set arbitrary set of parameters, default values will be applied for the rest.
+
+For users' convenience I've added script files `runme.bat` (for Windows) and `runme.sh` (for MacOS). These scripts launch the application with some parameters set to default values. Just edit these files, set the relevant properties, and/or add/remove properties you want, according to the instruction, save the script file and just run it.
+
+MacOS users, before using `runme.sh` open terminal in the application folder.
+Here is how: https://apple.stackexchange.com/questions/11323/how-can-i-open-a-terminal-window-directly-from-my-current-finder-location
+
+And then type in the terminal the following command:
+
+`chmod +x runme.sh`
+
+And press Enter. After that just close the terminal window.
+
 
 ## Building the application from the source
 
