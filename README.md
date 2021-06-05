@@ -69,7 +69,7 @@ this call will use default source and destination folders (check `-srcPath` and 
 
 None of these options are mandatory. You can run the application without parameters, or set arbitrary set of parameters, default values will be applied for the rest.
 
-For users' convenience I've added script files `runme.bat` (for Windows) and `runme.sh` (for MacOS). These scripts launch the application with some parameters set to default values. Just edit these files, set the relevant properties, and/or add/remove properties you want, according to the instruction, save the script file and just run it.
+For users' convenience I've added script files `runme.bat` (for Windows) and `runme.sh` (for MacOS). These scripts launch the application with some parameters set to default values. Just edit these files, change the relevant property values, and/or add/remove properties you want, according to the instruction, save the script file and just run it.
 
 MacOS users, before using `runme.sh` open terminal in the application folder.
 Here is how: https://apple.stackexchange.com/questions/11323/how-can-i-open-a-terminal-window-directly-from-my-current-finder-location
