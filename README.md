@@ -80,6 +80,16 @@ And then type in the terminal the following command:
 
 And press Enter. After that just close the terminal window.
 
+Please note, that `runme.bat` and `runme.sh` files are plain text files. And you don't need a special application to edit these files. 
+
+Just use a simple text editor of your choice, like `Notepad++` for Windows, or `TextEdit` on MacOS.
+
+For Windows users, install Notepad++: https://notepad-plus-plus.org/downloads/
+Then, just do the mouse right click on the `runme.bat` and select "Edit with Notepad++".
+
+For MacOS users, launch `TextEdit`, choose `File - Open` from menu and select `runme.sh` file:
+https://support.apple.com/guide/textedit/open-documents-txte51413d09/mac
+
 
 ## Building the application from the source
 
