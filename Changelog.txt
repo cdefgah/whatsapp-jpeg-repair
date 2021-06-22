@@ -16,5 +16,5 @@ version 2.1.1
 
 + Added runme.bat (for Windows users) and runme.sh (for MacOS users).
 Both files contain call to the application with some parameters, assigned to default values.
-It should be convenient for users, who is not familiar with the terminal.
+It should be convenient for users not familiar with the terminal.
 Just edit a file, relevant to your operating system and set the parameter value according to your needs or add/remove necessary/unwanted parameters.
