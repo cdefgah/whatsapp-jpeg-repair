@@ -48,8 +48,8 @@ jobs:
 
 # Preparing zip-archive for MacOS x86 platform
 
-      - name: Copy sh, license and readme files to MacOS x86 64bit folder
-        run: cp -t dist/whatsapp-jpeg-repair-macos-x86-v${{env.app_version_number}} runme.sh LICENSE README.pdf Changelog.txt
+      - name: Copy source code, sh, license and readme files to MacOS x86 64bit folder
+        run: cp -t dist/whatsapp-jpeg-repair-macos-x86-v${{env.app_version_number}} WhatsAppJpegRepair.go runme.sh LICENSE README.pdf Changelog.txt
 
       - name: Copy sample broken whatsapp files to MacOS x86 64bit folder
         run: cp -t dist/whatsapp-jpeg-repair-macos-x86-v${{env.app_version_number}}/whatsapp-files whatsapp-files/*.jpg
@@ -106,7 +106,7 @@ If you are using 64-bit Windows OS, download: whatsapp-jpeg-repair-win-x64-v${{e
 
 If you are using 32-bit Windows OS, download: whatsapp-jpeg-repair-win32-v${{env.app_version_number}}.zip
 
-If you are using MacOS, download: whatsapp-jpeg-repair-macos-x86-v${{env.app_version_number}}.zip and note the comment for MacOS users in README.pdf file in the application archive."
+If you are using MacOS, download: whatsapp-jpeg-repair-macos-x86-v${{env.app_version_number}}.zip and read the important notice for MacOS users in README.pdf file in the application archive."
          tag_name: v${{env.app_version_number}}
          release_name: 'WhatsApp Jpeg Image Repair. Version ${{env.app_version_number}}'
          draft: true

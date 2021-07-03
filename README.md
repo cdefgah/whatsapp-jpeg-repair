@@ -9,11 +9,11 @@ When you are sent jpeg files via WhatsApp and then try to open received files in
 
 For this case users are usually advised to open the broken file in MS Paint (or something similar in MacOS) first and save it as jpeg file. Usually it helps, but when you have many broken image files, opening and saving them one by one may get a little tedious.
 
-WhatsApp Jpeg Image Repair application solves this problem by repairing multiple broken files at once.
+WhatsApp Jpeg Image Repair application solves this problem by repairing multiple broken files at once. If you are a MacOS user, please don't miss the important notice for MacOS users below. So, lets use the application:
 
 Follow these steps:
 1. Download application archive. Navigate to [the application releases](https://github.com/cdefgah/whatsapp-jpeg-repair/releases). Then expand `Assets` section and download application zip archive suitable for your operating system.
-2. Unzip application archive to the folder of your choosing, preferrably your home folder, e.g. `Documents` or `Desktop` folder, to prevent filesystem access control issues upon running the application. If you use MacOS, please note that MacOS Gatekeeper blocks this application when you try to launch it. To run downloaded application on MacOS your should either [disable MacOS Gatekeeper](https://www.google.com/search?q=disable+MacOS+Gatekeeper) or build the application from the source code as described below, and replace existing executable in downloaded zip archive with the newly-built file.
+2. Unzip application archive to the folder of your choosing, preferrably your home folder, e.g. `Documents` or `Desktop` folder, to prevent filesystem access control issues upon running the application. 
 3. Open application folder `WhatsAppJpegRepair`.
 4. Place broken jpeg files from WhatsApp to the `whatsapp-files` directory, located in the application folder.
 5. Run the application.
@@ -91,9 +91,22 @@ For MacOS users, launch `TextEdit`, choose `File - Open` from menu and select `r
 https://support.apple.com/guide/textedit/open-documents-txte51413d09/mac
 
 
+#### Important notice for MacOS users: 
+If you use MacOS, please note that MacOS Gatekeeper blocks this application when you try to launch it. To run the downloaded application on MacOS your should either [disable MacOS Gatekeeper](https://www.google.com/search?q=disable+MacOS+Gatekeeper) or build the application from the source code as described below, and replace existing executable in downloaded zip archive with the newly-built file. Building from the source code is recommended way, because disabling Gatekeeper on different MacOS versions is not an easy task.
+
+Source code file `WhatsAppJpegRepair.go` is included to the application archive for MacOS users. And in case you've decided to build the application from the source code, follow these steps:
+
+1. Delete existing `WhatsAppJpegRepair` file, please don't confuse this file with `WhatsAppJpegRepair.go`.
+2. Download and install Go language support from the official web-site: https://golang.org/
+3. Open terminal in the unzipped application folder, and execute the following command:
+```
+go build WhatsAppJpegRepair.go
+```
+A file with the name `WhatsAppJpegRepair` (without any extension) will be generated. And now you can run the application on your MacOS without disabling Gatekeeper.
+
 ## Building the application from the source
 
-1. Download and install Go language support: https://golang.org/
+1. Download and install Go language support for your platform: https://golang.org/
 2. In the application project folder run the following command:
 ```
 go build WhatsAppJpegRepair.go
