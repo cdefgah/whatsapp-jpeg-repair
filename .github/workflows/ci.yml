@@ -23,6 +23,11 @@ jobs:
             # This parameter contains path where the generated .pdf(s) will be stored.
             PDF_DIR: '.'
         }
+        
+      - uses: mkrakowitzer/actions-makepdfs@master
+        with:
+           markdown_dir: .
+           output_dir: .        
 
 # Preparing folder structure for all platforms
 
