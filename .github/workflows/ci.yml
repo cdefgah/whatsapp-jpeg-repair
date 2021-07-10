@@ -17,13 +17,12 @@ jobs:
         uses: actions/setup-go@v2
         with:
            go-version: '^1.13.1'
-
-      - uses: baileyjm02/markdown-to-pdf@v1
-        name: Generate PDF-files
-        with:
-            input_dir: .
-            output_dir: .
-            build_html: false
+            
+      - uses: scottypate/md-to-pdf@v0.1.1
+        env: {
+            # This parameter contains path where the generated .pdf(s) will be stored.
+            PDF_DIR: '.'
+        }
 
 # Preparing folder structure for all platforms
 
@@ -49,7 +48,7 @@ jobs:
 # Preparing zip-archive for MacOS x86 platform
 
       - name: Copy source code, sh, license and readme files to MacOS x86 64bit folder
-        run: cp -t dist/whatsapp-jpeg-repair-macos-x86-v${{env.app_version_number}} WhatsAppJpegRepair.go runme.sh LICENSE README.pdf Changelog.txt
+        run: cp -t dist/whatsapp-jpeg-repair-macos-x86-v${{env.app_version_number}} WhatsAppJpegRepair.go runme.sh LICENSE.txt README.pdf CHANGELOG.pdf
 
       - name: Copy sample broken whatsapp files to MacOS x86 64bit folder
         run: cp -t dist/whatsapp-jpeg-repair-macos-x86-v${{env.app_version_number}}/whatsapp-files whatsapp-files/*.jpg
@@ -62,7 +61,7 @@ jobs:
 # Preparing zip-archive for Windows 32bit platform
 
       - name: Copy bat, license and readme files to Windows 32 bit folder
-        run: cp -t dist/whatsapp-jpeg-repair-win32-v${{env.app_version_number}} runme.bat LICENSE README.pdf Changelog.txt
+        run: cp -t dist/whatsapp-jpeg-repair-win32-v${{env.app_version_number}} runme.bat LICENSE.txt README.pdf CHANGELOG.pdf
 
       - name: Copy sample broken whatsapp files to Windows 32 bit folder
         run: cp -t dist/whatsapp-jpeg-repair-win32-v${{env.app_version_number}}/whatsapp-files whatsapp-files/*.jpg
@@ -75,7 +74,7 @@ jobs:
 # Preparing zip-archive for Windows 64bit platform
 
       - name: Copy bat, license and readme files to Windows 64 bit folder
-        run: cp -t dist/whatsapp-jpeg-repair-win-x64-v${{env.app_version_number}} runme.bat LICENSE README.pdf Changelog.txt
+        run: cp -t dist/whatsapp-jpeg-repair-win-x64-v${{env.app_version_number}} runme.bat LICENSE.txt README.pdf CHANGELOG.pdf
 
       - name: Copy sample broken whatsapp files to Windows 64 bit folder
         run: cp -t dist/whatsapp-jpeg-repair-win-x64-v${{env.app_version_number}}/whatsapp-files whatsapp-files/*.jpg
