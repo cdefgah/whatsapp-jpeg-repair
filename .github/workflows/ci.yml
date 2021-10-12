@@ -18,9 +18,11 @@ jobs:
         with:
            go-version: '^1.13.1'
         
-      - uses: shrink/actions-document-publish@v1
+      - uses: mkrakowitzer/actions-makepdfs@master
+        if: github.ref == 'refs/heads/master'
         with:
-           sources: 'README.md CHANGELOG.md'
+           markdown_dir:.
+           output_dir:.
 
 # Preparing folder structure for all platforms
 
