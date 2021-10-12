@@ -18,12 +18,6 @@ jobs:
         with:
            go-version: '^1.13.1'
         
-      - uses: mkrakowitzer/actions-makepdfs@master
-        if: github.ref == 'refs/heads/master'
-        with:
-           markdown_dir: .
-           output_dir: .
-
 # Preparing folder structure for all platforms
 
       - name: Create base folders for MacOS x86, Windows 32 bit and Windows 64 bit platforms
@@ -48,7 +42,7 @@ jobs:
 # Preparing zip-archive for MacOS x86 platform
 
       - name: Copy source code, sh, license and readme files to MacOS x86 64bit folder
-        run: cp -t dist/whatsapp-jpeg-repair-macos-x86-v${{env.app_version_number}} WhatsAppJpegRepair.go runme.sh LICENSE.txt README.pdf CHANGELOG.pdf
+        run: cp -t dist/whatsapp-jpeg-repair-macos-x86-v${{env.app_version_number}} WhatsAppJpegRepair.go runme.sh LICENSE.txt README.md CHANGELOG.md
 
       - name: Copy sample broken whatsapp files to MacOS x86 64bit folder
         run: cp -t dist/whatsapp-jpeg-repair-macos-x86-v${{env.app_version_number}}/whatsapp-files whatsapp-files/*.jpg
@@ -61,7 +55,7 @@ jobs:
 # Preparing zip-archive for Windows 32bit platform
 
       - name: Copy bat, license and readme files to Windows 32 bit folder
-        run: cp -t dist/whatsapp-jpeg-repair-win32-v${{env.app_version_number}} runme.bat LICENSE.txt README.pdf CHANGELOG.pdf
+        run: cp -t dist/whatsapp-jpeg-repair-win32-v${{env.app_version_number}} runme.bat LICENSE.txt README.md CHANGELOG.md
 
       - name: Copy sample broken whatsapp files to Windows 32 bit folder
         run: cp -t dist/whatsapp-jpeg-repair-win32-v${{env.app_version_number}}/whatsapp-files whatsapp-files/*.jpg
@@ -74,7 +68,7 @@ jobs:
 # Preparing zip-archive for Windows 64bit platform
 
       - name: Copy bat, license and readme files to Windows 64 bit folder
-        run: cp -t dist/whatsapp-jpeg-repair-win-x64-v${{env.app_version_number}} runme.bat LICENSE.txt README.pdf CHANGELOG.pdf
+        run: cp -t dist/whatsapp-jpeg-repair-win-x64-v${{env.app_version_number}} runme.bat LICENSE.txt README.md CHANGELOG.md
 
       - name: Copy sample broken whatsapp files to Windows 64 bit folder
         run: cp -t dist/whatsapp-jpeg-repair-win-x64-v${{env.app_version_number}}/whatsapp-files whatsapp-files/*.jpg
@@ -105,7 +99,11 @@ If you are using 64-bit Windows OS, download: whatsapp-jpeg-repair-win-x64-v${{e
 
 If you are using 32-bit Windows OS, download: whatsapp-jpeg-repair-win32-v${{env.app_version_number}}.zip
 
-If you are using MacOS, download: whatsapp-jpeg-repair-macos-x86-v${{env.app_version_number}}.zip and read the important notice for MacOS users in README.pdf file in the application archive."
+If you are using Linux, download: whatsapp-jpeg-repair-macos-x86-v${{env.app_version_number}}.zip and note the "Linux users" chapter in README file
+
+If you are using MacOS, download: whatsapp-jpeg-repair-macos-x86-v${{env.app_version_number}}.zip."
+
+
          tag_name: v${{env.app_version_number}}
          release_name: 'WhatsApp Jpeg Image Repair. Version ${{env.app_version_number}}'
          draft: true
