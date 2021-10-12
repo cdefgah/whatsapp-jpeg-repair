@@ -20,7 +20,7 @@ jobs:
         
       - uses: shrink/actions-document-publish@v1
         with:
-           sources: './README.md ./CHANGELOG.md'
+           sources: 'README.md CHANGELOG.md'
 
 # Preparing folder structure for all platforms
 
