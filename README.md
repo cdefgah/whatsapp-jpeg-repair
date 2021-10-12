@@ -101,7 +101,7 @@ Next steps:
 7. Go to the `repaired-files` folder to get repaired image files.
 
 
-#### Options and switches:
+### Options and switches:
 
 `-srcPath` - contains path to the broken WhatsApp files
 By default the application internal folder `whatsapp-files` is being used.

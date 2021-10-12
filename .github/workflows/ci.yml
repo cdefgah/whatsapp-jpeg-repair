@@ -99,7 +99,7 @@ If you are using 64-bit Windows OS, download: whatsapp-jpeg-repair-win-x64-v${{e
 
 If you are using 32-bit Windows OS, download: whatsapp-jpeg-repair-win32-v${{env.app_version_number}}.zip
 
-If you are using MacOS, download: whatsapp-jpeg-repair-macos-x86-v${{env.app_version_number}}.zip."
+If you are using MacOS or Linux, download: whatsapp-jpeg-repair-macos-x86-v${{env.app_version_number}}.zip."
 
 
          tag_name: v${{env.app_version_number}}
