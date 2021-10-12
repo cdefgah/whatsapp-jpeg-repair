@@ -9,17 +9,99 @@ When you are sent jpeg files via WhatsApp and then try to open received files in
 
 For this case users are usually advised to open the broken file in MS Paint (or something similar in MacOS) first and save it as jpeg file. Usually it helps, but when you have many broken image files, opening and saving them one by one may get a little tedious.
 
-WhatsApp Jpeg Image Repair application solves this problem by repairing multiple broken files at once. If you are a MacOS user, please don't miss the important notice for MacOS users below. So, lets use the application:
+WhatsApp Jpeg Image Repair application solves this problem by repairing multiple broken files at once. 
 
-Follow these steps:
-1. Download application archive. Navigate to [the application releases](https://github.com/cdefgah/whatsapp-jpeg-repair/releases). Then expand `Assets` section and download application zip archive suitable for your operating system.
-2. Unzip application archive to the folder of your choosing, preferrably your home folder, e.g. `Documents` or `Desktop` folder, to prevent filesystem access control issues upon running the application. 
-3. Open application folder `WhatsAppJpegRepair`.
+## How to use the tool
+
+Download application archive. Navigate to [the application releases](https://github.com/cdefgah/whatsapp-jpeg-repair/releases). Then expand `Assets` section and download application zip archive suitable for your operating system. Linux users are advised to download zip file, built for MacOS operating system.
+
+Unzip application archive to the folder of your choosing, preferrably your home folder, e.g. `Documents` or `Desktop` folder, to prevent filesystem access control issues upon running the application.
+
+Below, there are steps for different operating systems. As you have done with these steps, navigate further to the `Common steps for all operating systems` chapter.
+
+### Microsoft Windows users
+
+For users' convenience I've added script file `runme.bat` file. It helps to use various options and switches to users who are not familiar with cmd-console/terminal window.
+
+Just edit this file, change the relevant options and switches (listed in the `Options and switches` chapter below), add/remove options/switches you want, save the file and just run it via mouse double click.
+
+Please note, that `runme.bat` file is a plain text file. And you don't need a special application to edit this file. 
+
+Just use a simple text editor of your choice, like `Notepad++`, it can be downloaded here: https://notepad-plus-plus.org/downloads/
+
+Install it, and then, just do the mouse right click on the `runme.bat` and select "Edit with Notepad++".
+
+Next steps:
+
+1. Place broken jpeg files from WhatsApp to the `whatsapp-files` directory, located in the application folder.
+2. Run the application.
+3. Go to the `repaired-files` folder to get repaired image files.
+
+### Apple MacOS users
+
+For users' convenience I've added script file `runme.sh` file. It helps to use various options and switches to users who are not familiar with terminal window. Available options are listed in the `Options and switches` chapter below.
+
+To edit `runme.sh` file launch `TextEdit`, choose `File - Open` from menu and select `runme.sh` file:
+https://support.apple.com/guide/textedit/open-documents-txte51413d09/mac
+
+Before using `runme.sh` open terminal in the application folder. Here is how: https://apple.stackexchange.com/questions/11323/how-can-i-open-a-terminal-window-directly-from-my-current-finder-location
+
+And then type in the terminal the following command:
+
+`chmod +x runme.sh`
+
+And press Enter. After that just close the terminal window.
+
+MacOS Gatekeeper blocks this application when you try to launch it. To run the downloaded application on MacOS your should either [disable MacOS Gatekeeper](https://www.google.com/search?q=disable+MacOS+Gatekeeper) or build the application from the source code as described below, and replace existing executable in downloaded zip archive with the newly-built file. Building from the source code is recommended way, because disabling Gatekeeper on different MacOS versions is not an easy task.
+
+Source code file `WhatsAppJpegRepair.go` is included to the application archive for MacOS users. And in case you've decided to build the application from the source code, follow these steps:
+
+1. Delete existing `WhatsAppJpegRepair` file, please don't confuse this file with `WhatsAppJpegRepair.go`.
+2. Download and install Go language support from the official web-site: https://golang.org/
+3. Open terminal in the unzipped application folder, and execute the following command:
+```
+go build WhatsAppJpegRepair.go
+```
+A file with the name `WhatsAppJpegRepair` (without any extension) will be generated. And now you can run the application on your MacOS without disabling Gatekeeper.
+
+Next steps:
+
 4. Place broken jpeg files from WhatsApp to the `whatsapp-files` directory, located in the application folder.
 5. Run the application.
 6. Go to the `repaired-files` folder to get repaired image files.
 
-Options and switches:
+### Linux users
+
+As you are a Linux user I suppose you are familiar with the terminal window and commands.
+Anyway for users' convenience I've added script file `runme.sh` file with some sample switches and options inside.
+Just edit it using your text editor and add/remove options and switches of your choice.
+
+Don't forget to assign `Executable` attribute to the `runme.sh` file via running the command:
+
+`chmod +x runme.sh`
+
+in the unzipped application folder.
+
+Now, let's build the tool from the source code for your Linux operating system.
+
+1. Install Go language support for Linux: https://golangdocs.com/install-go-linux
+2. Download and unpack zip-file, built for MacOS users as advised above or clone this the repository.
+3. Delete existing `WhatsAppJpegRepair` file, please don't confuse this file with `WhatsAppJpegRepair.go`.
+4. Open terminal in the unzipped application folder, and execute the following command:
+
+```
+go build WhatsAppJpegRepair.go
+```
+A file with the name `WhatsAppJpegRepair` (without any extension) will be generated.
+
+Next steps:
+
+5. Place broken jpeg files from WhatsApp to the `whatsapp-files` directory, located in the application folder.
+6. Run the application.
+7. Go to the `repaired-files` folder to get repaired image files.
+
+
+#### Options and switches:
 
 `-srcPath` - contains path to the broken WhatsApp files
 By default the application internal folder `whatsapp-files` is being used.
@@ -69,40 +151,6 @@ this call will use default source and destination folders (check `-srcPath` and 
 
 None of these options are mandatory. You can run the application without parameters, or set arbitrary set of parameters, default values will be applied for the rest.
 
-For users' convenience I've added script files `runme.bat` (for Windows) and `runme.sh` (for MacOS). These scripts launch the application with some parameters set to default values. Just edit these files, change the relevant property values, and/or add/remove properties you want, according to the instruction, save the script file and just run it.
-
-MacOS users, before using `runme.sh` open terminal in the application folder.
-Here is how: https://apple.stackexchange.com/questions/11323/how-can-i-open-a-terminal-window-directly-from-my-current-finder-location
-
-And then type in the terminal the following command:
-
-`chmod +x runme.sh`
-
-And press Enter. After that just close the terminal window.
-
-Please note, that `runme.bat` and `runme.sh` files are plain text files. And you don't need a special application to edit these files. 
-
-Just use a simple text editor of your choice, like `Notepad++` for Windows, or `TextEdit` on MacOS.
-
-For Windows users, install Notepad++: https://notepad-plus-plus.org/downloads/
-Then, just do the mouse right click on the `runme.bat` and select "Edit with Notepad++".
-
-For MacOS users, launch `TextEdit`, choose `File - Open` from menu and select `runme.sh` file:
-https://support.apple.com/guide/textedit/open-documents-txte51413d09/mac
-
-
-#### Important notice for MacOS users: 
-If you use MacOS, please note that MacOS Gatekeeper blocks this application when you try to launch it. To run the downloaded application on MacOS your should either [disable MacOS Gatekeeper](https://www.google.com/search?q=disable+MacOS+Gatekeeper) or build the application from the source code as described below, and replace existing executable in downloaded zip archive with the newly-built file. Building from the source code is recommended way, because disabling Gatekeeper on different MacOS versions is not an easy task.
-
-Source code file `WhatsAppJpegRepair.go` is included to the application archive for MacOS users. And in case you've decided to build the application from the source code, follow these steps:
-
-1. Delete existing `WhatsAppJpegRepair` file, please don't confuse this file with `WhatsAppJpegRepair.go`.
-2. Download and install Go language support from the official web-site: https://golang.org/
-3. Open terminal in the unzipped application folder, and execute the following command:
-```
-go build WhatsAppJpegRepair.go
-```
-A file with the name `WhatsAppJpegRepair` (without any extension) will be generated. And now you can run the application on your MacOS without disabling Gatekeeper.
 
 ## Building the application from the source
 
