@@ -23,11 +23,11 @@ Below, there are steps for different operating systems. As you have done with th
 
 For users' convenience I've added script file `runme.bat` file. It helps to use various options and switches to users who are not familiar with cmd-console/terminal window.
 
-Just edit this file, change the relevant options and switches (listed in the `Options and switches` chapter below), add/remove options/switches you want, save the file and just run it via mouse double click.
+Just edit this file, change the relevant options and switches (listed in the `Options and switches` chapter below), add/remove options/switches you want, save the file and just run it via mouse doubleclick.
 
 Please note, that `runme.bat` file is a plain text file. And you don't need a special application to edit this file. 
 
-Just use a simple text editor of your choice, like `Notepad++`, it can be downloaded here: https://notepad-plus-plus.org/downloads/
+Just use a simple text editor of your choosing, like `Notepad++`, it can be downloaded here: https://notepad-plus-plus.org/downloads/
 
 Install it, and then, just do the mouse right click on the `runme.bat` and select "Edit with Notepad++".
 
@@ -41,8 +41,7 @@ Next steps:
 
 For users' convenience I've added script file `runme.sh` file. It helps to use various options and switches to users who are not familiar with terminal window. Available options are listed in the `Options and switches` chapter below.
 
-To edit `runme.sh` file launch `TextEdit`, choose `File - Open` from menu and select `runme.sh` file:
-https://support.apple.com/guide/textedit/open-documents-txte51413d09/mac
+To edit `runme.sh` file launch `TextEdit`, choose `File - Open` from menu and select `runme.sh` file: https://support.apple.com/guide/textedit/open-documents-txte51413d09/mac
 
 Before using `runme.sh` open terminal in the application folder. Here is how: https://apple.stackexchange.com/questions/11323/how-can-i-open-a-terminal-window-directly-from-my-current-finder-location
 
@@ -52,7 +51,7 @@ And then type in the terminal the following command:
 
 And press Enter. After that just close the terminal window.
 
-MacOS Gatekeeper blocks this application when you try to launch it. To run the downloaded application on MacOS your should either [disable MacOS Gatekeeper](https://www.google.com/search?q=disable+MacOS+Gatekeeper) or build the application from the source code as described below, and replace existing executable in downloaded zip archive with the newly-built file. Building from the source code is recommended way, because disabling Gatekeeper on different MacOS versions is not an easy task.
+Please note that MacOS Gatekeeper blocks this application when you try to launch it. To run the downloaded application on MacOS your should either [disable MacOS Gatekeeper](https://www.google.com/search?q=disable+MacOS+Gatekeeper) or build the application from the source code as described below. And replace existing executable in downloaded zip archive with the newly-built file. Building from the source code is recommended way, because disabling Gatekeeper on different MacOS versions is not an easy task.
 
 Source code file `WhatsAppJpegRepair.go` is included to the application archive for MacOS users. And in case you've decided to build the application from the source code, follow these steps:
 
@@ -72,8 +71,7 @@ Next steps:
 
 ### Linux users
 
-As you are a Linux user I suppose you are familiar with the terminal window and commands.
-Anyway for users' convenience I've added script file `runme.sh` file with some sample switches and options inside.
+As you are a Linux user I suppose you are familiar with the terminal window and commands. Anyway for users' convenience I've added script file `runme.sh` file with some sample switches and options inside.
 Just edit it using your text editor and add/remove options and switches of your choice.
 
 Don't forget to assign `Executable` attribute to the `runme.sh` file via running the command:
@@ -85,7 +83,7 @@ in the unzipped application folder.
 Now, let's build the tool from the source code for your Linux operating system.
 
 1. Install Go language support for Linux: https://golangdocs.com/install-go-linux
-2. Download and unpack zip-file, built for MacOS users as advised above or clone this the repository.
+2. Download and unpack zip-file, built for MacOS users as advised above or clone this repository.
 3. Delete existing `WhatsAppJpegRepair` file, please don't confuse this file with `WhatsAppJpegRepair.go`.
 4. Open terminal in the unzipped application folder, and execute the following command:
 
