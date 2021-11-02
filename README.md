@@ -17,7 +17,7 @@ Download application archive. Navigate to [the application releases](https://git
 
 Unzip application archive to the folder of your choosing, preferrably your home folder, e.g. `Documents` or `Desktop` folder, to prevent filesystem access control issues upon running the application.
 
-Below, there are steps for different operating systems. As you have done with these steps, navigate further to the `Common steps for all operating systems` chapter.
+Below, there are step-by-step instructions for different operating systems.
 
 ### Microsoft Windows users
 
