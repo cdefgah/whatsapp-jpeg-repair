@@ -41,18 +41,12 @@ jobs:
       - name: Generate PDF for README
         uses: baileyjm02/markdown-to-pdf@v1
         with:
-          input_dir: README.md
-          output_dir: .
-          images_dir: .
-          build_html: false
+          input_path: README.md
 
       - name: Generate PDF for CHANGELOG
         uses: baileyjm02/markdown-to-pdf@v1
         with:
-          input_dir: CHANGELOG.md
-          output_dir: .
-          images_dir: .
-          build_html: false
+          input_path: CHANGELOG.md
 
 # Preparing zip-archives
 
