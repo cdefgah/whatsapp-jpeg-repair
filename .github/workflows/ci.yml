@@ -38,11 +38,18 @@ jobs:
         run: env GOOS=windows GOARCH=amd64 go build -o dist/whatsapp-jpeg-repair-win-x64-v${{env.app_version_number}} WhatsAppJpegRepair.go
 
 # Generating PDF files
-      - name: Generate PDF
+      - name: Generate PDF for README
         uses: baileyjm02/markdown-to-pdf@v1
         with:
-          sources: './README.md ./CHANGELOG.md'
-          input_dir: .
+          input_path: ./README.md
+          output_dir: .
+          images_dir: .
+          build_html: false
+
+      - name: Generate PDF for CHANGELOG
+        uses: baileyjm02/markdown-to-pdf@v1
+        with:
+          input_path: ./CHANGELOG.md
           output_dir: .
           images_dir: .
           build_html: false
