@@ -1,7 +1,8 @@
 # WhatsApp Jpeg Image Repair
-### version 2.1.1 (released on June 05, 2021)
 
-[![](https://github.com/cdefgah/whatsapp-jpeg-repair/workflows/build/badge.svg)](https://github.com/cdefgah/whatsapp-jpeg-repair/actions)
+## version 2.2.0 (released on April 29, 2023)
+
+[![Build Status](https://github.com/cdefgah/whatsapp-jpeg-repair/workflows/build/badge.svg)](https://github.com/cdefgah/whatsapp-jpeg-repair/actions)
 
 When you are sent jpeg files via WhatsApp and then try to open received files in the Adobe Photoshop, there's a chance you'll get the following error in Photoshop:
 
@@ -56,8 +57,9 @@ Please note that MacOS Gatekeeper blocks this application when you try to launch
 Source code file `WhatsAppJpegRepair.go` is included to the application archive for MacOS users. And in case you've decided to build the application from the source code, follow these steps:
 
 1. Delete existing `WhatsAppJpegRepair` file, please don't confuse this file with `WhatsAppJpegRepair.go`.
-2. Download and install Go language support from the official web-site: https://golang.org/
+2. Download and install Go language support from the [official web-site](https://golang.org/)
 3. Open terminal in the unzipped application folder, and execute the following command:
+
 ```
 go build WhatsAppJpegRepair.go
 ```
@@ -98,8 +100,23 @@ Next steps:
 6. Run the application.
 7. Go to the `repaired-files` folder to get repaired image files.
 
+### Operation modes, options and switches
 
-### Options and switches:
+Two operation modes are supported.
+
+**Direct mode** - when you pass the path (or paths) to the image files that need fixing directly to the command line. In this case, the application processes files in their original location and overwrites them after processing. The application creates backup files that are deleted after the fix is applied. For example, for file `01.jpg`, the application creates a backup file named `01_wjr_backup_file.jpg` and deletes it when the operation is completed successfully. Use quotation marks if the path to the image file contains spaces.
+
+For example:
+
+`WhatsAppJpegRepair "d:\\my image files\\01.jpg"`
+
+Multiple paths can be passed as space delimited arguments. For example:
+
+`WhatsAppJpegRepair "d:\\my image files\\01.jpg" d:\\old-images\file.jpg "e:\\files and documents\\file.jpg"`
+
+**Managed mode** - when you use command-line switches to control the application behavior.
+
+#### Switches to run application in managed mode
 
 `-srcPath` - contains path to the broken WhatsApp files
 By default the application internal folder `whatsapp-files` is being used.
@@ -152,8 +169,9 @@ None of these options are mandatory. You can run the application without paramet
 
 ## Building the application from the source
 
-1. Download and install Go language support for your platform: https://golang.org/
+1. Download and install Go language support for your platform from the [official web-site](https://golang.org/)
 2. In the application project folder run the following command:
+
 ```
 go build WhatsAppJpegRepair.go
 ```
