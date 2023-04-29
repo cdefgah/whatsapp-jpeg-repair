@@ -16,7 +16,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v2
         with:
-           go-version: '^1.13.1'
+           go-version: '^1.19'
         
 # Preparing folder structure for all platforms
 
@@ -38,18 +38,10 @@ jobs:
         run: env GOOS=windows GOARCH=amd64 go build -o dist/whatsapp-jpeg-repair-win-x64-v${{env.app_version_number}} WhatsAppJpegRepair.go
 
 # Generating PDF files
-      - name: Generate PDF for README
+      - name: Generate PDF
         uses: baileyjm02/markdown-to-pdf@v1
         with:
-          input_path: ./README.md
-          output_dir: .
-          images_dir: .
-          build_html: false
-
-      - name: Generate PDF for CHANGELOG
-        uses: baileyjm02/markdown-to-pdf@v1
-        with:
-          input_path: ./CHANGELOG.md
+          input_dir: .
           output_dir: .
           images_dir: .
           build_html: false
