@@ -1,5 +1,9 @@
 # WhatsAppJpegRepair changelog
 
+## Version 2.3.0
+
++ Refactored code, replaced deprecated calls to modern ones.
+
 ## Version 2.2.0
 
 + Added support for direct mode, where the file image path can be passed directly to the application as a command line argument. Multiple paths can be passed as space-delimited arguments.

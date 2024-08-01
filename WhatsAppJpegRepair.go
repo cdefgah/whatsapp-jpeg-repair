@@ -1,6 +1,6 @@
 /*
 SPDX-License-Identifier: GPL-3.0-only
-Copyright (c) 2021 - 2023 by Rafael Osipov <rafael.osipov@outlook.com>
+Copyright (c) 2021 - 2024 by Rafael Osipov <rafael.osipov@outlook.com>
 */
 
 package main
@@ -20,7 +20,7 @@ import (
 
 func main() {
 
-	fmt.Println(`WhatsAppJpegRepair version 2.2.0 Copyright (c) 2021 - 2023 by Rafael Osipov (rafael.osipov@outlook.com)
+	fmt.Println(`WhatsAppJpegRepair version 2.3.0 Copyright (c) 2021 - 2024 by Rafael Osipov (rafael.osipov@outlook.com)
 	Repairs jpeg images saved from WhatsApp application to prevent errors upon opening these images in the Adobe Photoshop.
 	Project web-site, source code and documentation: https://github.com/cdefgah/whatsapp-jpeg-repair`)
 
