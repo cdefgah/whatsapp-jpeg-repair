@@ -20,7 +20,7 @@ import (
 
 func main() {
 
-	fmt.Println(`WhatsAppJpegRepair version 2.3.0 Copyright (c) 2021 - 2024 by Rafael Osipov (rafael.osipov@outlook.com)
+	fmt.Println(`WhatsAppJpegRepair version 2.2.1 Copyright (c) 2021 - 2024 by Rafael Osipov (rafael.osipov@outlook.com)
 	Repairs jpeg images saved from WhatsApp application to prevent errors upon opening these images in the Adobe Photoshop.
 	Project web-site, source code and documentation: https://github.com/cdefgah/whatsapp-jpeg-repair`)
 
@@ -212,13 +212,13 @@ func repairImageFilesInManagedMode(sourceFolderPath string, destinationFolderPat
 		log.Fatal(err)
 	}
 
-	for _, v := range files {
-		if v.IsDir() {
+	for _, singleFileHandler := range files {
+		if singleFileHandler.IsDir() {
 			continue
 		}
 
 		totalFilesCount++
-		if processSingleImageFileInManagedMode(sourceFolderPath, v.Name(), destinationFolderPath, useCurrentModificationDateTime, deleteWhatsAppFiles) {
+		if processSingleImageFileInManagedMode(sourceFolderPath, singleFileHandler.Name(), destinationFolderPath, useCurrentModificationDateTime, deleteWhatsAppFiles) {
 			processedFilesCount++
 		}
 	}

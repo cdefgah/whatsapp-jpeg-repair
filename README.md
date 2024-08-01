@@ -1,6 +1,6 @@
 # WhatsApp Jpeg Image Repair
 
-## version 2.2.0 (released on April 29, 2023)
+## [version 2.2.1](./CHANGELOG.md) (released on August 1, 2024)
 
 [![Build Status](https://github.com/cdefgah/whatsapp-jpeg-repair/workflows/build/badge.svg)](https://github.com/cdefgah/whatsapp-jpeg-repair/actions)
 

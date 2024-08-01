@@ -1,8 +1,8 @@
 # WhatsAppJpegRepair changelog
 
-## Version 2.3.0
+## Version 2.2.1
 
-+ Refactored code, replaced deprecated calls to modern ones.
++ Refactored deprecated function calls, updated supported Golang version;
 
 ## Version 2.2.0
 
