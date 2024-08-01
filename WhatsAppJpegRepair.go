@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"image"
 	"image/jpeg"
-	"io/ioutil"
 	"log"
 	"os"
 	"path"
@@ -203,17 +202,27 @@ func repairImageFilesInManagedMode(sourceFolderPath string, destinationFolderPat
 	var totalFilesCount int32
 	var processedFilesCount int32
 
-	files, err := ioutil.ReadDir(sourceFolderPath)
+	f, err := os.Open(sourceFolderPath)
 	if err != nil {
 		log.Fatal(err)
 	}
-	for _, f := range files {
-		if !f.IsDir() {
-			totalFilesCount++
-			if processSingleImageFileInManagedMode(sourceFolderPath, f.Name(), destinationFolderPath, useCurrentModificationDateTime, deleteWhatsAppFiles) {
-				processedFilesCount++
-			}
+
+	files, err := f.Readdir(0)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, v := range files {
+		if v.IsDir() {
+			continue
 		}
+
+		totalFilesCount++
+		if processSingleImageFileInManagedMode(sourceFolderPath, v.Name(), destinationFolderPath, useCurrentModificationDateTime, deleteWhatsAppFiles) {
+			processedFilesCount++
+		}
+
+		fmt.Println(v.Name(), v.IsDir())
 	}
 
 	fmt.Println("\nTotal files count: ", totalFilesCount, "Processed files count: ", processedFilesCount)
