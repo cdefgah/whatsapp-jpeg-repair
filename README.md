@@ -1,8 +1,8 @@
 # WhatsApp Jpeg Image Repair
 
-## [version 2.2.1](./CHANGELOG.md) (released on August 1, 2024)
+## version 2.2.1 (released on August 1, 2024)
 
-[![Build Status](https://github.com/cdefgah/whatsapp-jpeg-repair/workflows/build/badge.svg)](https://github.com/cdefgah/whatsapp-jpeg-repair/actions)
+[Changelog](./CHANGELOG.md)
 
 When you are sent jpeg files via WhatsApp and then try to open received files in the Adobe Photoshop, there's a chance you'll get the following error in Photoshop:
 
