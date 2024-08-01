@@ -221,8 +221,6 @@ func repairImageFilesInManagedMode(sourceFolderPath string, destinationFolderPat
 		if processSingleImageFileInManagedMode(sourceFolderPath, v.Name(), destinationFolderPath, useCurrentModificationDateTime, deleteWhatsAppFiles) {
 			processedFilesCount++
 		}
-
-		fmt.Println(v.Name(), v.IsDir())
 	}
 
 	fmt.Println("\nTotal files count: ", totalFilesCount, "Processed files count: ", processedFilesCount)
