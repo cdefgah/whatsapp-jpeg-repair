@@ -11,14 +11,14 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/cdefgah/whatsapp-jpeg-repair/internal/config"
+	"github.com/cdefgah/whatsapp-jpeg-repair/internal/app"
 	"github.com/spf13/afero"
 )
 
 // Represents batch image repairer for direct mode.
 type BatchImageRepairerForDirectMode struct {
 	BatchImageRepairerBase
-	options config.DirectModeOptions
+	options app.DirectModeOptions
 }
 
 // Performs batch repair (in direct mode) of all image files provided by iterator.

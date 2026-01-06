@@ -14,14 +14,14 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/cdefgah/whatsapp-jpeg-repair/internal/config"
+	"github.com/cdefgah/whatsapp-jpeg-repair/internal/app"
 	"github.com/spf13/afero"
 )
 
 // Represents batch image repairer for managed mode.
 type BatchImageRepairerForManagedMode struct {
 	BatchImageRepairerBase
-	options config.ManagedModeOptions
+	options app.ManagedModeOptions
 }
 
 // Creates new instance of batch image repairer.
@@ -35,7 +35,7 @@ type BatchImageRepairerForManagedMode struct {
 // # Returns
 //
 // Reference to a new instance of batch image repairer.
-func NewBatchImageRepairerForManagedMode(fs afero.Fs, options config.ManagedModeOptions, logger *slog.Logger) *BatchImageRepairerForManagedMode {
+func NewBatchImageRepairerForManagedMode(fs afero.Fs, options app.ManagedModeOptions, logger *slog.Logger) *BatchImageRepairerForManagedMode {
 	return &BatchImageRepairerForManagedMode{
 		BatchImageRepairerBase: BatchImageRepairerBase{
 			fs:     fs,
