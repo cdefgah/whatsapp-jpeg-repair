@@ -1,0 +1,19 @@
+# Scripts for Linux/macOS: LF
+*.sh text eol=lf
+
+# Scripts for Windows: CRLF
+*.bat text eol=crlf
+
+# Go-files: LF (cross-platform standard)
+*.go text eol=lf
+
+# YAML and Markdown files: LF
+*.yml text eol=lf
+*.md text eol=lf
+
+# Binary files (don't process)
+*.png binary
+*.jpg binary
+
+# All rest files - don't process
+* -text
