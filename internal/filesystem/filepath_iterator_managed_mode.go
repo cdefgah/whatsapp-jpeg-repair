@@ -14,19 +14,19 @@ import (
 	"github.com/spf13/afero"
 )
 
-// Contains one folder entry element for the stack.
-type folderEntry struct {
-	pathToFolder      string
-	folderObjectsList []os.FileInfo
-	index             int
-}
-
 // Contains filesystem iterator data for processing files in managed mode.
 type FilePathsIteratorForManagedMode struct {
 	filesystem           afero.Fs
 	recursive            bool
 	processOnlyJpegFiles bool
 	stack                []folderEntry
+}
+
+// Contains one folder entry element for the stack.
+type folderEntry struct {
+	pathToFolder      string
+	folderObjectsList []os.FileInfo
+	index             int
 }
 
 // Creates a new file system iterator to process files in managed mode.
@@ -121,7 +121,7 @@ func (it *FilePathsIteratorForManagedMode) NextFilePath() string {
 		if entry.Mode().IsRegular() {
 
 			if it.processOnlyJpegFiles {
-				if IsJpegFileExtension(fullPath) {
+				if isJpegFileExtension(fullPath) {
 					return fullPath // returning path to jpeg-file
 				}
 				continue // skipping non-JPEG files
@@ -145,13 +145,12 @@ func (it *FilePathsIteratorForManagedMode) NextFilePath() string {
 // # Returns
 //
 // true, if file is a JPEG-file, false otherwise.
-func IsJpegFileExtension(filename string) bool {
-	extWithDot := strings.ToLower(filepath.Ext(filename))
+func isJpegFileExtension(filename string) bool {
+	ext := strings.ToLower(filepath.Ext(filename))
 
-	switch extWithDot {
+	switch ext {
 	case ".jpg", ".jpeg", ".jpe", ".jif", ".jfif", ".jfi":
 		return true
-	default:
-		return false
 	}
+	return false
 }

@@ -48,19 +48,3 @@ func (mmo ManagedModeOptions) GetReport() string {
 
 	return sb.String()
 }
-
-// For handling actual processing mode.
-type ProcessingMode int
-
-const (
-	DirectMode ProcessingMode = iota
-	ManagedMode
-)
-
-// Application runtime options that we get when command line arguments are parsed.
-type AppRuntimeOptions struct {
-	Mode ProcessingMode
-
-	DirectMode  *DirectModeOptions
-	ManagedMode *ManagedModeOptions
-}
