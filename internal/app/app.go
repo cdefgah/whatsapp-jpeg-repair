@@ -1,7 +1,9 @@
 package app
 
 import (
+	"fmt"
 	"log/slog"
+	"os"
 
 	"github.com/cdefgah/whatsapp-jpeg-repair/internal/filesystem"
 	"github.com/cdefgah/whatsapp-jpeg-repair/internal/options"
@@ -19,8 +21,13 @@ func RunAppInDirectMode(fs afero.Fs, options options.DirectModeOptions, logger *
 	filePathIterator := filesystem.NewFilePathsIteratorForDirectMode(options.FilePaths)
 
 	repair.ProcessAllFiles(filePathIterator, imageRepairer)
+	logger.Info(imageRepairer.GetTextReport())
 
-	return nil
+	if imageRepairer.ErrorsPresent() {
+		return fmt.Errorf("Image files processing in direct mode failed!")
+	} else {
+		return nil
+	}
 }
 
 func RunAppInManagedMode(fs afero.Fs, options options.ManagedModeOptions, logger *slog.Logger) error {
@@ -36,9 +43,18 @@ func RunAppInManagedMode(fs afero.Fs, options options.ManagedModeOptions, logger
 
 	imageRepairer := repair.NewImageRepairerForManagedMode(fs, options, logger)
 
-	repair.ProcessAllFiles(filePathIterator, imageRepairer)
+	logger.Info(options.ToString())
 
-	return nil
+	repair.ProcessAllFiles(filePathIterator, imageRepairer)
+	logger.Info(imageRepairer.GetTextReport())
+
+	repair.RunAndWaitForExit(options.DontWaitToClose, os.Stdin, os.Stdout)
+
+	if imageRepairer.ErrorsPresent() {
+		return fmt.Errorf("Image files processing in managed mode failed!")
+	} else {
+		return nil
+	}
 }
 
 func LaunchApp(logger *slog.Logger) error {

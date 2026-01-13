@@ -100,7 +100,7 @@ func (ir *ImageRepairerBase) ErrorsPresent() bool {
 // # Returns
 //
 // String with text report.
-func (ir *ImageRepairerBase) ToString() string {
+func (ir *ImageRepairerBase) GetTextReport() string {
 	actualStats := ir.stats
 	var sb strings.Builder
 	fmt.Fprintf(&sb, "Processed: %d file(s)\n", actualStats.Processed)
