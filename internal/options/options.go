@@ -1,4 +1,4 @@
-package app
+package options
 
 /*
 SPDX-License-Identifier: GPL-3.0-only
@@ -35,7 +35,7 @@ type ManagedModeOptions struct {
 // # Returns
 //
 // text representation of managed mode options
-func (mmo ManagedModeOptions) GetReport() string {
+func (mmo ManagedModeOptions) ToString() string {
 	var sb strings.Builder
 
 	fmt.Fprintf(&sb, "Source folder path:            %s\n", mmo.SourceFolderPath)

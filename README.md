@@ -1,3 +1,6 @@
+Добавить таблицу с соответствием новых команд старым.
+
+======================
 # WhatsApp Jpeg Image Repair
 
 ## version 2.2.1 (released on August 1, 2024)
