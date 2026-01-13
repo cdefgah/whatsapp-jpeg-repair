@@ -133,7 +133,7 @@ func (ir *ImageRepairerBase) DisplayMessageOnFileProcessingStart(filePath string
 	ir.logger.Info("Processing file ", filePath, " ....... ")
 }
 
-func processAllFiles(filePathIterator filesystem.FilePathIterator, singleFileProcessor SingleFileProcessor) {
+func ProcessAllFiles(filePathIterator filesystem.FilePathIterator, singleFileProcessor SingleFileProcessor) {
 	for {
 		filePath := filePathIterator.NextFilePath()
 		if filePath == "" {

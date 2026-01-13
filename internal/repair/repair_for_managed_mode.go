@@ -43,7 +43,7 @@ func (ir *ImageRepairerForManagedMode) createFolderIfItDoesNotExist(pathToFolder
 	return nil
 }
 
-// Creates new instance of batch image repairer for managed mode.
+// Creates new instance of image repairer for managed mode.
 //
 // # Parameters
 //
@@ -54,7 +54,7 @@ func (ir *ImageRepairerForManagedMode) createFolderIfItDoesNotExist(pathToFolder
 // # Returns
 //
 // Reference to a new instance of batch image repairer for managed mode.
-func NewBatchImageRepairerForManagedMode(fs afero.Fs, options options.ManagedModeOptions, logger *slog.Logger) *ImageRepairerForManagedMode {
+func NewImageRepairerForManagedMode(fs afero.Fs, options options.ManagedModeOptions, logger *slog.Logger) *ImageRepairerForManagedMode {
 	return &ImageRepairerForManagedMode{
 		ImageRepairerBase: ImageRepairerBase{
 			fs:     fs,
