@@ -6,7 +6,6 @@ import (
 	"image"
 	"image/jpeg"
 	"io"
-	"log/slog"
 	"strings"
 
 	"github.com/cdefgah/whatsapp-jpeg-repair/internal/filesystem"
@@ -33,7 +32,7 @@ type RepairStats struct {
 type ImageRepairerBase struct {
 	fs     afero.Fs
 	stats  *RepairStats
-	logger *slog.Logger
+	writer io.Writer
 }
 
 // Declares a contract for file processor
@@ -121,16 +120,16 @@ func (ir *ImageRepairerBase) RegisterFileProcessingError(filePath string, err er
 		FilePath: filePath,
 		Error:    err,
 	})
-	ir.logger.Error("Processing file ", filePath, " ....... ERROR!")
+	fmt.Println(ir.writer, "Processing file ", filePath, " ....... ERROR!")
 }
 
 func (ir *ImageRepairerBase) RegisterFileProcessingSuccess(filePath string) {
 	ir.stats.Processed++
-	ir.logger.Info("Processing file ", filePath, " ....... OK")
+	fmt.Println(ir.writer, "Processing file ", filePath, " ....... OK")
 }
 
 func (ir *ImageRepairerBase) DisplayMessageOnFileProcessingStart(filePath string) {
-	ir.logger.Info("Processing file ", filePath, " ....... ")
+	fmt.Println(ir.writer, "Processing file ", filePath, " ....... ")
 }
 
 func ProcessAllFiles(filePathIterator filesystem.FilePathIterator, singleFileProcessor SingleFileProcessor) {

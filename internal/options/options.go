@@ -7,7 +7,12 @@ Copyright (c) 2021 by Rafael Osipov <rafael.osipov@outlook.com>
 
 import (
 	"fmt"
+	"io"
+	"path/filepath"
+	"runtime"
 	"strings"
+
+	"github.com/spf13/pflag"
 )
 
 // Contains options for the direct processing mode.
@@ -47,4 +52,134 @@ func (mmo ManagedModeOptions) ToString() string {
 	fmt.Fprintf(&sb, "Dont wait to close:            %t\n", mmo.DontWaitToClose)
 
 	return sb.String()
+}
+
+// Creates and populates structure for managed processing mode options with default values.
+//
+// # Parameters
+//
+// currentWorkingFolderPath - Full path to the current working folder.
+//
+// # Returns
+//
+// Pointer to structure with managed mode options.
+func createAndGetDefaultManagedModeOptions(currentWorkingFolder string) *ManagedModeOptions {
+	const (
+		predefinedSourceFilesFolder      = "whatsapp-files"
+		predefinedDestinationFilesFolder = "repaired-files"
+	)
+
+	pathToRootFolderWithSourceFiles := filepath.Join(currentWorkingFolder, predefinedSourceFilesFolder)
+	pathToRootDestinationFolder := filepath.Join(currentWorkingFolder, predefinedDestinationFilesFolder)
+
+	return &ManagedModeOptions{
+		SourceFolderPath:           pathToRootFolderWithSourceFiles,
+		DestinationFolderPath:      pathToRootDestinationFolder,
+		UseCurrentModificationTime: false,
+		DeleteWhatsAppFiles:        false,
+		ProcessNestedFolders:       false,
+		ProcessOnlyJpegFiles:       false,
+		DontWaitToClose:            false,
+	}
+}
+
+// Parses all command line arguments and creates structure for managed processing mode.
+//
+// # Parameters
+//
+// currentWorkingFolderPath - Full path to the current working folder.
+// allCliArguments - All command line arguments, including the the first argument with application executable file.
+// writer - Reference to writer to print all output.
+//
+// # Returns
+//
+// Pointer to structure with managed mode options if application arguments processed successfully.
+// Error object on error.
+func parseManagedMode(currentWorkingFolderPath string, allCliArguments []string, writer io.Writer) (*ManagedModeOptions, error) {
+	const (
+		sourceFilesPathParamKey                     = "src-path"
+		sourceFilesPathShorthandParamKey            = "s"
+		destinationFilesPathParamKey                = "dest-path"
+		destinationFilesPathShorthandParamKey       = "d"
+		useCurrentModificationTimeParamKey          = "use-current-modification-time"
+		useCurrentModificationTimeShorthandParamKey = "t"
+		deleteWhatsAppFilesParamKey                 = "delete-whatsapp-files"
+		deleteWhatsAppFilesShorthandParamKey        = "w"
+		dontWaitToCloseParamKey                     = "dont-wait-to-close"
+		dontWaitToCloseShorthandParamKey            = "c"
+		processNestedSourceFoldersParamKey          = "process-nested-folders"
+		processNestedSourceFoldersShorthandParamKey = "n"
+		processOnlyJpegFilesParamKey                = "process-only-jpeg-files"
+		processOnlyJpegFilesShorthandParamKey       = "j"
+	)
+
+	options := createAndGetDefaultManagedModeOptions(currentWorkingFolderPath)
+
+	commandLineFlags := pflag.NewFlagSet("available command-line switches", pflag.ContinueOnError)
+
+	examplePath := func(subpath string) string {
+		if runtime.GOOS == "windows" {
+			return fmt.Sprintf("c:/Users/Username/Documents/%s", subpath)
+		}
+		return fmt.Sprintf("/home/username/Documents/%s", subpath)
+	}
+
+	sampleSourcePath := fmt.Sprintf("--%s=%s", sourceFilesPathParamKey, examplePath("brokenWhatsAppFiles"))
+	sampleDestPath := fmt.Sprintf("--%s=%s", destinationFilesPathParamKey, examplePath("repairedImageFiles"))
+
+	sourcePath := commandLineFlags.StringP(sourceFilesPathParamKey,
+		sourceFilesPathShorthandParamKey,
+		options.SourceFolderPath,
+		fmt.Sprintf("Path to folder containing broken WhatsApp files.\nExample: %s", sampleSourcePath))
+
+	destPath := commandLineFlags.StringP(destinationFilesPathParamKey,
+		destinationFilesPathShorthandParamKey,
+		options.DestinationFolderPath,
+		fmt.Sprintf("This is the path to the folder where the repaired files will be stored. If the folder does not exist, it will be created.\nExample: %s", sampleDestPath))
+
+	useCurrentModificationTime := commandLineFlags.BoolP(useCurrentModificationTimeParamKey,
+		useCurrentModificationTimeShorthandParamKey,
+		options.UseCurrentModificationTime,
+		`If true, sets current time as file modification time. Default: source file's modification time.`)
+
+	deleteWhatsAppFiles := commandLineFlags.BoolP(deleteWhatsAppFilesParamKey,
+		deleteWhatsAppFilesShorthandParamKey,
+		options.DeleteWhatsAppFiles,
+		fmt.Sprintf("If true, processed WhatsApp files will be deleted. Default: %v", options.DeleteWhatsAppFiles))
+
+	processNestedFolders := commandLineFlags.BoolP(processNestedSourceFoldersParamKey,
+		processNestedSourceFoldersShorthandParamKey,
+		options.ProcessNestedFolders,
+		fmt.Sprintf("If true, processes files in nested folders recursively. Default: %v", options.ProcessNestedFolders))
+
+	processOnlyJpegFiles := commandLineFlags.BoolP(processOnlyJpegFilesParamKey,
+		processOnlyJpegFilesShorthandParamKey,
+		options.ProcessOnlyJpegFiles,
+		fmt.Sprintf("If true, processes only jpeg files (with 'jpg', 'jpeg', 'jpe', 'jif', 'jfif' and 'jfi' extensions, case insensitive). Default: %v", options.ProcessOnlyJpegFiles))
+
+	dontWaitToClose := commandLineFlags.BoolP(dontWaitToCloseParamKey,
+		dontWaitToCloseShorthandParamKey,
+		options.DontWaitToClose,
+		fmt.Sprintf("If true, the application exits immediately. Default: %v", options.DontWaitToClose))
+
+	argsWithoutAppName := allCliArguments[1:]
+	if err := commandLineFlags.Parse(argsWithoutAppName); err != nil {
+		return nil, err
+	}
+
+	commandLineFlags.SetOutput(writer)
+	commandLineFlags.Usage()
+
+	options.SourceFolderPath = filepath.Clean(*sourcePath)
+	options.DestinationFolderPath = filepath.Clean(*destPath)
+	options.UseCurrentModificationTime = *useCurrentModificationTime
+	options.DeleteWhatsAppFiles = *deleteWhatsAppFiles
+	options.ProcessNestedFolders = *processNestedFolders
+	options.ProcessOnlyJpegFiles = *processOnlyJpegFiles
+	options.DontWaitToClose = *dontWaitToClose
+
+	fmt.Println(writer, "Actual parameters:")
+	fmt.Println(writer, options.ToString())
+
+	return options, nil
 }

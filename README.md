@@ -1,6 +1,7 @@
 Добавить таблицу с соответствием новых команд старым.
-
+Использовать slogassert в тестах
 ======================
+
 # WhatsApp Jpeg Image Repair
 
 ## version 2.2.1 (released on August 1, 2024)
@@ -13,7 +14,7 @@ When you are sent jpeg files via WhatsApp and then try to open received files in
 
 For this case users are usually advised to open the broken file in MS Paint (or something similar in MacOS) first and save it as jpeg file. Usually it helps, but when you have many broken image files, opening and saving them one by one may get a little tedious.
 
-WhatsApp Jpeg Image Repair application solves this problem by repairing multiple broken files at once. 
+WhatsApp Jpeg Image Repair application solves this problem by repairing multiple broken files at once.
 
 ## How to use the tool
 
@@ -29,7 +30,7 @@ For users' convenience I've added script file `runme.bat` file. It helps to use 
 
 Just edit this file, change the relevant options and switches (listed in the `Options and switches` chapter below), add/remove options/switches you want, save the file and just run it via mouse doubleclick.
 
-Please note, that `runme.bat` file is a plain text file. And you don't need a special application to edit this file. 
+Please note, that `runme.bat` file is a plain text file. And you don't need a special application to edit this file.
 
 Just use a simple text editor of your choosing, like `Notepad++`, it can be downloaded here: https://notepad-plus-plus.org/downloads/
 
@@ -66,6 +67,7 @@ Source code file `WhatsAppJpegRepair.go` is included to the application archive 
 ```
 go build WhatsAppJpegRepair.go
 ```
+
 A file with the name `WhatsAppJpegRepair` (without any extension) will be generated. And now you can run the application on your MacOS without disabling Gatekeeper.
 
 Next steps:
@@ -95,6 +97,7 @@ Now, let's build the tool from the source code for your Linux operating system.
 ```
 go build WhatsAppJpegRepair.go
 ```
+
 A file with the name `WhatsAppJpegRepair` (without any extension) will be generated.
 
 Next steps:
@@ -126,6 +129,7 @@ By default the application internal folder `whatsapp-files` is being used.
 Currently this folder contains sample broken whatsapp jpeg images for demonstration purposes.
 
 Example:
+
 ```
 WhatsAppJpegRepair -srcPath=/home/username/Documents/Photos/WhatsAppFiles
 ```
@@ -137,38 +141,45 @@ By default the application internal folder `repaired-files` is being used.
 If this folder does not exist, it will be created at runtime.
 
 Example:
+
 ```
 WhatsAppJpegRepair -srcPath=/home/username/Documents/Photos/WhatsAppFiles -destPath=/home/username/Documents/RepairedPhotos
 ```
+
 this call will use `/home/username/Documents/Photos/WhatsAppFiles` folder to look for broken whatsapp files, and will use `/home/username/Documents/RepairedPhotos` folder to store repaired images.
 
 `-dontWaitToClose` - if it is set to `true`, the application wil close when done, otherwise it will wait until user presses 'Enter'. Default value is `false`.
 
 Example:
+
 ```
 WhatsAppJpegRepair -srcPath=/home/username/Documents/Photos/WhatsAppFiles -dontWaitToClose=true
 ```
+
 this call will use folder `/home/username/Documents/Photos/WhatsAppFiles` as a source files path, and application will be closed as it finished files processing. All repaired files will be stored to the default destination folder `repaired-files` (check `-destPath` option description above).
 
 `-useCurrentModificationDateTime` - when set to `true`, this switch sets current date/time as repaired files' 'modified' attribute. By default it is set `false`: all repaired files retain the same file modification date/time as source (broken) image files.
 
 Example:
+
 ```
 WhatsAppJpegRepair -useCurrentModificationDateTime=true
 ```
+
 this call will use default source and destination folders (check `-srcPath` and `-destPath` options above), the application will wait until user presses Enter to exit when all files are processed,
 and current date/time will be set as file modification time for created repaired files.
 
 `-deleteWhatsAppFiles` - when set to `true`, the application deletes every processed whatsapp file when done and only repaired files remain. By default it is `false`.
 
 Example:
+
 ```
 WhatsAppJpegRepair -deleteWhatsAppFiles=true
 ```
+
 this call will use default source and destination folders (check `-srcPath` and `-destPath` options above), will preserve repaired file modification date/times (check `-useCurrentModificationDateTime` option above), will remove all processed source whatsapp files and will wait until user presses Enter to exit when all files are processed.
 
 None of these options are mandatory. You can run the application without parameters, or set arbitrary set of parameters, default values will be applied for the rest.
-
 
 ## Building the application from the source
 

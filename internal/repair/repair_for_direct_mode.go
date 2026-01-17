@@ -2,7 +2,7 @@ package repair
 
 import (
 	"fmt"
-	"log/slog"
+	"io"
 	"path"
 	"path/filepath"
 	"strings"
@@ -23,17 +23,17 @@ type ImageRepairerForDirectMode struct {
 //
 // fs - filesystem reference.
 // options - reference to the application runtime options for direct mode.
-// logger - reference to actual logger.
+// writer - reference to actual writer to print output.
 //
 // # Returns
 //
 // Reference to a new instance of batch image repairer for direct mode.
-func NewImageRepairerForDirectMode(fs afero.Fs, options options.DirectModeOptions, logger *slog.Logger) *ImageRepairerForDirectMode {
+func NewImageRepairerForDirectMode(fs afero.Fs, options options.DirectModeOptions, writer io.Writer) *ImageRepairerForDirectMode {
 	return &ImageRepairerForDirectMode{
 		ImageRepairerBase: ImageRepairerBase{
 			fs:     fs,
 			stats:  &RepairStats{},
-			logger: logger,
+			writer: writer,
 		},
 		options: options,
 	}

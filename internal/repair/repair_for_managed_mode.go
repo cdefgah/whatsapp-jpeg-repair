@@ -2,7 +2,7 @@ package repair
 
 import (
 	"fmt"
-	"log/slog"
+	"io"
 	"path/filepath"
 
 	"github.com/cdefgah/whatsapp-jpeg-repair/internal/options"
@@ -49,17 +49,17 @@ func (ir *ImageRepairerForManagedMode) createFolderIfItDoesNotExist(pathToFolder
 //
 // fs - filesystem reference.
 // options - reference to the application runtime options for managed mode.
-// logger - reference to actual logger.
+// writer - reference to actual writer to print output.
 //
 // # Returns
 //
 // Reference to a new instance of batch image repairer for managed mode.
-func NewImageRepairerForManagedMode(fs afero.Fs, options options.ManagedModeOptions, logger *slog.Logger) *ImageRepairerForManagedMode {
+func NewImageRepairerForManagedMode(fs afero.Fs, options options.ManagedModeOptions, writer io.Writer) *ImageRepairerForManagedMode {
 	return &ImageRepairerForManagedMode{
 		ImageRepairerBase: ImageRepairerBase{
 			fs:     fs,
 			stats:  &RepairStats{},
-			logger: logger,
+			writer: writer,
 		},
 		options: options,
 	}

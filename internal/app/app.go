@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"io"
 	"log/slog"
 	"os"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/cdefgah/whatsapp-jpeg-repair/internal/options"
 	"github.com/cdefgah/whatsapp-jpeg-repair/internal/repair"
 	"github.com/spf13/afero"
+	"github.com/spf13/pflag"
 )
 
 /*
@@ -16,12 +18,70 @@ SPDX-License-Identifier: GPL-3.0-only
 Copyright (c) 2021 by Rafael Osipov <rafael.osipov@outlook.com>
 */
 
-func RunAppInDirectMode(fs afero.Fs, options options.DirectModeOptions, logger *slog.Logger) error {
-	imageRepairer := repair.NewImageRepairerForDirectMode(fs, options, logger)
+// Describes single managed flag
+type ManagedFlag struct {
+	LongName  string
+	ShortName string
+	IsBool    bool
+}
+
+// List of all short and long keys for managed flags
+var managedFlags = []ManagedFlag{
+	{"source-files-path", "s", false},
+	{"destination-files-path", "d", false},
+	{"use-current-modification-time", "t", true},
+	{"delete-whatsapp-files", "w", true},
+	{"process-only-jpeg-files", "j", true},
+	{"process-nested-folders", "n", true},
+	{"dont-wait-to-close", "q", true},
+}
+
+func newManagedFlagSet() *pflag.FlagSet {
+	fs := pflag.NewFlagSet("managed-detect", pflag.ContinueOnError)
+	fs.SetInterspersed(true)
+
+	for _, f := range managedFlags {
+		if f.IsBool {
+			fs.BoolP(f.LongName, f.ShortName, false, "")
+		} else {
+			fs.StringP(f.LongName, f.ShortName, "", "")
+		}
+	}
+
+	return fs
+}
+
+func isManagedMode(args []string) (bool, error) {
+	if len(args) == 0 {
+		// Managed mode if no arguments provided
+		return true, nil
+	}
+
+	fs := newManagedFlagSet()
+	fs.SetOutput(nil) // suppressing usage output
+	fs.ParseErrorsAllowlist.UnknownFlags = false
+
+	err := fs.Parse(args)
+	if err != nil {
+		// Unknown key, raising error
+		return false, err
+	}
+
+	// If at least one known key, then managed mode
+	if fs.NFlag() > 0 {
+		return true, nil
+	}
+
+	// Else - direct mode
+	return false, nil
+}
+
+func RunAppInDirectMode(fs afero.Fs, options options.DirectModeOptions, writer io.Writer) error {
+	imageRepairer := repair.NewImageRepairerForDirectMode(fs, options, writer)
 	filePathIterator := filesystem.NewFilePathsIteratorForDirectMode(options.FilePaths)
 
 	repair.ProcessAllFiles(filePathIterator, imageRepairer)
-	logger.Info(imageRepairer.GetTextReport())
+	fmt.Println(writer, imageRepairer.GetTextReport())
 
 	if imageRepairer.ErrorsPresent() {
 		return fmt.Errorf("Image files processing in direct mode failed!")
@@ -30,7 +90,7 @@ func RunAppInDirectMode(fs afero.Fs, options options.DirectModeOptions, logger *
 	}
 }
 
-func RunAppInManagedMode(fs afero.Fs, options options.ManagedModeOptions, logger *slog.Logger) error {
+func RunAppInManagedMode(fs afero.Fs, options options.ManagedModeOptions, writer io.Writer) error {
 	filePathIterator, err :=
 		filesystem.NewFilePathsIteratorForManagedMode(fs,
 			options.SourceFolderPath,
@@ -41,12 +101,12 @@ func RunAppInManagedMode(fs afero.Fs, options options.ManagedModeOptions, logger
 		return err
 	}
 
-	imageRepairer := repair.NewImageRepairerForManagedMode(fs, options, logger)
+	imageRepairer := repair.NewImageRepairerForManagedMode(fs, options, writer)
 
-	logger.Info(options.ToString())
+	fmt.Println(writer, options.ToString())
 
 	repair.ProcessAllFiles(filePathIterator, imageRepairer)
-	logger.Info(imageRepairer.GetTextReport())
+	fmt.Println(writer, imageRepairer.GetTextReport())
 
 	repair.RunAndWaitForExit(options.DontWaitToClose, os.Stdin, os.Stdout)
 
