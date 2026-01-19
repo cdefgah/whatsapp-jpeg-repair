@@ -15,6 +15,24 @@ import (
 	"github.com/spf13/pflag"
 )
 
+// Command line parameter keys
+const (
+	sourceFilesPathParamKey                     = "src-path"
+	sourceFilesPathShorthandParamKey            = "s"
+	destinationFilesPathParamKey                = "dest-path"
+	destinationFilesPathShorthandParamKey       = "d"
+	useCurrentModificationTimeParamKey          = "use-current-modification-time"
+	useCurrentModificationTimeShorthandParamKey = "t"
+	deleteWhatsAppFilesParamKey                 = "delete-whatsapp-files"
+	deleteWhatsAppFilesShorthandParamKey        = "w"
+	dontWaitToCloseParamKey                     = "dont-wait-to-close"
+	dontWaitToCloseShorthandParamKey            = "c"
+	processNestedSourceFoldersParamKey          = "process-nested-folders"
+	processNestedSourceFoldersShorthandParamKey = "n"
+	processOnlyJpegFilesParamKey                = "process-only-jpeg-files"
+	processOnlyJpegFilesShorthandParamKey       = "j"
+)
+
 // Contains options for the direct processing mode.
 // The application running in direct mode processes all passed files "in place",
 // source file will be overwritten by result file.
@@ -33,6 +51,20 @@ type ManagedModeOptions struct {
 	ProcessOnlyJpegFiles       bool
 	ProcessNestedFolders       bool
 	DontWaitToClose            bool
+}
+
+func IsManagedMode(allCliArguments []string) bool {
+	argsWithoutAppName := allCliArguments[1:]
+
+	if len(argsWithoutAppName) == 0 {
+		return true
+	}
+
+	if noManagedModeFlagsPassed(argsWithoutAppName) {
+		return false
+	}
+
+	return true
 }
 
 // Generates text representation of managed mode options.
@@ -83,7 +115,7 @@ func createAndGetDefaultManagedModeOptions(currentWorkingFolder string) *Managed
 	}
 }
 
-// Parses all command line arguments and creates structure for managed processing mode.
+// Parses all command line arguments and creates structure for managed processing mode options.
 //
 // # Parameters
 //
@@ -95,24 +127,7 @@ func createAndGetDefaultManagedModeOptions(currentWorkingFolder string) *Managed
 //
 // Pointer to structure with managed mode options if application arguments processed successfully.
 // Error object on error.
-func parseManagedMode(currentWorkingFolderPath string, allCliArguments []string, writer io.Writer) (*ManagedModeOptions, error) {
-	const (
-		sourceFilesPathParamKey                     = "src-path"
-		sourceFilesPathShorthandParamKey            = "s"
-		destinationFilesPathParamKey                = "dest-path"
-		destinationFilesPathShorthandParamKey       = "d"
-		useCurrentModificationTimeParamKey          = "use-current-modification-time"
-		useCurrentModificationTimeShorthandParamKey = "t"
-		deleteWhatsAppFilesParamKey                 = "delete-whatsapp-files"
-		deleteWhatsAppFilesShorthandParamKey        = "w"
-		dontWaitToCloseParamKey                     = "dont-wait-to-close"
-		dontWaitToCloseShorthandParamKey            = "c"
-		processNestedSourceFoldersParamKey          = "process-nested-folders"
-		processNestedSourceFoldersShorthandParamKey = "n"
-		processOnlyJpegFilesParamKey                = "process-only-jpeg-files"
-		processOnlyJpegFilesShorthandParamKey       = "j"
-	)
-
+func ParseManagedModeOptions(currentWorkingFolderPath string, allCliArguments []string, writer io.Writer) (*ManagedModeOptions, error) {
 	options := createAndGetDefaultManagedModeOptions(currentWorkingFolderPath)
 
 	commandLineFlags := pflag.NewFlagSet("available command-line switches", pflag.ContinueOnError)
@@ -182,4 +197,44 @@ func parseManagedMode(currentWorkingFolderPath string, allCliArguments []string,
 	fmt.Println(writer, options.ToString())
 
 	return options, nil
+}
+
+// Parses all command line arguments and creates structure for direct processing mode.
+//
+// # Parameters
+//
+// allCliArguments - All command line arguments, including the the first argument with application executable file.
+//
+// # Returns
+//
+// Pointer to structure with application options if application arguments processed successfully.
+// Error object on error.
+func ParseDirectModeOptions(allCliArguments []string) *DirectModeOptions {
+	return &DirectModeOptions{
+		FilePaths: allCliArguments[1:],
+	}
+}
+
+func noManagedModeFlagsPassed(argsWithoutAppName []string) bool {
+	fs := pflag.NewFlagSet("probe", pflag.ContinueOnError)
+	fs.ParseErrorsAllowlist.UnknownFlags = true
+
+	// just registering flags here to control its presence in args
+	fs.StringP(sourceFilesPathParamKey, sourceFilesPathShorthandParamKey, "", "")
+	fs.StringP(destinationFilesPathParamKey, destinationFilesPathShorthandParamKey, "", "")
+	fs.BoolP(useCurrentModificationTimeParamKey, useCurrentModificationTimeShorthandParamKey, false, "")
+	fs.BoolP(deleteWhatsAppFilesParamKey, deleteWhatsAppFilesShorthandParamKey, false, "")
+	fs.BoolP(dontWaitToCloseParamKey, dontWaitToCloseShorthandParamKey, false, "")
+	fs.BoolP(processNestedSourceFoldersParamKey, processNestedSourceFoldersShorthandParamKey, false, "")
+	fs.BoolP(processOnlyJpegFilesParamKey, processOnlyJpegFilesShorthandParamKey, false, "")
+
+	fs.SetOutput(nil) // suppressing usage output
+	_ = fs.Parse(argsWithoutAppName)
+
+	found := false
+	fs.Visit(func(_ *pflag.Flag) {
+		found = true
+	})
+
+	return !found
 }
