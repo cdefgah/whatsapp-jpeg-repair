@@ -94,8 +94,8 @@ func (mmo ManagedModeOptions) ToString() string {
 //
 // # Returns
 //
-// Pointer to structure with managed mode options.
-func createAndGetDefaultManagedModeOptions(currentWorkingFolder string) *ManagedModeOptions {
+// Structure with managed mode options.
+func createAndGetDefaultManagedModeOptions(currentWorkingFolder string) ManagedModeOptions {
 	const (
 		predefinedSourceFilesFolder      = "whatsapp-files"
 		predefinedDestinationFilesFolder = "repaired-files"
@@ -104,7 +104,7 @@ func createAndGetDefaultManagedModeOptions(currentWorkingFolder string) *Managed
 	pathToRootFolderWithSourceFiles := filepath.Join(currentWorkingFolder, predefinedSourceFilesFolder)
 	pathToRootDestinationFolder := filepath.Join(currentWorkingFolder, predefinedDestinationFilesFolder)
 
-	return &ManagedModeOptions{
+	return ManagedModeOptions{
 		SourceFolderPath:           pathToRootFolderWithSourceFiles,
 		DestinationFolderPath:      pathToRootDestinationFolder,
 		UseCurrentModificationTime: false,
@@ -125,9 +125,9 @@ func createAndGetDefaultManagedModeOptions(currentWorkingFolder string) *Managed
 //
 // # Returns
 //
-// Pointer to structure with managed mode options if application arguments processed successfully.
+// Structure with managed mode options if application arguments processed successfully.
 // Error object on error.
-func ParseManagedModeOptions(currentWorkingFolderPath string, allCliArguments []string, writer io.Writer) (*ManagedModeOptions, error) {
+func ParseManagedModeOptions(currentWorkingFolderPath string, allCliArguments []string, writer io.Writer) (ManagedModeOptions, error) {
 	options := createAndGetDefaultManagedModeOptions(currentWorkingFolderPath)
 
 	commandLineFlags := pflag.NewFlagSet("available command-line switches", pflag.ContinueOnError)
@@ -179,7 +179,7 @@ func ParseManagedModeOptions(currentWorkingFolderPath string, allCliArguments []
 
 	argsWithoutAppName := allCliArguments[1:]
 	if err := commandLineFlags.Parse(argsWithoutAppName); err != nil {
-		return nil, err
+		return ManagedModeOptions{}, err
 	}
 
 	commandLineFlags.SetOutput(writer)
@@ -207,10 +207,9 @@ func ParseManagedModeOptions(currentWorkingFolderPath string, allCliArguments []
 //
 // # Returns
 //
-// Pointer to structure with application options if application arguments processed successfully.
-// Error object on error.
-func ParseDirectModeOptions(allCliArguments []string) *DirectModeOptions {
-	return &DirectModeOptions{
+// Structure with direct mode options.
+func ParseDirectModeOptions(allCliArguments []string) DirectModeOptions {
+	return DirectModeOptions{
 		FilePaths: allCliArguments[1:],
 	}
 }

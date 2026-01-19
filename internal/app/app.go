@@ -17,21 +17,18 @@ Copyright (c) 2021 by Rafael Osipov <rafael.osipov@outlook.com>
 */
 
 func LaunchApp(fs afero.Fs, currentWorkingFolderPath string, allCliArguments []string, writer io.Writer) error {
-	var err error = nil
 	if options.IsManagedMode(allCliArguments) {
 		managedModeOptions, err := options.ParseManagedModeOptions(currentWorkingFolderPath, allCliArguments, writer)
 		if err != nil {
 			return err
 		}
 
-		err = runAppInManagedMode(fs, *managedModeOptions, writer)
+		return runAppInManagedMode(fs, managedModeOptions, writer)
 
-	} else {
-		directModeOptions := options.ParseDirectModeOptions(allCliArguments)
-		err = runAppInDirectMode(fs, *directModeOptions, writer)
 	}
 
-	return err
+	directModeOptions := options.ParseDirectModeOptions(allCliArguments)
+	return runAppInDirectMode(fs, directModeOptions, writer)
 }
 
 func runAppInDirectMode(fs afero.Fs, options options.DirectModeOptions, writer io.Writer) error {
