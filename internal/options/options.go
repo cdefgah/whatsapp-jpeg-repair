@@ -31,6 +31,8 @@ const (
 	processNestedSourceFoldersShorthandParamKey = "n"
 	processOnlyJpegFilesParamKey                = "process-only-jpeg-files"
 	processOnlyJpegFilesShorthandParamKey       = "j"
+	displayHelpParamKey                         = "help"
+	displayHelpShorthandParamKey                = "h"
 )
 
 // Contains options for the direct processing mode.
@@ -53,26 +55,12 @@ type ManagedModeOptions struct {
 	DontWaitToClose            bool
 }
 
-func IsManagedMode(allCliArguments []string) bool {
-	argsWithoutAppName := allCliArguments[1:]
-
-	if len(argsWithoutAppName) == 0 {
-		return true
-	}
-
-	if noManagedModeFlagsPassed(argsWithoutAppName) {
-		return false
-	}
-
-	return true
-}
-
 // Generates text representation of managed mode options.
 //
 // # Returns
 //
 // text representation of managed mode options
-func (mmo ManagedModeOptions) ToString() string {
+func (mmo ManagedModeOptions) String() string {
 	var sb strings.Builder
 
 	fmt.Fprintf(&sb, "Source folder path:            %s\n", mmo.SourceFolderPath)
@@ -81,7 +69,7 @@ func (mmo ManagedModeOptions) ToString() string {
 	fmt.Fprintf(&sb, "Delete WhatsApp files:         %t\n", mmo.DeleteWhatsAppFiles)
 	fmt.Fprintf(&sb, "Process only JPEG files:       %t\n", mmo.ProcessOnlyJpegFiles)
 	fmt.Fprintf(&sb, "Process nested folders:        %t\n", mmo.ProcessNestedFolders)
-	fmt.Fprintf(&sb, "Dont wait to close:            %t\n", mmo.DontWaitToClose)
+	fmt.Fprintf(&sb, "Don't wait to close:           %t\n", mmo.DontWaitToClose)
 
 	return sb.String()
 }
@@ -95,7 +83,7 @@ func (mmo ManagedModeOptions) ToString() string {
 // # Returns
 //
 // Structure with managed mode options.
-func createAndGetDefaultManagedModeOptions(currentWorkingFolder string) ManagedModeOptions {
+func CreateAndGetDefaultManagedModeOptions(currentWorkingFolder string) ManagedModeOptions {
 	const (
 		predefinedSourceFilesFolder      = "whatsapp-files"
 		predefinedDestinationFilesFolder = "repaired-files"
@@ -115,125 +103,121 @@ func createAndGetDefaultManagedModeOptions(currentWorkingFolder string) ManagedM
 	}
 }
 
-// Parses all command line arguments and creates structure for managed processing mode options.
-//
-// # Parameters
-//
-// currentWorkingFolderPath - Full path to the current working folder.
-// allCliArguments - All command line arguments, including the the first argument with application executable file.
-// writer - Reference to writer to print all output.
-//
-// # Returns
-//
-// Structure with managed mode options if application arguments processed successfully.
-// Error object on error.
-func ParseManagedModeOptions(currentWorkingFolderPath string, allCliArguments []string, writer io.Writer) (ManagedModeOptions, error) {
-	options := createAndGetDefaultManagedModeOptions(currentWorkingFolderPath)
+func NewManagedFlagSet(
+	writer io.Writer,
+	managedOptions *ManagedModeOptions,
+) (flagSet *pflag.FlagSet, displayHelp *bool) {
 
-	commandLineFlags := pflag.NewFlagSet("available command-line switches", pflag.ContinueOnError)
+	flagSet = pflag.NewFlagSet("available command-line switches", pflag.ContinueOnError)
+	flagSet.SetOutput(writer)
+	flagSet.SortFlags = false
+
+	flagSet.Usage = func() {
+		fmt.Fprintln(writer, "Usage: ")
+		fmt.Fprintln(writer, "\twhatsapp-jpeg-repair [managed mode options]")
+		fmt.Fprintln(writer, "\twhatsapp-jpeg-repair <file>...")
+
+		fmt.Fprintln(writer, "\nDescription:")
+		fmt.Fprintln(writer, "\tThe application operates in one of two modes, depending on the arguments provided.")
+		fmt.Fprintln(writer, "\n\tManaged mode is used when no arguments are provided or at least one managed option is specified. All managed options are optional and have default values.")
+		fmt.Fprintln(writer, "\n\tDirect mode is used when only positional arguments are provided and no known managed options are present. In this mode, the positional arguments are treated as paths to files and processed in place.")
+
+		fmt.Fprintln(writer, "\nA list of the available managed options is shown below.")
+		fmt.Fprintln(writer, "")
+		flagSet.PrintDefaults()
+	}
 
 	examplePath := func(subpath string) string {
 		if runtime.GOOS == "windows" {
-			return fmt.Sprintf("c:/Users/Username/Documents/%s", subpath)
+			return fmt.Sprintf("c:/Users/YourUsername/Documents/%s", subpath)
 		}
-		return fmt.Sprintf("/home/username/Documents/%s", subpath)
+		return fmt.Sprintf("/home/yourusername/Documents/%s", subpath)
 	}
 
 	sampleSourcePath := fmt.Sprintf("--%s=%s", sourceFilesPathParamKey, examplePath("brokenWhatsAppFiles"))
 	sampleDestPath := fmt.Sprintf("--%s=%s", destinationFilesPathParamKey, examplePath("repairedImageFiles"))
 
-	sourcePath := commandLineFlags.StringP(sourceFilesPathParamKey,
+	flagSet.StringVarP(
+		&managedOptions.SourceFolderPath,
+		sourceFilesPathParamKey,
 		sourceFilesPathShorthandParamKey,
-		options.SourceFolderPath,
-		fmt.Sprintf("Path to folder containing broken WhatsApp files.\nExample: %s", sampleSourcePath))
+		managedOptions.SourceFolderPath,
+		fmt.Sprintf("Path to the folder containing the broken WhatsApp files.\nExample: %s.", sampleSourcePath),
+	)
 
-	destPath := commandLineFlags.StringP(destinationFilesPathParamKey,
+	flagSet.StringVarP(
+		&managedOptions.DestinationFolderPath,
+		destinationFilesPathParamKey,
 		destinationFilesPathShorthandParamKey,
-		options.DestinationFolderPath,
-		fmt.Sprintf("This is the path to the folder where the repaired files will be stored. If the folder does not exist, it will be created.\nExample: %s", sampleDestPath))
+		managedOptions.DestinationFolderPath,
+		fmt.Sprintf("This is the path to the folder where the repaired files will be stored. If the folder does not exist, it will be created.\nExample: %s.", sampleDestPath),
+	)
 
-	useCurrentModificationTime := commandLineFlags.BoolP(useCurrentModificationTimeParamKey,
+	flagSet.BoolVarP(
+		&managedOptions.UseCurrentModificationTime,
+		useCurrentModificationTimeParamKey,
 		useCurrentModificationTimeShorthandParamKey,
-		options.UseCurrentModificationTime,
-		`If true, sets current time as file modification time. Default: source file's modification time.`)
+		managedOptions.UseCurrentModificationTime,
+		"If this is true, the current time will be set as the file's modification time. The default is the modification time of the source file.",
+	)
 
-	deleteWhatsAppFiles := commandLineFlags.BoolP(deleteWhatsAppFilesParamKey,
+	flagSet.BoolVarP(
+		&managedOptions.DeleteWhatsAppFiles,
+		deleteWhatsAppFilesParamKey,
 		deleteWhatsAppFilesShorthandParamKey,
-		options.DeleteWhatsAppFiles,
-		fmt.Sprintf("If true, processed WhatsApp files will be deleted. Default: %v", options.DeleteWhatsAppFiles))
+		managedOptions.DeleteWhatsAppFiles,
+		fmt.Sprintf("If it is true, the processed WhatsApp files will be deleted. Default: %v.", managedOptions.DeleteWhatsAppFiles),
+	)
 
-	processNestedFolders := commandLineFlags.BoolP(processNestedSourceFoldersParamKey,
+	flagSet.BoolVarP(
+		&managedOptions.ProcessNestedFolders,
+		processNestedSourceFoldersParamKey,
 		processNestedSourceFoldersShorthandParamKey,
-		options.ProcessNestedFolders,
-		fmt.Sprintf("If true, processes files in nested folders recursively. Default: %v", options.ProcessNestedFolders))
+		managedOptions.ProcessNestedFolders,
+		fmt.Sprintf("If it is true, then the application processes files in nested folders recursively. Default: %v.", managedOptions.ProcessNestedFolders),
+	)
 
-	processOnlyJpegFiles := commandLineFlags.BoolP(processOnlyJpegFilesParamKey,
+	flagSet.BoolVarP(
+		&managedOptions.ProcessOnlyJpegFiles,
+		processOnlyJpegFilesParamKey,
 		processOnlyJpegFilesShorthandParamKey,
-		options.ProcessOnlyJpegFiles,
-		fmt.Sprintf("If true, processes only jpeg files (with 'jpg', 'jpeg', 'jpe', 'jif', 'jfif' and 'jfi' extensions, case insensitive). Default: %v", options.ProcessOnlyJpegFiles))
+		managedOptions.ProcessOnlyJpegFiles,
+		fmt.Sprintf("If it is true, the application only processes JPEG files with the extensions 'jpg', 'jpeg', 'jpe', 'jif', 'jfif', or 'jfi' (case insensitive). Default: %v.", managedOptions.ProcessOnlyJpegFiles),
+	)
 
-	dontWaitToClose := commandLineFlags.BoolP(dontWaitToCloseParamKey,
+	flagSet.BoolVarP(
+		&managedOptions.DontWaitToClose,
+		dontWaitToCloseParamKey,
 		dontWaitToCloseShorthandParamKey,
-		options.DontWaitToClose,
-		fmt.Sprintf("If true, the application exits immediately. Default: %v", options.DontWaitToClose))
+		managedOptions.DontWaitToClose,
+		fmt.Sprintf("If this is true, the application will exit immediately once processing is complete. Default: %v.", managedOptions.DontWaitToClose),
+	)
 
-	argsWithoutAppName := allCliArguments[1:]
-	if err := commandLineFlags.Parse(argsWithoutAppName); err != nil {
-		return ManagedModeOptions{}, err
-	}
+	displayHelp = flagSet.BoolP(
+		displayHelpParamKey,
+		displayHelpShorthandParamKey,
+		false,
+		"Show this help message and exit.",
+	)
 
-	commandLineFlags.SetOutput(writer)
-	commandLineFlags.Usage()
-
-	options.SourceFolderPath = filepath.Clean(*sourcePath)
-	options.DestinationFolderPath = filepath.Clean(*destPath)
-	options.UseCurrentModificationTime = *useCurrentModificationTime
-	options.DeleteWhatsAppFiles = *deleteWhatsAppFiles
-	options.ProcessNestedFolders = *processNestedFolders
-	options.ProcessOnlyJpegFiles = *processOnlyJpegFiles
-	options.DontWaitToClose = *dontWaitToClose
-
-	fmt.Println(writer, "Actual parameters:")
-	fmt.Println(writer, options.ToString())
-
-	return options, nil
+	return flagSet, displayHelp
 }
 
-// Parses all command line arguments and creates structure for direct processing mode.
-//
-// # Parameters
-//
-// allCliArguments - All command line arguments, including the the first argument with application executable file.
-//
-// # Returns
-//
-// Structure with direct mode options.
-func ParseDirectModeOptions(allCliArguments []string) DirectModeOptions {
-	return DirectModeOptions{
-		FilePaths: allCliArguments[1:],
-	}
-}
+func IsManagedMode(argsWithoutAppName []string, fs *pflag.FlagSet) bool {
+	managedModeFlagUsed := false
 
-func noManagedModeFlagsPassed(argsWithoutAppName []string) bool {
-	fs := pflag.NewFlagSet("probe", pflag.ContinueOnError)
-	fs.ParseErrorsAllowlist.UnknownFlags = true
-
-	// just registering flags here to control its presence in args
-	fs.StringP(sourceFilesPathParamKey, sourceFilesPathShorthandParamKey, "", "")
-	fs.StringP(destinationFilesPathParamKey, destinationFilesPathShorthandParamKey, "", "")
-	fs.BoolP(useCurrentModificationTimeParamKey, useCurrentModificationTimeShorthandParamKey, false, "")
-	fs.BoolP(deleteWhatsAppFilesParamKey, deleteWhatsAppFilesShorthandParamKey, false, "")
-	fs.BoolP(dontWaitToCloseParamKey, dontWaitToCloseShorthandParamKey, false, "")
-	fs.BoolP(processNestedSourceFoldersParamKey, processNestedSourceFoldersShorthandParamKey, false, "")
-	fs.BoolP(processOnlyJpegFilesParamKey, processOnlyJpegFilesShorthandParamKey, false, "")
-
-	fs.SetOutput(nil) // suppressing usage output
-	_ = fs.Parse(argsWithoutAppName)
-
-	found := false
-	fs.Visit(func(_ *pflag.Flag) {
-		found = true
+	fs.Visit(func(flag *pflag.Flag) {
+		if flag.Name == displayHelpParamKey || flag.Name == displayHelpShorthandParamKey {
+			return
+		}
+		managedModeFlagUsed = true
 	})
 
-	return !found
+	return len(argsWithoutAppName) == 0 || managedModeFlagUsed
+}
+
+func NewDirectOptions(args []string) DirectModeOptions {
+	return DirectModeOptions{
+		FilePaths: args,
+	}
 }

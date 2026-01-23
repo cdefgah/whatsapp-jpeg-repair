@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 
 	"github.com/cdefgah/whatsapp-jpeg-repair/internal/filesystem"
 	"github.com/cdefgah/whatsapp-jpeg-repair/internal/options"
@@ -16,27 +17,49 @@ SPDX-License-Identifier: GPL-3.0-only
 Copyright (c) 2021 by Rafael Osipov <rafael.osipov@outlook.com>
 */
 
-func LaunchApp(fs afero.Fs, currentWorkingFolderPath string, allCliArguments []string, writer io.Writer) error {
-	if options.IsManagedMode(allCliArguments) {
-		managedModeOptions, err := options.ParseManagedModeOptions(currentWorkingFolderPath, allCliArguments, writer)
-		if err != nil {
-			return err
-		}
+func ProcessCommandLineArguments(
+	fs afero.Fs,
+	cwd string,
+	argsWithoutAppName []string,
+	writer io.Writer,
+) error {
+	managedOptions := options.CreateAndGetDefaultManagedModeOptions(cwd)
 
-		return runAppInManagedMode(fs, managedModeOptions, writer)
-
+	flagSet, displayHelp := options.NewManagedFlagSet(writer, &managedOptions)
+	if err := flagSet.Parse(argsWithoutAppName); err != nil || *displayHelp {
+		flagSet.Usage()
+		return nil
 	}
 
-	directModeOptions := options.ParseDirectModeOptions(allCliArguments)
-	return runAppInDirectMode(fs, directModeOptions, writer)
+	useManagedMode := options.IsManagedMode(argsWithoutAppName, flagSet)
+
+	if useManagedMode {
+		// check if non-managed mode arguments present for managed mode
+		positionalArgsPresent := len(flagSet.Args()) > 0
+
+		if positionalArgsPresent {
+			flagSet.Usage()
+			return nil
+		}
+
+		managedOptions.SourceFolderPath = filepath.Clean(managedOptions.SourceFolderPath)
+		managedOptions.DestinationFolderPath = filepath.Clean(managedOptions.DestinationFolderPath)
+
+		return runAppInManagedMode(fs, managedOptions, writer)
+	}
+
+	directOptions := options.NewDirectOptions(flagSet.Args())
+	return runAppInDirectMode(fs, directOptions, writer)
 }
 
 func runAppInDirectMode(fs afero.Fs, options options.DirectModeOptions, writer io.Writer) error {
+	fmt.Fprintln(writer, "The application runs in direct mode, processing file paths that are passed in the command line.")
+
 	imageRepairer := repair.NewImageRepairerForDirectMode(fs, options, writer)
 	filePathIterator := filesystem.NewFilePathsIteratorForDirectMode(options.FilePaths)
 
 	repair.ProcessAllFiles(filePathIterator, imageRepairer)
-	fmt.Println(writer, imageRepairer.GetTextReport())
+	fmt.Fprintln(writer, imageRepairer.GetTextReport())
 
 	if imageRepairer.ErrorsPresent() {
 		return fmt.Errorf("Image files processing in direct mode failed!")
@@ -46,6 +69,9 @@ func runAppInDirectMode(fs afero.Fs, options options.DirectModeOptions, writer i
 }
 
 func runAppInManagedMode(fs afero.Fs, options options.ManagedModeOptions, writer io.Writer) error {
+	fmt.Fprintln(writer, "The application runs in managed mode with parameters:")
+	fmt.Fprintln(writer, options.String())
+
 	filePathIterator, err :=
 		filesystem.NewFilePathsIteratorForManagedMode(fs,
 			options.SourceFolderPath,
@@ -58,10 +84,8 @@ func runAppInManagedMode(fs afero.Fs, options options.ManagedModeOptions, writer
 
 	imageRepairer := repair.NewImageRepairerForManagedMode(fs, options, writer)
 
-	fmt.Println(writer, options.ToString())
-
 	repair.ProcessAllFiles(filePathIterator, imageRepairer)
-	fmt.Println(writer, imageRepairer.GetTextReport())
+	fmt.Fprintln(writer, imageRepairer.GetTextReport())
 
 	repair.RunAndWaitForExit(options.DontWaitToClose, os.Stdin, os.Stdout)
 

@@ -1,11 +1,13 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
 	"github.com/cdefgah/whatsapp-jpeg-repair/internal/app"
 	"github.com/spf13/afero"
+	"github.com/spf13/pflag"
 )
 
 /*
@@ -21,8 +23,15 @@ func main() {
 	}
 
 	fs := afero.NewOsFs()
-	args := os.Args
-	if err := app.LaunchApp(fs, cwd, args, os.Stdout); err != nil {
+	args := os.Args[1:]
+
+	err = app.ProcessCommandLineArguments(fs, cwd, args, os.Stdout)
+	if err != nil {
+		if errors.Is(err, pflag.ErrHelp) {
+			// help уже напечатан, exit без ошибки
+			return
+		}
+
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}

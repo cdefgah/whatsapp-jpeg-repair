@@ -120,16 +120,16 @@ func (ir *ImageRepairerBase) RegisterFileProcessingError(filePath string, err er
 		FilePath: filePath,
 		Error:    err,
 	})
-	fmt.Println(ir.writer, "Processing file ", filePath, " ....... ERROR!")
+	fmt.Fprintln(ir.writer, "Processing file ", filePath, " ....... ERROR!")
 }
 
 func (ir *ImageRepairerBase) RegisterFileProcessingSuccess(filePath string) {
 	ir.stats.Processed++
-	fmt.Println(ir.writer, "Processing file ", filePath, " ....... OK")
+	fmt.Fprintln(ir.writer, "Processing file ", filePath, " ....... OK")
 }
 
 func (ir *ImageRepairerBase) DisplayMessageOnFileProcessingStart(filePath string) {
-	fmt.Println(ir.writer, "Processing file ", filePath, " ....... ")
+	fmt.Fprintln(ir.writer, "Processing file ", filePath, " ....... ")
 }
 
 func ProcessAllFiles(filePathIterator filesystem.FilePathIterator, singleFileProcessor SingleFileProcessor) {
