@@ -123,7 +123,7 @@ func NewManagedFlagSet(
 		fmt.Fprintln(writer, "\n\tDirect mode is used when only positional arguments are provided and no known managed options are present. In this mode, the positional arguments are treated as paths to files and processed in place.")
 
 		fmt.Fprintln(writer, "\nA list of the available managed options is shown below.")
-		fmt.Fprintln(writer, "")
+		fmt.Fprintln(writer)
 		flagSet.PrintDefaults()
 	}
 

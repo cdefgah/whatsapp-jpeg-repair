@@ -53,7 +53,7 @@ func ProcessCommandLineArguments(
 }
 
 func runAppInDirectMode(fs afero.Fs, options options.DirectModeOptions, writer io.Writer) error {
-	fmt.Fprintln(writer, "The application runs in direct mode, processing file paths that are passed in the command line.")
+	fmt.Fprintln(writer, "Now the application runs in direct mode, processing file paths that are passed in the command line.")
 
 	imageRepairer := repair.NewImageRepairerForDirectMode(fs, options, writer)
 	filePathIterator := filesystem.NewFilePathsIteratorForDirectMode(options.FilePaths)
@@ -69,7 +69,7 @@ func runAppInDirectMode(fs afero.Fs, options options.DirectModeOptions, writer i
 }
 
 func runAppInManagedMode(fs afero.Fs, options options.ManagedModeOptions, writer io.Writer) error {
-	fmt.Fprintln(writer, "The application runs in managed mode with parameters:")
+	fmt.Fprintln(writer, "Now the application runs in managed mode with the following parameters:")
 	fmt.Fprintln(writer, options.String())
 
 	filePathIterator, err :=

@@ -1,3 +1,3 @@
-go build ./cmd/whatsapp-jpeg-repair
+go build -trimpath -ldflags="-s -w" ./cmd/whatsapp-jpeg-repair
 pause
 
