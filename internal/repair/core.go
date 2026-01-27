@@ -3,10 +3,16 @@ package repair
 import (
 	"bufio"
 	"fmt"
-	"image"
-	"image/jpeg"
 	"io"
 	"strings"
+
+	"image"
+	"image/gif"
+	"image/jpeg"
+	"image/png"
+
+	"golang.org/x/image/bmp"
+	"golang.org/x/image/tiff"
 
 	"github.com/cdefgah/whatsapp-jpeg-repair/internal/filesystem"
 	"github.com/spf13/afero"
@@ -15,154 +21,168 @@ import (
 const defaultFolderPermissions = 0755
 const defaultFilePermissions = 0644
 
+// FileError associates a specific file path with the error that occurred during its processing.
 type FileError struct {
 	FilePath string
-	Error    error
+	Err      error
 }
 
-// Stores statistics for batch image processing.
+// Error implements the error interface.
+func (fe FileError) Error() string {
+	return fmt.Sprintf("%s: %v", fe.FilePath, fe.Err)
+}
+
+// RepairStats holds the results of a batch image repair operation.
 type RepairStats struct {
 	Processed int
 	Failed    int
 	Errors    []FileError
 }
 
-// Represents batch image repairer base structure to
-// process images in direct and in managed mode.
+// ImageRepairerBase provides a foundation for repairing images
+// in both direct and managed modes.
 type ImageRepairerBase struct {
 	fs     afero.Fs
 	stats  *RepairStats
 	writer io.Writer
 }
 
-// Declares a contract for file processor
-// that works in managed and in direct mode.
+// SingleFileProcessor defines the contract for processing individual files
+// and reporting the results of those operations.
 type SingleFileProcessor interface {
-	ProcessSingleFile(filePath string) error
-	DisplayMessageOnFileProcessingStart(filePath string)
-	RegisterFileProcessingError(filePath string, err error)
-	RegisterFileProcessingSuccess(filePath string)
+	ProcessSingleFile(path string) error
+	DisplayStart(path string)
+	RegisterError(path string, err error)
+	RegisterSuccess(path string)
 }
 
-// Loads image from the file.
-//
-// # Parameters
-//
-// filePath - path to the image file.
-//
-// # Returns
-//
-// object with loaded image or
-// error if something went wrong.
-func (ir *ImageRepairerBase) readImage(filePath string) (image.Image, error) {
-	file, err := ir.fs.Open(filePath)
+// readImage opens and decodes an image from the specified path.
+func (ir *ImageRepairerBase) readImage(path string) (image.Image, string, error) {
+	file, err := ir.fs.Open(path)
 	if err != nil {
-		return nil, err
+		return nil, "", fmt.Errorf("open image file: %w", err)
 	}
 	defer file.Close()
 
-	img, _, err := image.Decode(file)
-	return img, err
+	reader := bufio.NewReader(file)
+
+	img, format, err := image.Decode(reader)
+	if err != nil {
+		return nil, "", fmt.Errorf("decode image %s: %w", path, err)
+	}
+
+	return img, format, nil
 }
 
-// Writes repaired image to the file.
-//
-// # Parameters
-//
-// filePath - path to the image file.
-// img - image obj to be saved.
-//
-// # Returns
-//
-// error - if something went wrong.
-func (ir *ImageRepairerBase) writeImage(filePath string, img image.Image) error {
+// writeImage saves the image to the specified path using the provided format.
+// It supports jpeg, png, gif, bmp, and tiff.
+func (ir *ImageRepairerBase) writeImage(filePath string, img image.Image, format string) error {
 	file, err := ir.fs.Create(filePath)
 	if err != nil {
-		return err
+		return fmt.Errorf("create file: %w", err)
 	}
 	defer file.Close()
 
-	return jpeg.Encode(file, img, nil)
+	bw := bufio.NewWriter(file)
+
+	var errEncode error
+	switch format {
+	case "jpeg":
+		errEncode = jpeg.Encode(bw, img, nil)
+	case "png":
+		errEncode = png.Encode(bw, img)
+	case "gif":
+		errEncode = gif.Encode(bw, img, nil)
+	case "bmp":
+		errEncode = bmp.Encode(bw, img)
+	case "tiff":
+		errEncode = tiff.Encode(bw, img, nil)
+	default:
+		return fmt.Errorf("unsupported image format for encoding: %s", format)
+	}
+
+	if errEncode != nil {
+		return fmt.Errorf("encode %s: %w", format, errEncode)
+	}
+
+	if err := bw.Flush(); err != nil {
+		return fmt.Errorf("flush buffer: %w", err)
+	}
+
+	return nil
 }
 
-// Returns true if there's at least one error present in repair stats.
-//
-// # Returns
-//
-// true if there's at least one error present in repair stats.
-func (ir *ImageRepairerBase) ErrorsPresent() bool {
+// HasErrors returns true if there's at least one error present in repair stats.
+func (ir *ImageRepairerBase) HasErrors() bool {
 	return len(ir.stats.Errors) > 0
 }
 
-// Gets repair statistics as a text report.
-//
-// # Returns
-//
-// String with text report.
-func (ir *ImageRepairerBase) GetTextReport() string {
-	actualStats := ir.stats
+// TextReport returns repair statistics as a formatted string report.
+func (ir *ImageRepairerBase) TextReport() string {
 	var sb strings.Builder
-	fmt.Fprintf(&sb, "Processed: %d file(s)\n", actualStats.Processed)
-	if ir.ErrorsPresent() {
-		fmt.Fprintf(&sb, "Failed: %d file(s)\n", actualStats.Failed)
-		fmt.Fprintf(&sb, "Errors:\n")
-		for _, fe := range actualStats.Errors {
-			fmt.Fprintf(&sb, "\tFile path: %s, Error: %v\n", fe.FilePath, fe.Error)
+
+	fmt.Fprintf(&sb, "Processed: %d file(s)\n", ir.stats.Processed)
+
+	if ir.HasErrors() {
+		fmt.Fprintf(&sb, "Failed: %d file(s)\n", ir.stats.Failed)
+		sb.WriteString("Errors:\n")
+
+		for _, fe := range ir.stats.Errors {
+			fmt.Fprintf(&sb, "  - %v\n", fe)
 		}
 	}
 
 	return sb.String()
 }
 
-func (ir *ImageRepairerBase) RegisterFileProcessingError(filePath string, err error) {
+// RegisterError registers file processing error and outputs it to the writer.
+func (ir *ImageRepairerBase) RegisterError(filePath string, err error) {
 	ir.stats.Failed++
+	ir.stats.Processed++ // Считаем как общую попытку обработки
 	ir.stats.Errors = append(ir.stats.Errors, FileError{
 		FilePath: filePath,
-		Error:    err,
+		Err:      err,
 	})
-	fmt.Fprintln(ir.writer, "Processing file ", filePath, " ....... ERROR!")
+
+	fmt.Fprintf(ir.writer, "Processing file %s ....... ERROR!\n", filePath)
 }
 
-func (ir *ImageRepairerBase) RegisterFileProcessingSuccess(filePath string) {
+// RegisterSuccess registers that file processing succeeded.
+func (ir *ImageRepairerBase) RegisterSuccess(filePath string) {
 	ir.stats.Processed++
-	fmt.Fprintln(ir.writer, "Processing file ", filePath, " ....... OK")
+	fmt.Fprintf(ir.writer, "Processing file %s ....... OK\n", filePath)
 }
 
-func (ir *ImageRepairerBase) DisplayMessageOnFileProcessingStart(filePath string) {
+// DisplayStart outputs information that the file processing started.
+func (ir *ImageRepairerBase) DisplayStart(filePath string) {
 	fmt.Fprintln(ir.writer, "Processing file ", filePath, " ....... ")
 }
 
-func ProcessAllFiles(filePathIterator filesystem.FilePathIterator, singleFileProcessor SingleFileProcessor) {
+// ProcessAllFiles processes all files using the provided iterator and processor.
+func ProcessAllFiles(iterator filesystem.FilePathIterator, p SingleFileProcessor) {
+	// TODO add context processing to handle Ctrl+C upon file processing
+
 	for {
-		filePath := filePathIterator.NextFilePath()
-		if filePath == "" {
-			break // iterator returned empty string, no more files
+		path, moreFiles := iterator.Next()
+		if !moreFiles {
+			break
 		}
 
-		singleFileProcessor.DisplayMessageOnFileProcessingStart(filePath)
-		if err := singleFileProcessor.ProcessSingleFile(filePath); err != nil {
-			singleFileProcessor.RegisterFileProcessingError(filePath, err)
-
-			// continue processing...
+		p.DisplayStart(path)
+		if err := p.ProcessSingleFile(path); err != nil {
+			p.RegisterError(path, err)
 			continue
 		}
-
-		singleFileProcessor.RegisterFileProcessingSuccess(filePath)
+		p.RegisterSuccess(path)
 	}
 }
 
-// Launches and awaits for "Enter" key if dontWaitToClose is false.
-// Otherwise just completes its execution.
-//
-// # Parameters
-//
-// dontWaitToClose - if false, function awaits for "Enter" key press.
-// input - I/O reader handler.
-// output - I/O writer handler.
-func RunAndWaitForExit(dontWaitToClose bool, input io.Reader, output io.Writer) {
-	if !dontWaitToClose {
-		const newLine = '\n'
-		fmt.Fprintln(output, "Press Enter to exit")
-		bufio.NewReader(input).ReadString(newLine)
+// RunAndWaitForExit awaits for "Enter" key press if dontWaitToClose is false.
+func RunAndWaitForExit(dontWait bool, input io.Reader, output io.Writer) {
+	if dontWait {
+		return
 	}
+
+	fmt.Fprintln(output, "Press Enter to exit")
+	_, _ = bufio.NewReader(input).ReadString('\n')
 }

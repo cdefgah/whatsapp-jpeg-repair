@@ -80,12 +80,17 @@ func (ir *ImageRepairerForManagedMode) ProcessSingleFile(sourceFilePath string) 
 		return fmt.Errorf("Error upon preparing destination file path: %w", err)
 	}
 
-	img, err := ir.readImage(sourceFilePath)
+	img, format, err := ir.readImage(sourceFilePath)
 	if err != nil {
 		return err
 	}
 
-	err = ir.writeImage(destinationFilePath, img)
+	if !ir.options.PreserveImageFormat {
+		const jpegFormatName = "jpeg"
+		format = jpegFormatName
+	}
+
+	err = ir.writeImage(destinationFilePath, img, format)
 	if err != nil {
 		return err
 	}

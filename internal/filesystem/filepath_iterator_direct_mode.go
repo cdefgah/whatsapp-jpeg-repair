@@ -32,12 +32,12 @@ func NewFilePathsIteratorForDirectMode(filePaths []string) *FilePathsIteratorFor
 // # Returns
 //
 // path to the next file, returns empty string "" if there are no more files left.
-func (it *FilePathsIteratorForDirectMode) NextFilePath() string {
+func (it *FilePathsIteratorForDirectMode) Next() (string, bool) {
 	if it.index >= len(it.filePaths) {
-		return ""
+		return "", false
 	}
 
 	singleFilePath := it.filePaths[it.index]
 	it.index++
-	return singleFilePath
+	return singleFilePath, true
 }

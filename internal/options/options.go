@@ -31,6 +31,8 @@ const (
 	processNestedSourceFoldersShorthandParamKey = "n"
 	processOnlyJpegFilesParamKey                = "process-only-jpeg-files"
 	processOnlyJpegFilesShorthandParamKey       = "j"
+	preserveImageFormatParamKey                 = "preserve-image-format"
+	preserveImageFormatShorthandParamKey        = "p"
 	displayHelpParamKey                         = "help"
 	displayHelpShorthandParamKey                = "h"
 )
@@ -48,6 +50,7 @@ type DirectModeOptions struct {
 type ManagedModeOptions struct {
 	SourceFolderPath           string
 	DestinationFolderPath      string
+	PreserveImageFormat        bool
 	UseCurrentModificationTime bool
 	DeleteWhatsAppFiles        bool
 	ProcessOnlyJpegFiles       bool
@@ -65,6 +68,7 @@ func (mmo ManagedModeOptions) String() string {
 
 	fmt.Fprintf(&sb, "Source folder path:            %s\n", mmo.SourceFolderPath)
 	fmt.Fprintf(&sb, "Destination folder path:       %s\n", mmo.DestinationFolderPath)
+	fmt.Fprintf(&sb, "Preserve image format:	     %t\n", mmo.PreserveImageFormat)
 	fmt.Fprintf(&sb, "Use current modification time: %t\n", mmo.UseCurrentModificationTime)
 	fmt.Fprintf(&sb, "Delete WhatsApp files:         %t\n", mmo.DeleteWhatsAppFiles)
 	fmt.Fprintf(&sb, "Process only JPEG files:       %t\n", mmo.ProcessOnlyJpegFiles)
@@ -95,6 +99,7 @@ func CreateAndGetDefaultManagedModeOptions(currentWorkingFolder string) ManagedM
 	return ManagedModeOptions{
 		SourceFolderPath:           pathToRootFolderWithSourceFiles,
 		DestinationFolderPath:      pathToRootDestinationFolder,
+		PreserveImageFormat:        true,
 		UseCurrentModificationTime: false,
 		DeleteWhatsAppFiles:        false,
 		ProcessNestedFolders:       false,
@@ -151,6 +156,17 @@ func NewManagedFlagSet(
 		destinationFilesPathShorthandParamKey,
 		managedOptions.DestinationFolderPath,
 		fmt.Sprintf("This is the path to the folder where the repaired files will be stored. If the folder does not exist, it will be created.\nExample: %s.", sampleDestPath),
+	)
+
+	flagSet.BoolVarP(
+		&managedOptions.PreserveImageFormat,
+		preserveImageFormatParamKey,
+		preserveImageFormatShorthandParamKey,
+		managedOptions.PreserveImageFormat,
+		"If this is set to true, the application will attempt to preserve the format of the source image when writing the resulting file. "+
+			"Otherwise, the file contents will be converted to JPEG format. "+
+			"Supported formats: JPEG, PNG, GIF, BMP, TIFF. "+
+			"If you need to process image files in an unsupported format, select 'false' for this option. However, the resulting file will contain a JPEG image.",
 	)
 
 	flagSet.BoolVarP(

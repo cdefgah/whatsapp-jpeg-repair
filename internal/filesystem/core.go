@@ -5,5 +5,5 @@ package filesystem
 // If there are no more file paths available,
 // this method returns an empty string.
 type FilePathIterator interface {
-	NextFilePath() string
+	Next() (string, bool)
 }

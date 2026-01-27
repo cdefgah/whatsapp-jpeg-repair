@@ -1,149 +1,114 @@
 package repair
 
 import (
+	"errors"
 	"fmt"
 	"io"
-	"path"
+	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/cdefgah/whatsapp-jpeg-repair/internal/options"
 	"github.com/spf13/afero"
 )
 
-// Represents image repairer for direct mode.
+// ImageRepairerForDirectMode provides functionality to repair images specifically in direct mode.
 type ImageRepairerForDirectMode struct {
 	ImageRepairerBase
 	options options.DirectModeOptions
 }
 
-// Creates new instance of batch image repairer for direct mode.
-//
-// # Parameters
-//
-// fs - filesystem reference.
-// options - reference to the application runtime options for direct mode.
-// writer - reference to actual writer to print output.
-//
-// # Returns
-//
-// Reference to a new instance of batch image repairer for direct mode.
-func NewImageRepairerForDirectMode(fs afero.Fs, options options.DirectModeOptions, writer io.Writer) *ImageRepairerForDirectMode {
+// NewImageRepairerForDirectMode creates and initializes a new ImageRepairerForDirectMode.
+// It sets up the base repairer with the provided filesystem, writer, and fresh statistics.
+func NewImageRepairerForDirectMode(fs afero.Fs, opts options.DirectModeOptions, writer io.Writer) *ImageRepairerForDirectMode {
 	return &ImageRepairerForDirectMode{
 		ImageRepairerBase: ImageRepairerBase{
 			fs:     fs,
 			stats:  &RepairStats{},
 			writer: writer,
 		},
-		options: options,
+		options: opts,
 	}
 }
 
-// Repairs single image mode in Direct mode.
-//
-// # Parameters
-//
-// fs - filesystem handler.
-// sourceFilePath - path to the image file.
-//
-// # Returns
-//
-// error if something went wrong.
+// ProcessSingleFile repairs a single image in Direct mode.
+// It creates a temporary backup, performs the repair, and removes the backup upon success.
 func (ir *ImageRepairerForDirectMode) ProcessSingleFile(sourceFilePath string) error {
-
-	pathToBackupFile, err := ir.createBackupFile(sourceFilePath)
+	backupFilePath, err := ir.createBackupFile(sourceFilePath)
 	if err != nil {
 		return err
 	}
 
-	img, err := ir.readImage(sourceFilePath)
+	img, format, err := ir.readImage(sourceFilePath)
 	if err != nil {
-		return err
+		return fmt.Errorf("read image for repair: %w", err)
 	}
 
-	err = ir.writeImage(sourceFilePath, img)
-	if err != nil {
-		return err
+	if err := ir.writeImage(sourceFilePath, img, format); err != nil {
+		return fmt.Errorf("write repaired image: %w", err)
 	}
 
-	err = ir.deleteBackupFile(pathToBackupFile)
-	if err != nil {
-		return err
+	if err := ir.deleteBackupFile(backupFilePath); err != nil {
+		return fmt.Errorf("remove backup after successful repair: %w", err)
 	}
 
 	return nil
 }
 
-// Creates backup for a file.
-//
-// # Parameters
-//
-// sourceFilePath - path to the image file.
-//
-// # Returns
-//
-// path to backup file or
-// error if something went wrong.
+// createBackupFile creates a copy in the same directory as the source.
+// The backup file is expected to be cleaned up later by the caller or a cleanup function.
 func (ir *ImageRepairerForDirectMode) createBackupFile(sourceFilePath string) (string, error) {
-	var sourceFolderOnlyPath = filepath.Dir(sourceFilePath)
-	var sourceFileNameWithExtension = filepath.Base(sourceFilePath)
-	var sourceFileExtension = path.Ext(sourceFileNameWithExtension)
-	var sourceFileNameOnly = strings.TrimSuffix(sourceFileNameWithExtension, sourceFileExtension)
+	// Format constant: 2006(6) 01(1) 02(2) _ 15(3) 04(4) 05(5)
+	const timeFormatLayout = "20060102_150405"
 
-	var backupFileNameWithExtension = sourceFileNameOnly + "_wjr_backup_file" + sourceFileExtension
-	var backupFilePath = filepath.Join(sourceFolderOnlyPath, backupFileNameWithExtension)
+	dir := filepath.Dir(sourceFilePath)
+	ext := filepath.Ext(sourceFilePath)
+	nameOnly := strings.TrimSuffix(filepath.Base(sourceFilePath), ext)
 
-	// Check if source file exists
-	exists, err := afero.Exists(ir.fs, sourceFilePath)
+	timestamp := time.Now().Format(timeFormatLayout)
+	backupName := fmt.Sprintf("%s_%s_backup%s", nameOnly, timestamp, ext)
+	backupPath := filepath.Join(dir, backupName)
+
+	src, err := ir.fs.Open(sourceFilePath)
 	if err != nil {
-		return "", fmt.Errorf("failed to check source file presence: %w", err)
+		return "", fmt.Errorf("open source file: %w", err)
 	}
-	if !exists {
-		return "", fmt.Errorf("source file does not exist: %s", sourceFilePath)
-	}
+	defer src.Close()
 
-	// Copy source file to backup location
-	sourceData, err := afero.ReadFile(ir.fs, sourceFilePath)
+	dst, err := ir.fs.OpenFile(backupPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, defaultFilePermissions)
 	if err != nil {
-		return "", fmt.Errorf("failed to read source file: %w", err)
+		return "", fmt.Errorf("create backup file: %w", err)
 	}
 
-	err = afero.WriteFile(ir.fs, backupFilePath, sourceData, defaultFilePermissions)
-	if err != nil {
-		return "", fmt.Errorf("failed to create backup file: %w", err)
+	// We use the defer close() call to close the file in the event of an error when calling io.Copy().
+	defer dst.Close()
+
+	if _, err = io.Copy(dst, src); err != nil {
+		return "", fmt.Errorf("copy data to backup: %w", err)
 	}
 
-	return backupFilePath, nil
+	// Calling the close() method explicitly to identify any issues when writing data to disk.
+	if err := dst.Close(); err != nil {
+		return "", fmt.Errorf("close backup file: %w", err)
+	}
+
+	return backupPath, nil
 }
 
-// Deletes backup file.
-//
-// # Parameters
-//
-// sourceFilePath - path to the backup file.
-//
-// # Returns
-//
-// error if something went wrong.
-func (ir *ImageRepairerForDirectMode) deleteBackupFile(backupFilePath string) error {
-	if backupFilePath == "" {
-		return nil // Nothing to cleanup
+// deleteBackupFile removes the backup file. It returns an error if the file
+// does not exist or cannot be removed, as the backup's presence is expected.
+func (ir *ImageRepairerForDirectMode) deleteBackupFile(path string) error {
+	if path == "" {
+		return nil
 	}
 
-	// Check if backup file exists
-	exists, err := afero.Exists(ir.fs, backupFilePath)
+	err := ir.fs.Remove(path)
 	if err != nil {
-		return fmt.Errorf("failed to check backup file existence: %w", err)
-	}
-
-	if !exists {
-		return fmt.Errorf("unable to find backup file to delete it: %w", err)
-	}
-
-	// Remove the backup file
-	err = ir.fs.Remove(backupFilePath)
-	if err != nil {
-		return fmt.Errorf("failed to remove backup file: %w", err)
+		if errors.Is(err, os.ErrNotExist) {
+			return fmt.Errorf("backup file vanished unexpectedly: %s", path)
+		}
+		return fmt.Errorf("remove backup file: %w", err)
 	}
 
 	return nil

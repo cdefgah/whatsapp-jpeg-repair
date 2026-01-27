@@ -79,7 +79,7 @@ func NewFilePathsIteratorForManagedMode(fs afero.Fs, root string, recursive bool
 // # Returns
 //
 // path to the next file, returns empty string "" if there are no more files left.
-func (it *FilePathsIteratorForManagedMode) NextFilePath() string {
+func (it *FilePathsIteratorForManagedMode) Next() (string, bool) {
 	for len(it.stack) > 0 {
 		// Taking element from the stack top
 		topIndex := len(it.stack) - 1
@@ -122,18 +122,18 @@ func (it *FilePathsIteratorForManagedMode) NextFilePath() string {
 
 			if it.processOnlyJpegFiles {
 				if isJpegFileExtension(fullPath) {
-					return fullPath // returning path to jpeg-file
+					return fullPath, true // returning path to jpeg-file
 				}
 				continue // skipping non-JPEG files
 			}
 
 			// if we process all files, just returning path
-			return fullPath
+			return fullPath, true
 		}
 	}
 
 	// if stack is empty, then there are no files left
-	return ""
+	return "", false
 }
 
 // Checks if a file name is jpeg file or not.

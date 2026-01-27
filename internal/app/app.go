@@ -59,9 +59,9 @@ func runAppInDirectMode(fs afero.Fs, options options.DirectModeOptions, writer i
 	filePathIterator := filesystem.NewFilePathsIteratorForDirectMode(options.FilePaths)
 
 	repair.ProcessAllFiles(filePathIterator, imageRepairer)
-	fmt.Fprintln(writer, imageRepairer.GetTextReport())
+	fmt.Fprintln(writer, imageRepairer.TextReport())
 
-	if imageRepairer.ErrorsPresent() {
+	if imageRepairer.HasErrors() {
 		return fmt.Errorf("Image files processing in direct mode failed!")
 	} else {
 		return nil
@@ -85,11 +85,11 @@ func runAppInManagedMode(fs afero.Fs, options options.ManagedModeOptions, writer
 	imageRepairer := repair.NewImageRepairerForManagedMode(fs, options, writer)
 
 	repair.ProcessAllFiles(filePathIterator, imageRepairer)
-	fmt.Fprintln(writer, imageRepairer.GetTextReport())
+	fmt.Fprintln(writer, imageRepairer.TextReport())
 
 	repair.RunAndWaitForExit(options.DontWaitToClose, os.Stdin, os.Stdout)
 
-	if imageRepairer.ErrorsPresent() {
+	if imageRepairer.HasErrors() {
 		return fmt.Errorf("Image files processing in managed mode failed!")
 	} else {
 		return nil
