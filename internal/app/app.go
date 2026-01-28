@@ -23,9 +23,9 @@ func ProcessCommandLineArguments(
 	argsWithoutAppName []string,
 	writer io.Writer,
 ) error {
-	managedOptions := options.CreateAndGetDefaultManagedModeOptions(cwd)
+	managedOptions := options.NewDefaultManagedModeOptions(cwd)
 
-	flagSet, displayHelp := options.NewManagedFlagSet(writer, &managedOptions)
+	flagSet, displayHelp := options.NewManagedFlagSet(writer, managedOptions)
 	if err := flagSet.Parse(argsWithoutAppName); err != nil || *displayHelp {
 		flagSet.Usage()
 		return nil
@@ -45,7 +45,7 @@ func ProcessCommandLineArguments(
 		managedOptions.SourceFolderPath = filepath.Clean(managedOptions.SourceFolderPath)
 		managedOptions.DestinationFolderPath = filepath.Clean(managedOptions.DestinationFolderPath)
 
-		return runAppInManagedMode(fs, managedOptions, writer)
+		return runAppInManagedMode(fs, *managedOptions, writer)
 	}
 
 	directOptions := options.NewDirectOptions(flagSet.Args())

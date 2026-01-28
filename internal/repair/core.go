@@ -34,9 +34,9 @@ func (fe FileError) Error() string {
 
 // RepairStats holds the results of a batch image repair operation.
 type RepairStats struct {
+	Errors    []FileError
 	Processed int
 	Failed    int
-	Errors    []FileError
 }
 
 // ImageRepairerBase provides a foundation for repairing images
@@ -53,7 +53,7 @@ type SingleFileProcessor interface {
 	ProcessSingleFile(path string) error
 	DisplayStart(path string)
 	RegisterError(path string, err error)
-	RegisterSuccess(path string)
+	RegisterSuccess()
 }
 
 // readImage opens and decodes an image from the specified path.
@@ -144,18 +144,18 @@ func (ir *ImageRepairerBase) RegisterError(filePath string, err error) {
 		Err:      err,
 	})
 
-	fmt.Fprintf(ir.writer, "Processing file %s ....... ERROR!\n", filePath)
+	fmt.Fprintf(ir.writer, "ERROR!\n")
 }
 
 // RegisterSuccess registers that file processing succeeded.
-func (ir *ImageRepairerBase) RegisterSuccess(filePath string) {
+func (ir *ImageRepairerBase) RegisterSuccess() {
 	ir.stats.Processed++
-	fmt.Fprintf(ir.writer, "Processing file %s ....... OK\n", filePath)
+	fmt.Fprintf(ir.writer, "OK\n")
 }
 
 // DisplayStart outputs information that the file processing started.
 func (ir *ImageRepairerBase) DisplayStart(filePath string) {
-	fmt.Fprintln(ir.writer, "Processing file ", filePath, " ....... ")
+	fmt.Fprintf(ir.writer, "Processing file %s .......................... ", filePath)
 }
 
 // ProcessAllFiles processes all files using the provided iterator and processor.
@@ -173,7 +173,7 @@ func ProcessAllFiles(iterator filesystem.FilePathIterator, p SingleFileProcessor
 			p.RegisterError(path, err)
 			continue
 		}
-		p.RegisterSuccess(path)
+		p.RegisterSuccess()
 	}
 }
 
