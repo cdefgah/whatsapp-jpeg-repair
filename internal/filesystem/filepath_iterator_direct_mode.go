@@ -1,5 +1,10 @@
 package filesystem
 
+import (
+	"context"
+	"iter"
+)
+
 /*
 SPDX-License-Identifier: GPL-3.0-only
 Copyright (c) 2021 by Rafael Osipov <rafael.osipov@outlook.com>
@@ -8,25 +13,26 @@ Copyright (c) 2021 by Rafael Osipov <rafael.osipov@outlook.com>
 // FilePathsIteratorForDirectMode contains filesystem iterator data for processing files in direct mode.
 type FilePathsIteratorForDirectMode struct {
 	filePaths []string
-	index     int
 }
 
 // NewFilePathsIteratorForDirectMode creates a new file path iterator for direct mode based on the provided parameters.
 func NewFilePathsIteratorForDirectMode(filePaths []string) *FilePathsIteratorForDirectMode {
 	return &FilePathsIteratorForDirectMode{
 		filePaths: filePaths,
-		index:     0,
 	}
 }
 
-// Next returns the path to the next file and true.
-// If no files are left, it returns an empty string and false.
-func (it *FilePathsIteratorForDirectMode) Next() (string, bool) {
-	if it.index >= len(it.filePaths) {
-		return "", false
-	}
+// Returns file paths iterator.
+func (it *FilePathsIteratorForDirectMode) All(ctx context.Context) iter.Seq[string] {
+	return func(yield func(string) bool) {
+		for _, path := range it.filePaths {
+			if ctx.Err() != nil {
+				return
+			}
 
-	singleFilePath := it.filePaths[it.index]
-	it.index++
-	return singleFilePath, true
+			if !yield(path) {
+				return
+			}
+		}
+	}
 }

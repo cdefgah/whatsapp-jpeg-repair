@@ -1,6 +1,7 @@
 package repair
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"path/filepath"
@@ -74,13 +75,18 @@ func NewImageRepairerForManagedMode(fs afero.Fs, options options.ManagedModeOpti
 // # Returns
 //
 // error if something went wrong.
-func (ir *ImageRepairerForManagedMode) ProcessSingleFile(sourceFilePath string) error {
+func (ir *ImageRepairerForManagedMode) ProcessSingleFile(ctx context.Context, sourceFilePath string) error {
+	// Checking if process interrupted by Ctrl+C
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+
 	destinationFilePath, err := ir.prepareDestinationFilePath(sourceFilePath)
 	if err != nil {
 		return fmt.Errorf("Error upon preparing destination file path: %w", err)
 	}
 
-	img, format, err := ir.readImage(sourceFilePath)
+	img, format, err := ir.readImage(ctx, sourceFilePath)
 	if err != nil {
 		return err
 	}
@@ -90,7 +96,12 @@ func (ir *ImageRepairerForManagedMode) ProcessSingleFile(sourceFilePath string) 
 		format = jpegFormatName
 	}
 
-	err = ir.writeImage(destinationFilePath, img, format)
+	// Checking if process interrupted by Ctrl+C
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+
+	err = ir.writeImage(ctx, destinationFilePath, img, format)
 	if err != nil {
 		return err
 	}
@@ -99,6 +110,11 @@ func (ir *ImageRepairerForManagedMode) ProcessSingleFile(sourceFilePath string) 
 		if err := ir.setSourceFileModificationTimeToDestFile(sourceFilePath, destinationFilePath); err != nil {
 			return err
 		}
+	}
+
+	// Checking if process interrupted by Ctrl+C
+	if err := ctx.Err(); err != nil {
+		return err
 	}
 
 	if ir.options.DeleteWhatsAppFiles {

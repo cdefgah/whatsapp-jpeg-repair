@@ -1,6 +1,7 @@
 package repair
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -34,22 +35,42 @@ func NewImageRepairerForDirectMode(fs afero.Fs, opts options.DirectModeOptions, 
 
 // ProcessSingleFile repairs a single image in Direct mode.
 // It creates a temporary backup, performs the repair, and removes the backup upon success.
-func (ir *ImageRepairerForDirectMode) ProcessSingleFile(sourceFilePath string) error {
-	backupFilePath, err := ir.createBackupFile(sourceFilePath)
+func (ir *ImageRepairerForDirectMode) ProcessSingleFile(ctx context.Context, sourceFilePath string) error {
+	// Checking if process interrupted by Ctrl+C
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+
+	backupFilePath, err := ir.createBackupFile(ctx, sourceFilePath)
 	if err != nil {
 		return err
 	}
 
-	img, format, err := ir.readImage(sourceFilePath)
+	// Checking if process interrupted by Ctrl+C
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+
+	img, format, err := ir.readImage(ctx, sourceFilePath)
 	if err != nil {
 		return fmt.Errorf("read image for repair: %w", err)
 	}
 
-	if err := ir.writeImage(sourceFilePath, img, format); err != nil {
+	// Checking if process interrupted by Ctrl+C
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+
+	if err := ir.writeImage(ctx, sourceFilePath, img, format); err != nil {
 		return fmt.Errorf("write repaired image: %w", err)
 	}
 
-	if err := ir.deleteBackupFile(backupFilePath); err != nil {
+	// Checking if process interrupted by Ctrl+C
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+
+	if err := ir.deleteBackupFile(ctx, backupFilePath); err != nil {
 		return fmt.Errorf("remove backup after successful repair: %w", err)
 	}
 
@@ -58,7 +79,12 @@ func (ir *ImageRepairerForDirectMode) ProcessSingleFile(sourceFilePath string) e
 
 // createBackupFile creates a copy in the same directory as the source.
 // The backup file is expected to be cleaned up later by the caller or a cleanup function.
-func (ir *ImageRepairerForDirectMode) createBackupFile(sourceFilePath string) (string, error) {
+func (ir *ImageRepairerForDirectMode) createBackupFile(ctx context.Context, sourceFilePath string) (string, error) {
+	// Checking if process interrupted by Ctrl+C
+	if err := ctx.Err(); err != nil {
+		return "", err
+	}
+
 	// Format constant: 2006(6) 01(1) 02(2) _ 15(3) 04(4) 05(5)
 	const timeFormatLayout = "20060102_150405"
 
@@ -98,7 +124,12 @@ func (ir *ImageRepairerForDirectMode) createBackupFile(sourceFilePath string) (s
 
 // deleteBackupFile removes the backup file. It returns an error if the file
 // does not exist or cannot be removed, as the backup's presence is expected.
-func (ir *ImageRepairerForDirectMode) deleteBackupFile(path string) error {
+func (ir *ImageRepairerForDirectMode) deleteBackupFile(ctx context.Context, path string) error {
+	// Checking if process interrupted by Ctrl+C
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+
 	if path == "" {
 		return nil
 	}

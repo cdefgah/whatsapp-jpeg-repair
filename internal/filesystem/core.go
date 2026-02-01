@@ -1,9 +1,13 @@
 package filesystem
 
-// Represents a contract of mechanism that returns
-// single file path upon calling NextFilePath() method.
-// If there are no more file paths available,
-// this method returns an empty string.
+import (
+	"context"
+	"iter"
+)
+
+// FilePathIterator provides a way to iterate over a sequence of file paths.
 type FilePathIterator interface {
-	Next() (string, bool)
+	// All returns an iterator over all files discovered by the iterator.
+	// It is intended to be used with a for-range loop.
+	All(context context.Context) iter.Seq[string]
 }

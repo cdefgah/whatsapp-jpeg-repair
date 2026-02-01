@@ -6,7 +6,9 @@ Copyright (c) 2021 by Rafael Osipov <rafael.osipov@outlook.com>
 */
 
 import (
+	"context"
 	"fmt"
+	"iter"
 	"os"
 	"path/filepath"
 	"strings"
@@ -45,7 +47,7 @@ func NewFilePathsIteratorForManagedMode(fs afero.Fs, root string, recursive bool
 		return nil, fmt.Errorf("read root directory: %w", err)
 	}
 
-	it := &FilePathsIteratorForManagedMode{
+	return &FilePathsIteratorForManagedMode{
 		filesystem:           fs,
 		recursive:            recursive,
 		processOnlyJpegFiles: processOnlyJpegFiles,
@@ -56,39 +58,41 @@ func NewFilePathsIteratorForManagedMode(fs afero.Fs, root string, recursive bool
 				index:             0,
 			},
 		},
-	}
-
-	return it, nil
+	}, nil
 }
 
-// Next returns the path to the next file and true.
-// If no files are left, it returns an empty string and false.
-func (it *FilePathsIteratorForManagedMode) Next() (string, bool) {
-	for len(it.stack) > 0 {
-		topIndex := len(it.stack) - 1
-		currentFolder := &it.stack[topIndex]
+// All returns an iterator over all file paths in the traverser.
+func (it *FilePathsIteratorForManagedMode) All(ctx context.Context) iter.Seq[string] {
+	return func(yield func(string) bool) {
+		for len(it.stack) > 0 {
+			if err := ctx.Err(); err != nil {
+				return
+			}
 
-		// if all elements in the current folder are processed,
-		// removing the folder from the stack and continue the loop
-		if currentFolder.index >= len(currentFolder.folderObjectsList) {
-			it.stack = it.stack[:topIndex]
-			continue
-		}
+			topIndex := len(it.stack) - 1
+			currentFolder := &it.stack[topIndex]
 
-		entry := currentFolder.folderObjectsList[currentFolder.index]
-		currentFolder.index++
+			// if all elements in the current folder are processed,
+			// removing the folder from the stack and continue the loop
+			if currentFolder.index >= len(currentFolder.folderObjectsList) {
+				it.stack = it.stack[:topIndex]
+				continue
+			}
 
-		// Ignoring symlinks
-		if entry.Mode()&os.ModeSymlink != 0 {
-			continue
-		}
+			entry := currentFolder.folderObjectsList[currentFolder.index]
+			currentFolder.index++
 
-		fullPath := filepath.Join(currentFolder.pathToFolder, entry.Name())
+			// Ignoring symlinks
+			if entry.Mode()&os.ModeSymlink != 0 {
+				continue
+			}
 
-		if entry.IsDir() {
-			if it.recursive {
+			fullPath := filepath.Join(currentFolder.pathToFolder, entry.Name())
+
+			if entry.IsDir() && it.recursive {
 				entries, err := afero.ReadDir(it.filesystem, fullPath)
-				// Skipping empty folders and folders with permission errors
+
+				// Skipping empty folders and folders that can't be read (with permission errors for example)
 				if err != nil || len(entries) == 0 {
 					continue
 				}
@@ -98,21 +102,21 @@ func (it *FilePathsIteratorForManagedMode) Next() (string, bool) {
 					folderObjectsList: entries,
 					index:             0,
 				})
-			}
-			continue
-		}
-
-		// Processing regular files
-		if entry.Mode().IsRegular() {
-			if it.processOnlyJpegFiles && !isJpegFileExtension(fullPath) {
 				continue
 			}
 
-			return fullPath, true
+			// Processing regular files here
+			if entry.Mode().IsRegular() {
+				if it.processOnlyJpegFiles && !isJpegFileExtension(fullPath) {
+					continue
+				}
+
+				if !yield(fullPath) {
+					return
+				}
+			}
 		}
 	}
-
-	return "", false
 }
 
 // isJpegFileExtension returns true if the filename has a known JPEG extension.
