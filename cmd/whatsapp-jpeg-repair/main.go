@@ -24,35 +24,37 @@ func main() {
 	fmt.Println("\nProject web-site, source code and documentation: https://github.com/cdefgah/whatsapp-jpeg-repair")
 	fmt.Println()
 
-	// Creating context and listening to interrupt and terminate signals.
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-
-	// Calling deferred stop() to restore system calls behaviour handling
-	defer stop()
-
-	currentWorkingDirectory, err := os.Getwd()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to get current working directory: %v\n", err)
-		os.Exit(1)
-	}
-
-	filesystem := afero.NewOsFs()
-	argumentsWithoutAppName := os.Args[1:]
-	writer := os.Stdout
-
-	err = app.ProcessCommandLineArguments(ctx, filesystem, currentWorkingDirectory, argumentsWithoutAppName, writer)
-	if err != nil {
-		if errors.Is(err, pflag.ErrHelp) {
-			return
-		}
-
-		// Checking if error is related to the termination request
-		if errors.Is(err, context.Canceled) {
-			fmt.Fprintln(os.Stderr, "\nExecution cancelled by user.")
-			os.Exit(0)
-		}
-
+	if err := runApp(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
+}
+
+func runApp() error {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	cwd, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("failed to get current working directory: %w", err)
+	}
+
+	fs := afero.NewOsFs()
+	argsWithoutAppName := os.Args[1:]
+
+	err = app.ProcessCommandLineArguments(ctx, fs, cwd, argsWithoutAppName, os.Stdout, os.Stderr)
+	if err != nil {
+		if errors.Is(err, pflag.ErrHelp) {
+			return nil
+		}
+
+		if errors.Is(err, context.Canceled) {
+			fmt.Fprintln(os.Stderr, "\ninterrupted by user")
+			return nil
+		}
+
+		return err
+	}
+
+	return nil
 }

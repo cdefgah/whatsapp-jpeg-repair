@@ -22,12 +22,13 @@ type ImageRepairerForDirectMode struct {
 
 // NewImageRepairerForDirectMode creates and initializes a new ImageRepairerForDirectMode.
 // It sets up the base repairer with the provided filesystem, writer, and fresh statistics.
-func NewImageRepairerForDirectMode(fs afero.Fs, opts options.DirectModeOptions, writer io.Writer) *ImageRepairerForDirectMode {
+func NewImageRepairerForDirectMode(fs afero.Fs, opts options.DirectModeOptions, out io.Writer, errOut io.Writer) *ImageRepairerForDirectMode {
 	return &ImageRepairerForDirectMode{
 		ImageRepairerBase: ImageRepairerBase{
 			fs:     fs,
 			stats:  &RepairStats{},
-			writer: writer,
+			out:    out,
+			errOut: errOut,
 		},
 		options: opts,
 	}

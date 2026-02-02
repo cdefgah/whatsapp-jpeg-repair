@@ -35,6 +35,7 @@ type ManagedModeOptions struct {
 	SourceFolderPath           string
 	DestinationFolderPath      string
 	PreserveImageFormat        bool
+	DontShowProgress           bool
 	UseCurrentModificationTime bool
 	DeleteWhatsAppFiles        bool
 	ProcessOnlyJpegFiles       bool
@@ -96,6 +97,8 @@ func NewManagedFlagSet(
 		flagPrcsOnlyJpegFilesShort    = "j"
 		flagPresImageFormat           = "preserve-image-format"
 		flagPresImageFormatShort      = "p"
+		flagDontShowProgress          = "quiet"
+		flagDontShowProgressShort     = "q"
 	)
 
 	flagSet = pflag.NewFlagSet("available command-line switches", pflag.ContinueOnError)
@@ -148,8 +151,18 @@ func NewManagedFlagSet(
 		managedOptions.PreserveImageFormat,
 		"If this is set to true, the application will attempt to preserve the format of the source image when writing the resulting file. "+
 			"Otherwise, the file contents will be converted to JPEG format. "+
-			"Supported formats: JPEG, PNG, GIF, BMP, TIFF. "+
+			"Supported formats: JPEG, PNG, GIF, BMP, TIFF. Default value is: false."+
 			"If you need to process image files in an unsupported format, select 'false' for this option. However, the resulting file will contain a JPEG image.",
+	)
+
+	flagSet.BoolVarP(
+		&managedOptions.DontShowProgress,
+		flagDontShowProgress,
+		flagDontShowProgressShort,
+		managedOptions.DontShowProgress,
+		"Setting this value to true will stop the program from displaying progress information while it is running. "+
+			"The program will run in quiet mode, meaning that if errors occur, stderr will only contain error information. "+
+			"This mode is useful if you want to check the error log after the programme has finished running. Default: false.",
 	)
 
 	flagSet.BoolVarP(

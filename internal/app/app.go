@@ -23,7 +23,8 @@ func ProcessCommandLineArguments(
 	fs afero.Fs,
 	cwd string,
 	argsWithoutAppName []string,
-	writer io.Writer,
+	out io.Writer,
+	errOut io.Writer,
 ) error {
 	// Checking if process interrupted by Ctrl+C
 	if err := ctx.Err(); err != nil {
@@ -32,7 +33,7 @@ func ProcessCommandLineArguments(
 
 	managedOptions := options.NewDefaultManagedModeOptions(cwd)
 
-	flagSet, displayHelp := options.NewManagedFlagSet(writer, managedOptions)
+	flagSet, displayHelp := options.NewManagedFlagSet(out, managedOptions)
 	if err := flagSet.Parse(argsWithoutAppName); err != nil || *displayHelp {
 		flagSet.Usage()
 		return nil
@@ -52,42 +53,40 @@ func ProcessCommandLineArguments(
 		managedOptions.SourceFolderPath = filepath.Clean(managedOptions.SourceFolderPath)
 		managedOptions.DestinationFolderPath = filepath.Clean(managedOptions.DestinationFolderPath)
 
-		return runAppInManagedMode(ctx, fs, *managedOptions, writer)
+		return runAppInManagedMode(ctx, fs, *managedOptions, out, errOut)
 	}
 
 	directOptions := options.NewDirectOptions(flagSet.Args())
-	return runAppInDirectMode(ctx, fs, directOptions, writer)
+	return runAppInDirectMode(ctx, fs, directOptions, out, errOut)
 }
 
-func runAppInDirectMode(ctx context.Context, fs afero.Fs, options options.DirectModeOptions, writer io.Writer) error {
-	// Checking if process interrupted by Ctrl+C
+func runAppInDirectMode(ctx context.Context, fs afero.Fs, options options.DirectModeOptions, out io.Writer, errOut io.Writer) error {
 	if err := ctx.Err(); err != nil {
 		return err
 	}
 
-	fmt.Fprintln(writer, "Now the application runs in direct mode, processing file paths that are passed in the command line.")
+	fmt.Fprintln(out, "Now the application runs in direct mode, processing file paths that are passed in the command line.")
 
-	imageRepairer := repair.NewImageRepairerForDirectMode(fs, options, writer)
+	imageRepairer := repair.NewImageRepairerForDirectMode(fs, options, out, errOut)
 	filePathIterator := filesystem.NewFilePathsIteratorForDirectMode(options.FilePaths)
 
 	repair.ProcessAllFiles(ctx, filePathIterator, imageRepairer)
-	fmt.Fprintln(writer, imageRepairer.TextReport())
+	fmt.Fprintln(out, imageRepairer.TextReport())
 
 	if imageRepairer.HasErrors() {
-		return fmt.Errorf("Image files processing in direct mode failed!")
+		return fmt.Errorf("processing of image files in direct mode has failed!")
 	} else {
 		return nil
 	}
 }
 
-func runAppInManagedMode(ctx context.Context, fs afero.Fs, options options.ManagedModeOptions, writer io.Writer) error {
-	// Checking if process interrupted by Ctrl+C
+func runAppInManagedMode(ctx context.Context, fs afero.Fs, options options.ManagedModeOptions, out io.Writer, errOut io.Writer) error {
 	if err := ctx.Err(); err != nil {
 		return err
 	}
 
-	fmt.Fprintln(writer, "Now the application runs in managed mode with the following parameters:")
-	fmt.Fprintln(writer, options.String())
+	fmt.Fprintln(out, "Now the application runs in managed mode with the following parameters:")
+	fmt.Fprintln(out, options.String())
 
 	filePathIterator, err :=
 		filesystem.NewFilePathsIteratorForManagedMode(fs,
@@ -99,15 +98,19 @@ func runAppInManagedMode(ctx context.Context, fs afero.Fs, options options.Manag
 		return err
 	}
 
-	imageRepairer := repair.NewImageRepairerForManagedMode(fs, options, writer)
+	imageRepairer := repair.NewImageRepairerForManagedMode(fs, options, out, errOut)
 
 	repair.ProcessAllFiles(ctx, filePathIterator, imageRepairer)
-	fmt.Fprintln(writer, imageRepairer.TextReport())
+	fmt.Fprintln(out, imageRepairer.TextReport())
 
-	repair.RunAndWaitForExit(ctx, options.DontWaitToClose, os.Stdin, os.Stdout)
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+
+	repair.RunAndWaitForExit(ctx, os.Stdin, os.Stdout, options.DontWaitToClose)
 
 	if imageRepairer.HasErrors() {
-		return fmt.Errorf("Image files processing in managed mode failed!")
+		return fmt.Errorf("processing of image files in managed mode has failed!")
 	} else {
 		return nil
 	}

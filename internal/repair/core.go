@@ -3,6 +3,7 @@ package repair
 import (
 	"bufio"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -45,7 +46,8 @@ type RepairStats struct {
 type ImageRepairerBase struct {
 	fs     afero.Fs
 	stats  *RepairStats
-	writer io.Writer
+	out    io.Writer
+	errOut io.Writer
 }
 
 // SingleFileProcessor defines the contract for processing individual files
@@ -147,10 +149,10 @@ func (ir *ImageRepairerBase) HasErrors() bool {
 func (ir *ImageRepairerBase) TextReport() string {
 	var sb strings.Builder
 
-	fmt.Fprintf(&sb, "Processed: %d file(s)\n", ir.stats.Processed)
+	fmt.Fprintf(&sb, "\nProcessed: %d file(s)\n", ir.stats.Processed)
 
 	if ir.HasErrors() {
-		fmt.Fprintf(&sb, "Failed: %d file(s)\n", ir.stats.Failed)
+		fmt.Fprintf(&sb, "\nFailed: %d file(s)\n", ir.stats.Failed)
 		sb.WriteString("Errors:\n")
 
 		for _, fe := range ir.stats.Errors {
@@ -161,27 +163,34 @@ func (ir *ImageRepairerBase) TextReport() string {
 	return sb.String()
 }
 
+// TODO Надо разобраться с тем что мы пишем в stdout а что в Stderr говорят что прогресс пишется в stderr
 // RegisterError registers file processing error and outputs it to the writer.
 func (ir *ImageRepairerBase) RegisterError(filePath string, err error) {
+	if errors.Is(err, context.Canceled) {
+		fmt.Fprintln(ir.errOut, "CANCELED!")
+		return
+	}
+
 	ir.stats.Failed++
-	ir.stats.Processed++ // Считаем как общую попытку обработки
+	ir.stats.Processed++
+
 	ir.stats.Errors = append(ir.stats.Errors, FileError{
 		FilePath: filePath,
 		Err:      err,
 	})
 
-	fmt.Fprintf(ir.writer, "ERROR!\n")
+	fmt.Fprintln(ir.errOut, "ERROR!")
 }
 
 // RegisterSuccess registers that file processing succeeded.
 func (ir *ImageRepairerBase) RegisterSuccess() {
 	ir.stats.Processed++
-	fmt.Fprintf(ir.writer, "OK\n")
+	fmt.Fprintf(ir.errOut, "OK\n")
 }
 
 // DisplayStart outputs information that the file processing started.
 func (ir *ImageRepairerBase) DisplayStart(filePath string) {
-	fmt.Fprintf(ir.writer, "Processing file %s .......................... ", filePath)
+	fmt.Fprintf(ir.errOut, "Processing file %s .......................... ", filePath)
 }
 
 // ProcessAllFiles processes all files using the provided iterator and processor.
@@ -211,28 +220,18 @@ func ProcessAllFiles(ctx context.Context, it filesystem.FilePathIterator, p Sing
 	}
 }
 
-// RunAndWaitForExit awaits for "Enter" key press if dontWaitToClose is false.
-func RunAndWaitForExit2(dontWait bool, input io.Reader, output io.Writer) {
-	if dontWait {
-		return
-	}
-
-	fmt.Fprintln(output, "Press Enter to exit")
-	_, _ = bufio.NewReader(input).ReadString('\n')
-}
-
 // RunAndWaitForExit awaits for "Enter" key press or context cancellation.
-func RunAndWaitForExit(ctx context.Context, dontWait bool, input io.Reader, output io.Writer) {
+func RunAndWaitForExit(ctx context.Context, in io.Reader, out io.Writer, dontWait bool) {
 	if dontWait || ctx.Err() != nil {
 		return
 	}
 
-	fmt.Fprintln(output, "Press Enter to exit")
+	fmt.Fprintln(out, "Press Enter to exit")
 
 	// Creating a channel to receive a signal when required key is pressed
 	done := make(chan struct{})
 
-	keyboardReader := bufio.NewReader(input)
+	keyboardReader := bufio.NewReader(in)
 
 	go func() {
 		_, _ = keyboardReader.ReadString('\n')
@@ -245,7 +244,6 @@ func RunAndWaitForExit(ctx context.Context, dontWait bool, input io.Reader, outp
 		// Please note that we are not closing the input stream here.
 		// The goroutine above will leak, but since the application is about to exit,
 		// the operating system will reclaim and free all resources immediately.
-		fmt.Fprintln(output, "Pressing Enter would suffice. But, since you insist... OK.")
 		return
 	case <-done:
 		// If pressed Enter key
