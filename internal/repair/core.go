@@ -9,12 +9,7 @@ import (
 	"strings"
 
 	"image"
-	"image/gif"
 	"image/jpeg"
-	"image/png"
-
-	"golang.org/x/image/bmp"
-	"golang.org/x/image/tiff"
 
 	"github.com/cdefgah/whatsapp-jpeg-repair/internal/filesystem"
 	"github.com/spf13/afero"
@@ -60,36 +55,35 @@ type SingleFileProcessor interface {
 }
 
 // readImage opens and decodes an image from the specified path.
-func (ir *ImageRepairerBase) readImage(ctx context.Context, path string) (image.Image, string, error) {
+func (ir *ImageRepairerBase) readImage(ctx context.Context, path string) (image.Image, error) {
 	// Checking if process interrupted by Ctrl+C
 	if err := ctx.Err(); err != nil {
-		return nil, "", err
+		return nil, err
 	}
 
 	file, err := ir.fs.Open(path)
 	if err != nil {
-		return nil, "", fmt.Errorf("open image file: %w", err)
+		return nil, fmt.Errorf("open image file: %w", err)
 	}
 	defer file.Close()
 
 	// Checking if process interrupted by Ctrl+C
 	if err := ctx.Err(); err != nil {
-		return nil, "", err
+		return nil, err
 	}
 
 	reader := bufio.NewReader(file)
 
-	img, format, err := image.Decode(reader)
+	img, _, err := image.Decode(reader)
 	if err != nil {
-		return nil, "", fmt.Errorf("decode image %s: %w", path, err)
+		return nil, fmt.Errorf("decode image %s: %w", path, err)
 	}
 
-	return img, format, nil
+	return img, nil
 }
 
-// writeImage saves the image to the specified path using the provided format.
-// It supports jpeg, png, gif, bmp, and tiff.
-func (ir *ImageRepairerBase) writeImage(ctx context.Context, filePath string, img image.Image, format string) error {
+// writeImage saves the image in JPEG format to the specified path.
+func (ir *ImageRepairerBase) writeImage(ctx context.Context, filePath string, img image.Image) error {
 	// Checking if process interrupted by Ctrl+C
 	if err := ctx.Err(); err != nil {
 		return err
@@ -107,22 +101,7 @@ func (ir *ImageRepairerBase) writeImage(ctx context.Context, filePath string, im
 	}
 
 	bw := bufio.NewWriter(file)
-
-	var errEncode error
-	switch format {
-	case "jpeg":
-		errEncode = jpeg.Encode(bw, img, nil)
-	case "png":
-		errEncode = png.Encode(bw, img)
-	case "gif":
-		errEncode = gif.Encode(bw, img, nil)
-	case "bmp":
-		errEncode = bmp.Encode(bw, img)
-	case "tiff":
-		errEncode = tiff.Encode(bw, img, nil)
-	default:
-		return fmt.Errorf("unsupported image format for encoding: %s", format)
-	}
+	errEncode := jpeg.Encode(bw, img, nil)
 
 	// Checking if process interrupted by Ctrl+C
 	if err := ctx.Err(); err != nil {
@@ -130,7 +109,7 @@ func (ir *ImageRepairerBase) writeImage(ctx context.Context, filePath string, im
 	}
 
 	if errEncode != nil {
-		return fmt.Errorf("encode %s: %w", format, errEncode)
+		return fmt.Errorf("encode %s: %w", errEncode)
 	}
 
 	if err := bw.Flush(); err != nil {

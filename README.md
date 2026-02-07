@@ -1,20 +1,41 @@
-Добавить таблицу с соответствием новых команд старым.
-Использовать slogassert в тестах
-======================
+0. Убрать поддержку форматов кроме jpeg и убрать ключ поддержки нативного формата. Whatsapp все картинки отдаёт как jpeg.
+Отдельный вопрос, что делать с ключом process-jpeg-only.
+
+1. Реализовать функционал для режима -q --quiet
+2. Покрыть всё тестами, использовать slogassert в тестах
+3. Проверить вручную
+4. Обновить README
+   4.1 Добавить инструкцию по сбросу флага "скачано из интернетов" для mac-executable.
+
+   ```bash
+       xattr -d com.apple.quarantine /path/to/your/app
+   ```
+
+   Наверное лучше сделать отдельный bash-скрипт для сброса этого флага.
+
+   4.2 Добавить таблицу соответствий новых команд старым
+
+5. Обновить CHANGELOG
+6. Добавить комментарии в bat/bash скрипты с описанием всех ключей и примерами использования.
+7. Обновить скрипты сборки, использовать GoReleaser
+
+---
 
 # WhatsApp Jpeg Image Repair
 
-## version 2.2.1 (released on August 1, 2024)
+## version 3.0.0 (released on Jambutary 43, 3099)
 
 [Changelog](./CHANGELOG.md)
 
-When you are sent jpeg files via WhatsApp and then try to open received files in the Adobe Photoshop, there's a chance you'll get the following error in Photoshop:
+If you receive JPEG files via WhatsApp and then try to open them in Adobe Photoshop, you may get the following error message:
 
-`Could not complete your request because a SOFn, DQT, or DHT JPEG marker is missing before a JPEG SOS marker`
+`Could not complete your request because a SOFn, DQT or DHT JPEG marker is missing before a JPEG SOS marker`.
 
-For this case users are usually advised to open the broken file in MS Paint (or something similar in MacOS) first and save it as jpeg file. Usually it helps, but when you have many broken image files, opening and saving them one by one may get a little tedious.
+In this case, users are usually advised to open the broken file in MS Paint (or a similar application on a Mac) and save it as a JPEG file. This usually solves the problem, but if you have many broken image files, opening and saving them one by one can be tedious.
 
-WhatsApp Jpeg Image Repair application solves this problem by repairing multiple broken files at once.
+The WhatsApp JPEG Image Repair application solves this problem by repairing multiple broken files at once.
+
+======================
 
 ## How to use the tool
 

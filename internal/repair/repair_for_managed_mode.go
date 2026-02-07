@@ -87,14 +87,9 @@ func (ir *ImageRepairerForManagedMode) ProcessSingleFile(ctx context.Context, so
 		return fmt.Errorf("Error upon preparing destination file path: %w", err)
 	}
 
-	img, format, err := ir.readImage(ctx, sourceFilePath)
+	img, err := ir.readImage(ctx, sourceFilePath)
 	if err != nil {
 		return err
-	}
-
-	if !ir.options.PreserveImageFormat {
-		const jpegFormatName = "jpeg"
-		format = jpegFormatName
 	}
 
 	// Checking if process interrupted by Ctrl+C
@@ -102,7 +97,7 @@ func (ir *ImageRepairerForManagedMode) ProcessSingleFile(ctx context.Context, so
 		return err
 	}
 
-	err = ir.writeImage(ctx, destinationFilePath, img, format)
+	err = ir.writeImage(ctx, destinationFilePath, img)
 	if err != nil {
 		return err
 	}

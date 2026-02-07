@@ -91,8 +91,7 @@ func runAppInManagedMode(ctx context.Context, fs afero.Fs, options options.Manag
 	filePathIterator, err :=
 		filesystem.NewFilePathsIteratorForManagedMode(fs,
 			options.SourceFolderPath,
-			options.ProcessNestedFolders,
-			options.ProcessOnlyJpegFiles)
+			options.ProcessNestedFolders)
 
 	if err != nil {
 		return err

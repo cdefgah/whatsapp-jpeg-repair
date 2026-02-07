@@ -52,7 +52,7 @@ func (ir *ImageRepairerForDirectMode) ProcessSingleFile(ctx context.Context, sou
 		return err
 	}
 
-	img, format, err := ir.readImage(ctx, sourceFilePath)
+	img, err := ir.readImage(ctx, sourceFilePath)
 	if err != nil {
 		return fmt.Errorf("read image for repair: %w", err)
 	}
@@ -62,7 +62,7 @@ func (ir *ImageRepairerForDirectMode) ProcessSingleFile(ctx context.Context, sou
 		return err
 	}
 
-	if err := ir.writeImage(ctx, sourceFilePath, img, format); err != nil {
+	if err := ir.writeImage(ctx, sourceFilePath, img); err != nil {
 		return fmt.Errorf("write repaired image: %w", err)
 	}
 

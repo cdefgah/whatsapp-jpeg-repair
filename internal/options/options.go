@@ -34,11 +34,9 @@ type DirectModeOptions struct {
 type ManagedModeOptions struct {
 	SourceFolderPath           string
 	DestinationFolderPath      string
-	PreserveImageFormat        bool
 	DontShowProgress           bool
 	UseCurrentModificationTime bool
 	DeleteWhatsAppFiles        bool
-	ProcessOnlyJpegFiles       bool
 	ProcessNestedFolders       bool
 	DontWaitToClose            bool
 }
@@ -50,10 +48,9 @@ func (mmo *ManagedModeOptions) String() string {
 	// Using fixed width to output flag names (for example, 30 symbols) to display aligned text block
 	fmt.Fprintf(&sb, "%-30s %s\n", "Source folder path:", mmo.SourceFolderPath)
 	fmt.Fprintf(&sb, "%-30s %s\n", "Destination folder path:", mmo.DestinationFolderPath)
-	fmt.Fprintf(&sb, "%-30s %t\n", "Preserve image format:", mmo.PreserveImageFormat)
+	fmt.Fprintf(&sb, "%-30s %t\n", "Don't show progress:", mmo.DontShowProgress)
 	fmt.Fprintf(&sb, "%-30s %t\n", "Use current modification time:", mmo.UseCurrentModificationTime)
 	fmt.Fprintf(&sb, "%-30s %t\n", "Delete WhatsApp files:", mmo.DeleteWhatsAppFiles)
-	fmt.Fprintf(&sb, "%-30s %t\n", "Process only JPEG files:", mmo.ProcessOnlyJpegFiles)
 	fmt.Fprintf(&sb, "%-30s %t\n", "Process nested folders:", mmo.ProcessNestedFolders)
 	fmt.Fprintf(&sb, "%-30s %t\n", "Don't wait to close:", mmo.DontWaitToClose)
 
@@ -70,7 +67,6 @@ func NewDefaultManagedModeOptions(currentWorkingFolder string) *ManagedModeOptio
 	return &ManagedModeOptions{
 		SourceFolderPath:      filepath.Join(currentWorkingFolder, predefinedSourceFilesFolder),
 		DestinationFolderPath: filepath.Join(currentWorkingFolder, predefinedDestinationFilesFolder),
-		PreserveImageFormat:   true,
 	}
 }
 
@@ -93,12 +89,8 @@ func NewManagedFlagSet(
 		flagDontWaitToCloseShort      = "c"
 		flagPrcsNestedSrcFolders      = "process-nested-folders"
 		flagPrcsNestedSrcFoldersShort = "n"
-		flagPrcsOnlyJpegFiles         = "process-only-jpeg-files"
-		flagPrcsOnlyJpegFilesShort    = "j"
-		flagPresImageFormat           = "preserve-image-format"
-		flagPresImageFormatShort      = "p"
-		flagDontShowProgress          = "quiet"
-		flagDontShowProgressShort     = "q"
+		flagDontShowProgress          = "dont-show-progress"
+		flagDontShowProgressShort     = "p"
 	)
 
 	flagSet = pflag.NewFlagSet("available command-line switches", pflag.ContinueOnError)
@@ -145,24 +137,14 @@ func NewManagedFlagSet(
 	)
 
 	flagSet.BoolVarP(
-		&managedOptions.PreserveImageFormat,
-		flagPresImageFormat,
-		flagPresImageFormatShort,
-		managedOptions.PreserveImageFormat,
-		"If this is set to true, the application will attempt to preserve the format of the source image when writing the resulting file. "+
-			"Otherwise, the file contents will be converted to JPEG format. "+
-			"Supported formats: JPEG, PNG, GIF, BMP, TIFF. Default value is: false."+
-			"If you need to process image files in an unsupported format, select 'false' for this option. However, the resulting file will contain a JPEG image.",
-	)
-
-	flagSet.BoolVarP(
 		&managedOptions.DontShowProgress,
 		flagDontShowProgress,
 		flagDontShowProgressShort,
 		managedOptions.DontShowProgress,
-		"Setting this value to true will stop the program from displaying progress information while it is running. "+
+		fmt.Sprintf("Setting this value to true will stop the program from displaying progress information while it is running. "+
 			"The program will run in quiet mode, meaning that if errors occur, stderr will only contain error information. "+
-			"This mode is useful if you want to check the error log after the programme has finished running. Default: false.",
+			"This mode is useful if you want to check the error log after the program has finished running. Default: %v.",
+			managedOptions.DontShowProgress),
 	)
 
 	flagSet.BoolVarP(
@@ -170,7 +152,8 @@ func NewManagedFlagSet(
 		flagUseCurrentModTime,
 		flagUseCurrentModTimeShort,
 		managedOptions.UseCurrentModificationTime,
-		"If this is true, the current time will be set as the file's modification time. The default is the modification time of the source file.",
+		"If this is true, the current time will be set as the file's modification time. "+
+			"The default is the modification time of the source file.",
 	)
 
 	flagSet.BoolVarP(
@@ -187,14 +170,6 @@ func NewManagedFlagSet(
 		flagPrcsNestedSrcFoldersShort,
 		managedOptions.ProcessNestedFolders,
 		fmt.Sprintf("If it is true, then the application processes files in nested folders recursively. Default: %v.", managedOptions.ProcessNestedFolders),
-	)
-
-	flagSet.BoolVarP(
-		&managedOptions.ProcessOnlyJpegFiles,
-		flagPrcsOnlyJpegFiles,
-		flagPrcsOnlyJpegFilesShort,
-		managedOptions.ProcessOnlyJpegFiles,
-		fmt.Sprintf("If it is true, the application only processes JPEG files with the extensions 'jpg', 'jpeg', 'jpe', 'jif', 'jfif', or 'jfi' (case insensitive). Default: %v.", managedOptions.ProcessOnlyJpegFiles),
 	)
 
 	flagSet.BoolVarP(

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 
 	"github.com/cdefgah/whatsapp-jpeg-repair/internal/app"
@@ -34,10 +35,12 @@ func runApp() error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	cwd, err := os.Getwd()
+	exePath, err := os.Executable()
 	if err != nil {
-		return fmt.Errorf("failed to get current working directory: %w", err)
+		return fmt.Errorf("failed to get executable file path: %w", err)
 	}
+
+	cwd := filepath.Dir(exePath)
 
 	fs := afero.NewOsFs()
 	argsWithoutAppName := os.Args[1:]

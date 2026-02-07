@@ -5,6 +5,8 @@ on: [push]
 env:
   app_version_number: '2.2.1'
 
+# TODO Добавить ссылку на Changelog в Releases!
+
 jobs:
   build:
     runs-on: ubuntu-latest

@@ -18,10 +18,9 @@ import (
 
 // FilePathsIteratorForManagedMode contains filesystem iterator data for processing files in managed mode.
 type FilePathsIteratorForManagedMode struct {
-	filesystem           afero.Fs
-	stack                []folderEntry
-	recursive            bool
-	processOnlyJpegFiles bool
+	filesystem afero.Fs
+	stack      []folderEntry
+	recursive  bool
 }
 
 // folderEntry contains state for a single directory level in the stack.
@@ -32,7 +31,7 @@ type folderEntry struct {
 }
 
 // NewFilePathsIteratorForManagedMode creates a new file path iterator for managed mode based on the provided parameters.
-func NewFilePathsIteratorForManagedMode(fs afero.Fs, root string, recursive bool, processOnlyJpegFiles bool) (*FilePathsIteratorForManagedMode, error) {
+func NewFilePathsIteratorForManagedMode(fs afero.Fs, root string, recursive bool) (*FilePathsIteratorForManagedMode, error) {
 	info, err := fs.Stat(root)
 	if err != nil {
 		return nil, fmt.Errorf("stat root directory: %w", err)
@@ -48,9 +47,8 @@ func NewFilePathsIteratorForManagedMode(fs afero.Fs, root string, recursive bool
 	}
 
 	return &FilePathsIteratorForManagedMode{
-		filesystem:           fs,
-		recursive:            recursive,
-		processOnlyJpegFiles: processOnlyJpegFiles,
+		filesystem: fs,
+		recursive:  recursive,
 		stack: []folderEntry{
 			{
 				pathToFolder:      root,
@@ -105,9 +103,8 @@ func (it *FilePathsIteratorForManagedMode) All(ctx context.Context) iter.Seq[str
 				continue
 			}
 
-			// Processing regular files here
 			if entry.Mode().IsRegular() {
-				if it.processOnlyJpegFiles && !isJpegFileExtension(fullPath) {
+				if !isJpegFileExtension(fullPath) {
 					continue
 				}
 
