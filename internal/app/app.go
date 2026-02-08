@@ -16,29 +16,55 @@ import (
 	"github.com/spf13/afero"
 )
 
+// AppRunner encapsulates core params for the application.
+type AppRunner struct {
+	fs     afero.Fs
+	stdout io.Writer
+	stderr io.Writer
+}
+
+// NewAppRunner create new instance of AppRunner structure.
+func NewAppRunner(fs afero.Fs, stdout io.Writer, stderr io.Writer) *AppRunner {
+	return &AppRunner{
+		fs:     fs,
+		stdout: stdout,
+		stderr: stderr,
+	}
+}
+
+// GlobalProcessParams encapsulates processing params for the application.
+type GlobalProcessParams struct {
+	ExeFolderPath      string
+	ArgsWithoutAppName []string
+}
+
+// NewGlobalProcessParams creates new instance of GlobalProcessParams structure.
+func NewGlobalProcessParams(exeFolderPath string, argsWithoutAppName []string) *GlobalProcessParams {
+	return &GlobalProcessParams{
+		ExeFolderPath:      exeFolderPath,
+		ArgsWithoutAppName: argsWithoutAppName,
+	}
+}
+
 // ProcessCommandLineArguments is entry point to the repair process, handles command line arguments and acts accordingly.
-func ProcessCommandLineArguments(
+func (r *AppRunner) ProcessCommandLineArguments(
 	ctx context.Context,
-	fs afero.Fs,
-	exeFolderPath string,
-	argsWithoutAppName []string,
-	out io.Writer,
-	errOut io.Writer,
+	params GlobalProcessParams,
 ) error {
 	// Checking if process interrupted by Ctrl+C
 	if err := ctx.Err(); err != nil {
 		return err
 	}
 
-	managedOptions := options.NewDefaultManagedModeOptions(exeFolderPath)
+	managedOptions := options.NewDefaultManagedModeOptions(params.ExeFolderPath)
 
-	flagSet, displayHelp := options.NewManagedFlagSet(out, managedOptions)
-	if err := flagSet.Parse(argsWithoutAppName); err != nil || *displayHelp {
+	flagSet, displayHelp := options.NewManagedFlagSet(r.stdout, managedOptions)
+	if err := flagSet.Parse(params.ArgsWithoutAppName); err != nil || *displayHelp {
 		flagSet.Usage()
 		return nil
 	}
 
-	useManagedMode := options.IsManagedMode(argsWithoutAppName, flagSet)
+	useManagedMode := options.IsManagedMode(params.ArgsWithoutAppName, flagSet)
 
 	if useManagedMode {
 		// check if non-managed mode arguments present for managed mode
@@ -52,11 +78,11 @@ func ProcessCommandLineArguments(
 		managedOptions.SourceFolderPath = filepath.Clean(managedOptions.SourceFolderPath)
 		managedOptions.DestinationFolderPath = filepath.Clean(managedOptions.DestinationFolderPath)
 
-		return runAppInManagedMode(ctx, fs, *managedOptions, out, errOut)
+		return runAppInManagedMode(ctx, r.fs, *managedOptions, r.stdout, r.stderr)
 	}
 
 	directOptions := options.NewDirectOptions(flagSet.Args())
-	return runAppInDirectMode(ctx, fs, directOptions, out, errOut)
+	return runAppInDirectMode(ctx, r.fs, directOptions, r.stdout, r.stderr)
 }
 
 // runAppInDirectMode runs application in direct mode, repairs files whose paths were specified in the command-line parameters.

@@ -43,7 +43,10 @@ func runApp() error {
 	filesystem := afero.NewOsFs()
 	argsWithoutAppName := os.Args[1:]
 
-	err = app.ProcessCommandLineArguments(ctx, filesystem, exeFolderPath, argsWithoutAppName, os.Stdout, os.Stderr)
+	appRunner := app.NewAppRunner(filesystem, os.Stdout, os.Stderr)
+	globalParams := app.NewGlobalProcessParams(exeFolderPath, argsWithoutAppName)
+
+	err = appRunner.ProcessCommandLineArguments(ctx, *globalParams)
 	if err != nil {
 		if errors.Is(err, pflag.ErrHelp) {
 			return nil
