@@ -1,9 +1,7 @@
-package options
+// SPDX-License-Identifier: GPL-3.0-only
+// Copyright (c) 2021 by Rafael Osipov <rafael.osipov@outlook.com>
 
-/*
-SPDX-License-Identifier: GPL-3.0-only
-Copyright (c) 2021 by Rafael Osipov <rafael.osipov@outlook.com>
-*/
+package options
 
 import (
 	"fmt"
@@ -17,8 +15,22 @@ import (
 
 // Command line parameter keys
 const (
-	flagDisplayHelp      = "help"
-	flagDisplayHelpShort = "h"
+	flagSrcPath                   = "src-path"
+	flagSrcPathShort              = "s"
+	flagDestPath                  = "dest-path"
+	flagDestPathShort             = "d"
+	flagUseCurrentModTime         = "use-current-modification-time"
+	flagUseCurrentModTimeShort    = "t"
+	flagDeleteWhatsAppFiles       = "delete-whatsapp-files"
+	flagDeleteWhatsAppFilesShort  = "w"
+	flagDontWaitToClose           = "dont-wait-to-close"
+	flagDontWaitToCloseShort      = "c"
+	flagPrcsNestedSrcFolders      = "process-nested-folders"
+	flagPrcsNestedSrcFoldersShort = "n"
+	flagDontShowProgress          = "dont-show-progress"
+	flagDontShowProgressShort     = "p"
+	flagDisplayHelp               = "help"
+	flagDisplayHelpShort          = "h"
 )
 
 // DirectModeOptions contains options for the direct processing mode.
@@ -27,6 +39,13 @@ const (
 type DirectModeOptions struct {
 	FilePaths        []string
 	DontShowProgress bool
+}
+
+// NewDirectOptions returns new instance of DirectModeOptions.
+func NewDirectOptions(args []string) DirectModeOptions {
+	return DirectModeOptions{
+		FilePaths: args,
+	}
 }
 
 // ManagedModeOptions contains options for the managed processing mode.
@@ -40,6 +59,19 @@ type ManagedModeOptions struct {
 	DeleteWhatsAppFiles        bool
 	ProcessNestedFolders       bool
 	DontWaitToClose            bool
+}
+
+// NewDefaultManagedModeOptions creates instance of ManagedModeOptions with default values.
+func NewDefaultManagedModeOptions(currentWorkingFolder string) *ManagedModeOptions {
+	const (
+		predefinedSourceFilesFolder      = "whatsapp-files"
+		predefinedDestinationFilesFolder = "repaired-files"
+	)
+
+	return &ManagedModeOptions{
+		SourceFolderPath:      filepath.Join(currentWorkingFolder, predefinedSourceFilesFolder),
+		DestinationFolderPath: filepath.Join(currentWorkingFolder, predefinedDestinationFilesFolder),
+	}
 }
 
 // String generates text representation of managed mode options.
@@ -58,41 +90,11 @@ func (mmo *ManagedModeOptions) String() string {
 	return sb.String()
 }
 
-// NewDefaultManagedModeOptions creates instance of ManagedModeOptions with default values.
-func NewDefaultManagedModeOptions(currentWorkingFolder string) *ManagedModeOptions {
-	const (
-		predefinedSourceFilesFolder      = "whatsapp-files"
-		predefinedDestinationFilesFolder = "repaired-files"
-	)
-
-	return &ManagedModeOptions{
-		SourceFolderPath:      filepath.Join(currentWorkingFolder, predefinedSourceFilesFolder),
-		DestinationFolderPath: filepath.Join(currentWorkingFolder, predefinedDestinationFilesFolder),
-	}
-}
-
 // NewManagedFlagSet creates new set of flags to process command line arguments.
 func NewManagedFlagSet(
 	writer io.Writer,
 	managedOptions *ManagedModeOptions,
 ) (flagSet *pflag.FlagSet, displayHelp *bool) {
-
-	const (
-		flagSrcPath                   = "src-path"
-		flagSrcPathShort              = "s"
-		flagDestPath                  = "dest-path"
-		flagDestPathShort             = "d"
-		flagUseCurrentModTime         = "use-current-modification-time"
-		flagUseCurrentModTimeShort    = "t"
-		flagDeleteWhatsAppFiles       = "delete-whatsapp-files"
-		flagDeleteWhatsAppFilesShort  = "w"
-		flagDontWaitToClose           = "dont-wait-to-close"
-		flagDontWaitToCloseShort      = "c"
-		flagPrcsNestedSrcFolders      = "process-nested-folders"
-		flagPrcsNestedSrcFoldersShort = "n"
-		flagDontShowProgress          = "dont-show-progress"
-		flagDontShowProgressShort     = "p"
-	)
 
 	flagSet = pflag.NewFlagSet("available command-line switches", pflag.ContinueOnError)
 	flagSet.SetOutput(writer)
@@ -206,11 +208,4 @@ func IsManagedMode(argsWithoutAppName []string, fs *pflag.FlagSet) bool {
 	})
 
 	return len(argsWithoutAppName) == 0 || managedModeFlagUsed
-}
-
-// NewDirectOptions returns new instance of DirectModeOptions.
-func NewDirectOptions(args []string) DirectModeOptions {
-	return DirectModeOptions{
-		FilePaths: args,
-	}
 }

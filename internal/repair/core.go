@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-only
+// Copyright (c) 2021 by Rafael Osipov <rafael.osipov@outlook.com>
+
 package repair
 
 import (
@@ -152,7 +155,6 @@ func (ir *ImageRepairerBase) printProgressMessage(p SingleFileProcessor, message
 	fmt.Fprint(ir.errOut, message)
 }
 
-// TODO Надо разобраться с тем что мы пишем в stdout а что в Stderr говорят что прогресс пишется в stderr
 // RegisterError registers file processing error and outputs it to the writer.
 func (ir *ImageRepairerBase) RegisterError(p SingleFileProcessor, filePath string, err error) {
 	if errors.Is(err, context.Canceled) {

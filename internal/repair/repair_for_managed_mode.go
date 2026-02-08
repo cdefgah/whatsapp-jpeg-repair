@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-only
+// Copyright (c) 2021 by Rafael Osipov <rafael.osipov@outlook.com>
+
 package repair
 
 import (
@@ -16,20 +19,25 @@ type ImageRepairerForManagedMode struct {
 	options options.ManagedModeOptions
 }
 
+// NewImageRepairerForManagedMode creates new instance of image repairer for managed mode.
+func NewImageRepairerForManagedMode(fs afero.Fs, options options.ManagedModeOptions, out io.Writer, errOut io.Writer) *ImageRepairerForManagedMode {
+	return &ImageRepairerForManagedMode{
+		ImageRepairerBase: ImageRepairerBase{
+			fs:     fs,
+			stats:  &RepairStats{},
+			out:    out,
+			errOut: errOut,
+		},
+		options: options,
+	}
+}
+
 // DontShowProgress returns true if no progress info should be shown.
 func (ir *ImageRepairerForManagedMode) DontShowProgress() bool {
 	return ir.options.DontShowProgress
 }
 
-// Creates path to folder if it does not exist.
-//
-// # Parameters
-//
-// pathToFolder - path to be checked and in case path to folder does not exist, it will be created.
-//
-// # Returns
-//
-// error if something went wrong.
+// createFolderIfItDoesNotExist creates folder if it does not exist.
 func (ir *ImageRepairerForManagedMode) createFolderIfItDoesNotExist(pathToFolder string) error {
 	dirExists, err := afero.DirExists(ir.fs, pathToFolder)
 	if err != nil {
@@ -49,38 +57,7 @@ func (ir *ImageRepairerForManagedMode) createFolderIfItDoesNotExist(pathToFolder
 	return nil
 }
 
-// Creates new instance of image repairer for managed mode.
-//
-// # Parameters
-//
-// fs - filesystem reference.
-// options - reference to the application runtime options for managed mode.
-// writer - reference to actual writer to print output.
-//
-// # Returns
-//
-// Reference to a new instance of batch image repairer for managed mode.
-func NewImageRepairerForManagedMode(fs afero.Fs, options options.ManagedModeOptions, out io.Writer, errOut io.Writer) *ImageRepairerForManagedMode {
-	return &ImageRepairerForManagedMode{
-		ImageRepairerBase: ImageRepairerBase{
-			fs:     fs,
-			stats:  &RepairStats{},
-			out:    out,
-			errOut: errOut,
-		},
-		options: options,
-	}
-}
-
-// Performs single image file repair.
-//
-// # Parameters
-//
-// sourceFilePath - path to image file that needs to be repaired.
-//
-// # Returns
-//
-// error if something went wrong.
+// ProcessSingleFile performs single image file repair.
 func (ir *ImageRepairerForManagedMode) ProcessSingleFile(ctx context.Context, sourceFilePath string) error {
 	// Checking if process interrupted by Ctrl+C
 	if err := ctx.Err(); err != nil {
@@ -125,16 +102,7 @@ func (ir *ImageRepairerForManagedMode) ProcessSingleFile(ctx context.Context, so
 	return nil
 }
 
-// Ensures that particular destination path exist.
-//
-// # Parameters
-//
-// sourceFilePath - path to the image file.
-//
-// # Returns
-//
-// path to destination folder for result file related to sourceFilePath or
-// error if something went wrong.
+// ensureParticularDestinationFolderPath ensures that particular destination path exist, creates it when necessary.
 func (ir *ImageRepairerForManagedMode) ensureParticularDestinationFolderPath(sourceFilePath string) (string, error) {
 
 	initialSourceFolderPath := ir.options.SourceFolderPath
@@ -155,16 +123,7 @@ func (ir *ImageRepairerForManagedMode) ensureParticularDestinationFolderPath(sou
 	return processingDestFolderPath, nil
 }
 
-// Sets modification time for destination file equal to the modification time of the source file.
-//
-// # Parameters
-//
-// sourceFilePath - path to source file.
-// destinationFilePath - path to destination file.
-//
-// # Returns
-//
-// error if something went wrong.
+// setSourceFileModificationTimeToDestFile sets source file modification time to destingation file.
 func (ir *ImageRepairerForManagedMode) setSourceFileModificationTimeToDestFile(sourceFilePath string, destinationFilePath string) error {
 	sourceFileStats, err := ir.fs.Stat(sourceFilePath)
 	if err != nil {
@@ -176,15 +135,7 @@ func (ir *ImageRepairerForManagedMode) setSourceFileModificationTimeToDestFile(s
 	return ir.fs.Chtimes(destinationFilePath, modTime, modTime)
 }
 
-// Prepares destination folder to store the result file.
-//
-// # Parameters
-//
-// sourceFilePath - path to image file that needs to be repaired.
-//
-// # Returns
-//
-// destination file path if all things are ok, or error if something went wrong.
+// prepareDestinationFilePath prepares destination folder to store the result file.
 func (ir *ImageRepairerForManagedMode) prepareDestinationFilePath(sourceFilePath string) (string, error) {
 	sourceFileName := filepath.Base(sourceFilePath)
 	destinationFolderPath, err := ir.ensureParticularDestinationFolderPath(sourceFilePath)

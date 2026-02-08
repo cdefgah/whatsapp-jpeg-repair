@@ -1,9 +1,7 @@
-package filesystem
+// SPDX-License-Identifier: GPL-3.0-only
+// Copyright (c) 2021 by Rafael Osipov <rafael.osipov@outlook.com>
 
-/*
-SPDX-License-Identifier: GPL-3.0-only
-Copyright (c) 2021 by Rafael Osipov <rafael.osipov@outlook.com>
-*/
+package filesystem
 
 import (
 	"context"
@@ -16,18 +14,18 @@ import (
 	"github.com/spf13/afero"
 )
 
-// FilePathsIteratorForManagedMode contains filesystem iterator data for processing files in managed mode.
-type FilePathsIteratorForManagedMode struct {
-	filesystem afero.Fs
-	stack      []folderEntry
-	recursive  bool
-}
-
 // folderEntry contains state for a single directory level in the stack.
 type folderEntry struct {
 	pathToFolder      string
 	folderObjectsList []os.FileInfo
 	index             int
+}
+
+// FilePathsIteratorForManagedMode contains filesystem iterator data for processing files in managed mode.
+type FilePathsIteratorForManagedMode struct {
+	filesystem afero.Fs
+	stack      []folderEntry
+	recursive  bool
 }
 
 // NewFilePathsIteratorForManagedMode creates a new file path iterator for managed mode based on the provided parameters.

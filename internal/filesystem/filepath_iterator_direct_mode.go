@@ -1,14 +1,12 @@
+// SPDX-License-Identifier: GPL-3.0-only
+// Copyright (c) 2021 by Rafael Osipov <rafael.osipov@outlook.com>
+
 package filesystem
 
 import (
 	"context"
 	"iter"
 )
-
-/*
-SPDX-License-Identifier: GPL-3.0-only
-Copyright (c) 2021 by Rafael Osipov <rafael.osipov@outlook.com>
-*/
 
 // FilePathsIteratorForDirectMode contains filesystem iterator data for processing files in direct mode.
 type FilePathsIteratorForDirectMode struct {
@@ -22,7 +20,7 @@ func NewFilePathsIteratorForDirectMode(filePaths []string) *FilePathsIteratorFor
 	}
 }
 
-// Returns file paths iterator.
+// All returns file paths iterator.
 func (it *FilePathsIteratorForDirectMode) All(ctx context.Context) iter.Seq[string] {
 	return func(yield func(string) bool) {
 		for _, path := range it.filePaths {

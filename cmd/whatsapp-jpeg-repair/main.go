@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-only
+// Copyright (c) 2021 by Rafael Osipov <rafael.osipov@outlook.com>
+
 package main
 
 import (
@@ -13,11 +16,6 @@ import (
 	"github.com/spf13/afero"
 	"github.com/spf13/pflag"
 )
-
-/*
-SPDX-License-Identifier: GPL-3.0-only
-Copyright (c) 2021 by Rafael Osipov <rafael.osipov@outlook.com>
-*/
 
 func main() {
 	fmt.Println("WhatsAppJpegRepair version 3.0.0 Copyright (c) 2021 by Rafael Osipov (rafael.osipov@outlook.com)")
@@ -35,17 +33,17 @@ func runApp() error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	exePath, err := os.Executable()
+	exeFilePath, err := os.Executable()
 	if err != nil {
 		return fmt.Errorf("failed to get executable file path: %w", err)
 	}
 
-	cwd := filepath.Dir(exePath)
+	exeFolderPath := filepath.Dir(exeFilePath)
 
-	fs := afero.NewOsFs()
+	filesystem := afero.NewOsFs()
 	argsWithoutAppName := os.Args[1:]
 
-	err = app.ProcessCommandLineArguments(ctx, fs, cwd, argsWithoutAppName, os.Stdout, os.Stderr)
+	err = app.ProcessCommandLineArguments(ctx, filesystem, exeFolderPath, argsWithoutAppName, os.Stdout, os.Stderr)
 	if err != nil {
 		if errors.Is(err, pflag.ErrHelp) {
 			return nil

@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-only
+// Copyright (c) 2021 by Rafael Osipov <rafael.osipov@outlook.com>
+
 package app
 
 import (
@@ -13,11 +16,7 @@ import (
 	"github.com/spf13/afero"
 )
 
-/*
-SPDX-License-Identifier: GPL-3.0-only
-Copyright (c) 2021 by Rafael Osipov <rafael.osipov@outlook.com>
-*/
-
+// ProcessCommandLineArguments is entry point to the repair process, handles command line arguments and acts accordingly.
 func ProcessCommandLineArguments(
 	ctx context.Context,
 	fs afero.Fs,
@@ -60,6 +59,7 @@ func ProcessCommandLineArguments(
 	return runAppInDirectMode(ctx, fs, directOptions, out, errOut)
 }
 
+// runAppInDirectMode runs application in direct mode, repairs files whose paths were specified in the command-line parameters.
 func runAppInDirectMode(ctx context.Context, fs afero.Fs, options options.DirectModeOptions, out io.Writer, errOut io.Writer) error {
 	if err := ctx.Err(); err != nil {
 		return err
@@ -80,6 +80,7 @@ func runAppInDirectMode(ctx context.Context, fs afero.Fs, options options.Direct
 	}
 }
 
+// runAppInManagedMode runs application in managed mode, according to the parameters passed in the command line.
 func runAppInManagedMode(ctx context.Context, fs afero.Fs, options options.ManagedModeOptions, out io.Writer, errOut io.Writer) error {
 	if err := ctx.Err(); err != nil {
 		return err
