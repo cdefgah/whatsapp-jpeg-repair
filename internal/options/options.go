@@ -25,7 +25,8 @@ const (
 // The application running in direct mode processes all passed files "in place",
 // source file will be overwritten by result file.
 type DirectModeOptions struct {
-	FilePaths []string
+	FilePaths        []string
+	DontShowProgress bool
 }
 
 // ManagedModeOptions contains options for the managed processing mode.

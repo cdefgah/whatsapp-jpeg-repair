@@ -49,9 +49,10 @@ type ImageRepairerBase struct {
 // and reporting the results of those operations.
 type SingleFileProcessor interface {
 	ProcessSingleFile(ctx context.Context, path string) error
-	DisplayStart(path string)
-	RegisterError(path string, err error)
-	RegisterSuccess()
+	DisplayStart(p SingleFileProcessor, path string)
+	RegisterError(p SingleFileProcessor, path string, err error)
+	RegisterSuccess(p SingleFileProcessor)
+	DontShowProgress() bool
 }
 
 // readImage opens and decodes an image from the specified path.
@@ -109,7 +110,7 @@ func (ir *ImageRepairerBase) writeImage(ctx context.Context, filePath string, im
 	}
 
 	if errEncode != nil {
-		return fmt.Errorf("encode %s: %w", errEncode)
+		return fmt.Errorf("encode %s: %w", filePath, errEncode)
 	}
 
 	if err := bw.Flush(); err != nil {
@@ -142,11 +143,20 @@ func (ir *ImageRepairerBase) TextReport() string {
 	return sb.String()
 }
 
+// prints progress message if it is allowed by actual options set.
+func (ir *ImageRepairerBase) printProgressMessage(p SingleFileProcessor, message string) {
+	if p.DontShowProgress() {
+		return
+	}
+
+	fmt.Fprint(ir.errOut, message)
+}
+
 // TODO Надо разобраться с тем что мы пишем в stdout а что в Stderr говорят что прогресс пишется в stderr
 // RegisterError registers file processing error and outputs it to the writer.
-func (ir *ImageRepairerBase) RegisterError(filePath string, err error) {
+func (ir *ImageRepairerBase) RegisterError(p SingleFileProcessor, filePath string, err error) {
 	if errors.Is(err, context.Canceled) {
-		fmt.Fprintln(ir.errOut, "CANCELED!")
+		ir.printProgressMessage(p, "CANCELED!\n")
 		return
 	}
 
@@ -158,18 +168,19 @@ func (ir *ImageRepairerBase) RegisterError(filePath string, err error) {
 		Err:      err,
 	})
 
-	fmt.Fprintln(ir.errOut, "ERROR!")
+	ir.printProgressMessage(p, "ERROR!\n")
 }
 
 // RegisterSuccess registers that file processing succeeded.
-func (ir *ImageRepairerBase) RegisterSuccess() {
+func (ir *ImageRepairerBase) RegisterSuccess(p SingleFileProcessor) {
 	ir.stats.Processed++
-	fmt.Fprintf(ir.errOut, "OK\n")
+
+	ir.printProgressMessage(p, "OK\n")
 }
 
 // DisplayStart outputs information that the file processing started.
-func (ir *ImageRepairerBase) DisplayStart(filePath string) {
-	fmt.Fprintf(ir.errOut, "Processing file %s .......................... ", filePath)
+func (ir *ImageRepairerBase) DisplayStart(p SingleFileProcessor, filePath string) {
+	ir.printProgressMessage(p, "Processing file "+filePath+" .......................... ")
 }
 
 // ProcessAllFiles processes all files using the provided iterator and processor.
@@ -178,14 +189,14 @@ func ProcessAllFiles(ctx context.Context, it filesystem.FilePathIterator, p Sing
 	for path := range it.All(ctx) {
 		// Checking if process interrupted by Ctrl+C
 		if err := ctx.Err(); err != nil {
-			p.RegisterError("", fmt.Errorf("process interrupted: %w", err))
+			p.RegisterError(p, "", fmt.Errorf("process interrupted: %w", err))
 			return
 		}
 
-		p.DisplayStart(path)
+		p.DisplayStart(p, path)
 
 		if err := p.ProcessSingleFile(ctx, path); err != nil {
-			p.RegisterError(path, err)
+			p.RegisterError(p, path, err)
 
 			// if Ctrl+C pressed inside of ProcessSingleFile
 			// stopping the processing loop
@@ -195,7 +206,7 @@ func ProcessAllFiles(ctx context.Context, it filesystem.FilePathIterator, p Sing
 			continue
 		}
 
-		p.RegisterSuccess()
+		p.RegisterSuccess(p)
 	}
 }
 
@@ -205,7 +216,7 @@ func RunAndWaitForExit(ctx context.Context, in io.Reader, out io.Writer, dontWai
 		return
 	}
 
-	fmt.Fprintln(out, "Press Enter to exit")
+	fmt.Fprintln(out, "Processing is complete. Press Enter to exit.")
 
 	// Creating a channel to receive a signal when required key is pressed
 	done := make(chan struct{})

@@ -34,6 +34,11 @@ func NewImageRepairerForDirectMode(fs afero.Fs, opts options.DirectModeOptions, 
 	}
 }
 
+// DontShowProgress returns true if no progress info should be shown.
+func (ir *ImageRepairerForDirectMode) DontShowProgress() bool {
+	return ir.options.DontShowProgress
+}
+
 // ProcessSingleFile repairs a single image in Direct mode.
 // It creates a temporary backup, performs the repair, and removes the backup upon success.
 func (ir *ImageRepairerForDirectMode) ProcessSingleFile(ctx context.Context, sourceFilePath string) error {

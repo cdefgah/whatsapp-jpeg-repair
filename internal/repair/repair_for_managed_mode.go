@@ -16,6 +16,11 @@ type ImageRepairerForManagedMode struct {
 	options options.ManagedModeOptions
 }
 
+// DontShowProgress returns true if no progress info should be shown.
+func (ir *ImageRepairerForManagedMode) DontShowProgress() bool {
+	return ir.options.DontShowProgress
+}
+
 // Creates path to folder if it does not exist.
 //
 // # Parameters

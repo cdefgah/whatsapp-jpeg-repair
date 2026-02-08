@@ -21,7 +21,7 @@ Copyright (c) 2021 by Rafael Osipov <rafael.osipov@outlook.com>
 func ProcessCommandLineArguments(
 	ctx context.Context,
 	fs afero.Fs,
-	cwd string,
+	exeFolderPath string,
 	argsWithoutAppName []string,
 	out io.Writer,
 	errOut io.Writer,
@@ -31,7 +31,7 @@ func ProcessCommandLineArguments(
 		return err
 	}
 
-	managedOptions := options.NewDefaultManagedModeOptions(cwd)
+	managedOptions := options.NewDefaultManagedModeOptions(exeFolderPath)
 
 	flagSet, displayHelp := options.NewManagedFlagSet(out, managedOptions)
 	if err := flagSet.Parse(argsWithoutAppName); err != nil || *displayHelp {
