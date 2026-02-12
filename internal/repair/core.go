@@ -36,9 +36,10 @@ func (fe FileError) Error() string {
 
 // RepairStats holds the results of a batch image repair operation.
 type RepairStats struct {
-	Errors    []FileError
-	Processed int
-	Failed    int
+	Errors   []FileError
+	Total    int
+	Repaired int
+	Failed   int
 }
 
 // ImageRepairerBase provides a foundation for repairing images
@@ -53,7 +54,7 @@ type ImageRepairerBase struct {
 // and reporting the results of those operations.
 type SingleFileProcessor interface {
 	ProcessSingleFile(ctx context.Context, path string) error
-	DisplayStart(path string)
+	RegisterStart(path string)
 	RegisterError(path string, err error)
 	RegisterSuccess()
 }
@@ -115,12 +116,11 @@ func (ir *ImageRepairerBase) HasErrors() bool {
 func (ir *ImageRepairerBase) TextReport() string {
 	var sb strings.Builder
 
-	fmt.Fprintf(&sb, "\nProcessed: %d file(s)\n", ir.stats.Processed)
+	fmt.Fprintf(&sb, "\nTotal: %d file(s).", ir.stats.Total)
+	fmt.Fprintf(&sb, "\nRepaired: %d file(s).", ir.stats.Repaired)
 
 	if ir.HasErrors() {
-		fmt.Fprintf(&sb, "\nFailed: %d file(s)\n", ir.stats.Failed)
-		sb.WriteString("Errors:\n")
-
+		fmt.Fprintf(&sb, "\nFailed: %d file(s). Error details:\n", ir.stats.Failed)
 		for _, fe := range ir.stats.Errors {
 			fmt.Fprintf(&sb, "  - %v\n", fe)
 		}
@@ -137,7 +137,6 @@ func (ir *ImageRepairerBase) RegisterError(filePath string, err error) {
 	}
 
 	ir.stats.Failed++
-	ir.stats.Processed++
 
 	ir.stats.Errors = append(ir.stats.Errors, FileError{
 		FilePath: filePath,
@@ -149,18 +148,19 @@ func (ir *ImageRepairerBase) RegisterError(filePath string, err error) {
 
 // RegisterSuccess registers that file processing succeeded.
 func (ir *ImageRepairerBase) RegisterSuccess() {
-	ir.stats.Processed++
+	ir.stats.Repaired++
 
 	fmt.Fprintln(ir.stderr, "OK")
 }
 
-// DisplayStart outputs information that the file processing started.
-func (ir *ImageRepairerBase) DisplayStart(filePath string) {
+// RegisterStart registers start repairing of a file
+func (ir *ImageRepairerBase) RegisterStart(filePath string) {
+	ir.stats.Total++
 	fmt.Fprintf(ir.stderr, "Processing file %s .......................... ", filePath)
 }
 
 // ProcessAllFiles processes all files using the provided iterator and processor.
-// It respects context cancellation (e.g., Ctrl+C) at both the iteration and processing levels.
+// It respects context cancellation (e.g., Ctrl+C) at both the file iteration and processing levels.
 func ProcessAllFiles(ctx context.Context, it filesystem.FilePathIterator, p SingleFileProcessor) {
 	for path := range it.All(ctx) {
 		if err := ctx.Err(); err != nil {
@@ -168,7 +168,7 @@ func ProcessAllFiles(ctx context.Context, it filesystem.FilePathIterator, p Sing
 			return
 		}
 
-		p.DisplayStart(path)
+		p.RegisterStart(path)
 
 		if err := p.ProcessSingleFile(ctx, path); err != nil {
 			p.RegisterError(path, err)
@@ -186,13 +186,23 @@ func ProcessAllFiles(ctx context.Context, it filesystem.FilePathIterator, p Sing
 }
 
 // isInteractive returns true if app is running in interactive mode
-func isInteractive() bool {
-	return term.IsTerminal(int(os.Stdin.Fd())) && term.IsTerminal(int(os.Stdout.Fd()))
+func isInteractive(in io.Reader, out io.Writer) bool {
+	fIn, okIn := in.(*os.File)
+	if !okIn || !term.IsTerminal(int(fIn.Fd())) {
+		return false
+	}
+
+	fOut, okOut := out.(*os.File)
+	if !okOut || !term.IsTerminal(int(fOut.Fd())) {
+		return false
+	}
+
+	return true
 }
 
 // RunAndWaitForExit awaits for "Enter" key press or context cancellation.
-func RunAndWaitForExit(ctx context.Context, in io.Reader, stderr io.Writer, dontWait bool) {
-	if !isInteractive() || dontWait || ctx.Err() != nil {
+func RunAndWaitForExit(ctx context.Context, stdin io.Reader, stderr io.Writer, dontWait bool) {
+	if !isInteractive(stdin, stderr) || dontWait || ctx.Err() != nil {
 		return
 	}
 
@@ -201,10 +211,10 @@ func RunAndWaitForExit(ctx context.Context, in io.Reader, stderr io.Writer, dont
 	// Creating a channel to receive a signal when required key is pressed
 	done := make(chan struct{})
 
-	keyboardReader := bufio.NewReader(in)
+	scanner := bufio.NewScanner(stdin)
 
 	go func() {
-		_, _ = keyboardReader.ReadString('\n')
+		_ = scanner.Scan()
 		close(done)
 	}()
 

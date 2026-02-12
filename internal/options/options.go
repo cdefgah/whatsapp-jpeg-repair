@@ -86,10 +86,7 @@ func (mmo *ManagedModeOptions) String() string {
 }
 
 // NewManagedFlagSet creates new set of flags to process command line arguments.
-func NewManagedFlagSet(
-	writer io.Writer,
-	managedOptions *ManagedModeOptions,
-) (flagSet *pflag.FlagSet, displayHelp *bool) {
+func NewManagedFlagSet(writer io.Writer, managedOptions *ManagedModeOptions) (flagSet *pflag.FlagSet, displayHelp *bool) {
 
 	flagSet = pflag.NewFlagSet("available command-line switches", pflag.ContinueOnError)
 	flagSet.SetOutput(writer)
@@ -131,7 +128,8 @@ func NewManagedFlagSet(
 		flagDestPath,
 		flagDestPathShort,
 		managedOptions.DestinationFolderPath,
-		fmt.Sprintf("This is the path to the folder where the repaired files will be stored. If the folder does not exist, it will be created.\nExample: %s.", sampleDestPath),
+		fmt.Sprintf("This is the path to the folder where the repaired files will be stored.\n"+
+			"If the folder does not exist, it will be created.\nExample: %s.", sampleDestPath),
 	)
 
 	flagSet.BoolVarP(
@@ -148,7 +146,7 @@ func NewManagedFlagSet(
 		flagDeleteWhatsAppFiles,
 		flagDeleteWhatsAppFilesShort,
 		managedOptions.DeleteWhatsAppFiles,
-		fmt.Sprintf("If it is true, the processed WhatsApp files will be deleted. Default: %v.", managedOptions.DeleteWhatsAppFiles),
+		fmt.Sprintf("If it is true, the successfully processed source WhatsApp files will be deleted. Default: %v.", managedOptions.DeleteWhatsAppFiles),
 	)
 
 	flagSet.BoolVarP(
@@ -167,12 +165,7 @@ func NewManagedFlagSet(
 		fmt.Sprintf("If this is true, the application will exit immediately once processing is complete. Default: %v.", managedOptions.DontWaitToClose),
 	)
 
-	displayHelp = flagSet.BoolP(
-		flagDisplayHelp,
-		flagDisplayHelpShort,
-		false,
-		"Show this help message and exit.",
-	)
+	displayHelp = flagSet.BoolP(flagDisplayHelp, flagDisplayHelpShort, false, "Show this help message and exit.")
 
 	return flagSet, displayHelp
 }

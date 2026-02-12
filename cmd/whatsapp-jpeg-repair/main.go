@@ -20,19 +20,20 @@ import (
 
 func main() {
 	appOutput := os.Stderr
+	stdin := os.Stdin
 
 	fmt.Fprintln(appOutput, "WhatsAppJpegRepair version 3.0.0 Copyright (c) 2021 by Rafael Osipov (rafael.osipov@outlook.com)")
 	fmt.Fprintln(appOutput, "The application repairs JPEG images saved from the WhatsApp app to prevent errors when opening them in Adobe Photoshop.")
 	fmt.Fprintln(appOutput, "\nProject web-site, source code and documentation: https://github.com/cdefgah/whatsapp-jpeg-repair")
 	fmt.Fprintln(appOutput)
 
-	if err := runApp(appOutput); err != nil {
+	if err := runApp(stdin, appOutput); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
 }
 
-func runApp(stderr io.Writer) error {
+func runApp(stdin io.Reader, stderr io.Writer) error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
@@ -47,7 +48,7 @@ func runApp(stderr io.Writer) error {
 	argsWithoutAppName := os.Args[1:]
 
 	appRunner := app.NewAppRunner(filesystem, stderr)
-	globalParams := app.NewGlobalProcessParams(exeFolderPath, argsWithoutAppName)
+	globalParams := app.NewGlobalProcessParams(stdin, exeFolderPath, argsWithoutAppName)
 
 	err = appRunner.ProcessCommandLineArguments(ctx, *globalParams)
 	if err != nil {
