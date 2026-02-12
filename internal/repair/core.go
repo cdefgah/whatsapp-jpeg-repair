@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"strings"
 
 	"image"
@@ -16,6 +17,7 @@ import (
 
 	"github.com/cdefgah/whatsapp-jpeg-repair/internal/filesystem"
 	"github.com/spf13/afero"
+	"golang.org/x/term"
 )
 
 const defaultFolderPermissions = 0755
@@ -44,23 +46,20 @@ type RepairStats struct {
 type ImageRepairerBase struct {
 	fs     afero.Fs
 	stats  *RepairStats
-	out    io.Writer
-	errOut io.Writer
+	stderr io.Writer
 }
 
 // SingleFileProcessor defines the contract for processing individual files
 // and reporting the results of those operations.
 type SingleFileProcessor interface {
 	ProcessSingleFile(ctx context.Context, path string) error
-	DisplayStart(p SingleFileProcessor, path string)
-	RegisterError(p SingleFileProcessor, path string, err error)
-	RegisterSuccess(p SingleFileProcessor)
-	DontShowProgress() bool
+	DisplayStart(path string)
+	RegisterError(path string, err error)
+	RegisterSuccess()
 }
 
 // readImage opens and decodes an image from the specified path.
 func (ir *ImageRepairerBase) readImage(ctx context.Context, path string) (image.Image, error) {
-	// Checking if process interrupted by Ctrl+C
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
@@ -70,11 +69,6 @@ func (ir *ImageRepairerBase) readImage(ctx context.Context, path string) (image.
 		return nil, fmt.Errorf("open image file: %w", err)
 	}
 	defer file.Close()
-
-	// Checking if process interrupted by Ctrl+C
-	if err := ctx.Err(); err != nil {
-		return nil, err
-	}
 
 	reader := bufio.NewReader(file)
 
@@ -88,7 +82,6 @@ func (ir *ImageRepairerBase) readImage(ctx context.Context, path string) (image.
 
 // writeImage saves the image in JPEG format to the specified path.
 func (ir *ImageRepairerBase) writeImage(ctx context.Context, filePath string, img image.Image) error {
-	// Checking if process interrupted by Ctrl+C
 	if err := ctx.Err(); err != nil {
 		return err
 	}
@@ -99,18 +92,8 @@ func (ir *ImageRepairerBase) writeImage(ctx context.Context, filePath string, im
 	}
 	defer file.Close()
 
-	// Checking if process interrupted by Ctrl+C
-	if err := ctx.Err(); err != nil {
-		return err
-	}
-
 	bw := bufio.NewWriter(file)
 	errEncode := jpeg.Encode(bw, img, nil)
-
-	// Checking if process interrupted by Ctrl+C
-	if err := ctx.Err(); err != nil {
-		return err
-	}
 
 	if errEncode != nil {
 		return fmt.Errorf("encode %s: %w", filePath, errEncode)
@@ -120,7 +103,7 @@ func (ir *ImageRepairerBase) writeImage(ctx context.Context, filePath string, im
 		return fmt.Errorf("flush buffer: %w", err)
 	}
 
-	return nil
+	return ctx.Err()
 }
 
 // HasErrors returns true if there's at least one error present in repair stats.
@@ -146,19 +129,10 @@ func (ir *ImageRepairerBase) TextReport() string {
 	return sb.String()
 }
 
-// prints progress message if it is allowed by actual options set.
-func (ir *ImageRepairerBase) printProgressMessage(p SingleFileProcessor, message string) {
-	if p.DontShowProgress() {
-		return
-	}
-
-	fmt.Fprint(ir.errOut, message)
-}
-
 // RegisterError registers file processing error and outputs it to the writer.
-func (ir *ImageRepairerBase) RegisterError(p SingleFileProcessor, filePath string, err error) {
+func (ir *ImageRepairerBase) RegisterError(filePath string, err error) {
 	if errors.Is(err, context.Canceled) {
-		ir.printProgressMessage(p, "CANCELED!\n")
+		fmt.Fprintln(ir.stderr, "CANCELED!")
 		return
 	}
 
@@ -170,35 +144,34 @@ func (ir *ImageRepairerBase) RegisterError(p SingleFileProcessor, filePath strin
 		Err:      err,
 	})
 
-	ir.printProgressMessage(p, "ERROR!\n")
+	fmt.Fprintln(ir.stderr, "ERROR!")
 }
 
 // RegisterSuccess registers that file processing succeeded.
-func (ir *ImageRepairerBase) RegisterSuccess(p SingleFileProcessor) {
+func (ir *ImageRepairerBase) RegisterSuccess() {
 	ir.stats.Processed++
 
-	ir.printProgressMessage(p, "OK\n")
+	fmt.Fprintln(ir.stderr, "OK")
 }
 
 // DisplayStart outputs information that the file processing started.
-func (ir *ImageRepairerBase) DisplayStart(p SingleFileProcessor, filePath string) {
-	ir.printProgressMessage(p, "Processing file "+filePath+" .......................... ")
+func (ir *ImageRepairerBase) DisplayStart(filePath string) {
+	fmt.Fprintf(ir.stderr, "Processing file %s .......................... ", filePath)
 }
 
 // ProcessAllFiles processes all files using the provided iterator and processor.
 // It respects context cancellation (e.g., Ctrl+C) at both the iteration and processing levels.
 func ProcessAllFiles(ctx context.Context, it filesystem.FilePathIterator, p SingleFileProcessor) {
 	for path := range it.All(ctx) {
-		// Checking if process interrupted by Ctrl+C
 		if err := ctx.Err(); err != nil {
-			p.RegisterError(p, "", fmt.Errorf("process interrupted: %w", err))
+			p.RegisterError("", fmt.Errorf("process interrupted: %w", err))
 			return
 		}
 
-		p.DisplayStart(p, path)
+		p.DisplayStart(path)
 
 		if err := p.ProcessSingleFile(ctx, path); err != nil {
-			p.RegisterError(p, path, err)
+			p.RegisterError(path, err)
 
 			// if Ctrl+C pressed inside of ProcessSingleFile
 			// stopping the processing loop
@@ -208,17 +181,22 @@ func ProcessAllFiles(ctx context.Context, it filesystem.FilePathIterator, p Sing
 			continue
 		}
 
-		p.RegisterSuccess(p)
+		p.RegisterSuccess()
 	}
 }
 
+// isInteractive returns true if app is running in interactive mode
+func isInteractive() bool {
+	return term.IsTerminal(int(os.Stdin.Fd())) && term.IsTerminal(int(os.Stdout.Fd()))
+}
+
 // RunAndWaitForExit awaits for "Enter" key press or context cancellation.
-func RunAndWaitForExit(ctx context.Context, in io.Reader, out io.Writer, dontWait bool) {
-	if dontWait || ctx.Err() != nil {
+func RunAndWaitForExit(ctx context.Context, in io.Reader, stderr io.Writer, dontWait bool) {
+	if !isInteractive() || dontWait || ctx.Err() != nil {
 		return
 	}
 
-	fmt.Fprintln(out, "Processing is complete. Press Enter to exit.")
+	fmt.Fprintln(stderr, "Processing is complete. Press Enter to exit.")
 
 	// Creating a channel to receive a signal when required key is pressed
 	done := make(chan struct{})

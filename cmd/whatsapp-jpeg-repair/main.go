@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -18,18 +19,20 @@ import (
 )
 
 func main() {
-	fmt.Println("WhatsAppJpegRepair version 3.0.0 Copyright (c) 2021 by Rafael Osipov (rafael.osipov@outlook.com)")
-	fmt.Println("The application repairs JPEG images saved from the WhatsApp app to prevent errors when opening them in Adobe Photoshop.")
-	fmt.Println("\nProject web-site, source code and documentation: https://github.com/cdefgah/whatsapp-jpeg-repair")
-	fmt.Println()
+	appOutput := os.Stderr
 
-	if err := runApp(); err != nil {
+	fmt.Fprintln(appOutput, "WhatsAppJpegRepair version 3.0.0 Copyright (c) 2021 by Rafael Osipov (rafael.osipov@outlook.com)")
+	fmt.Fprintln(appOutput, "The application repairs JPEG images saved from the WhatsApp app to prevent errors when opening them in Adobe Photoshop.")
+	fmt.Fprintln(appOutput, "\nProject web-site, source code and documentation: https://github.com/cdefgah/whatsapp-jpeg-repair")
+	fmt.Fprintln(appOutput)
+
+	if err := runApp(appOutput); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
 }
 
-func runApp() error {
+func runApp(stderr io.Writer) error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
@@ -43,7 +46,7 @@ func runApp() error {
 	filesystem := afero.NewOsFs()
 	argsWithoutAppName := os.Args[1:]
 
-	appRunner := app.NewAppRunner(filesystem, os.Stdout, os.Stderr)
+	appRunner := app.NewAppRunner(filesystem, stderr)
 	globalParams := app.NewGlobalProcessParams(exeFolderPath, argsWithoutAppName)
 
 	err = appRunner.ProcessCommandLineArguments(ctx, *globalParams)
@@ -53,7 +56,7 @@ func runApp() error {
 		}
 
 		if errors.Is(err, context.Canceled) {
-			fmt.Fprintln(os.Stderr, "\ninterrupted by user")
+			fmt.Fprintln(stderr, "\ninterrupted by user")
 			return nil
 		}
 

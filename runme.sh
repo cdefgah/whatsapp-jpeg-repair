@@ -1,1 +1,3 @@
-#!/bin/bashWhatsAppJpegRepair -dontWaitToClose=false -useCurrentModificationDateTime=false -deleteWhatsAppFiles=false
+#!/bin/bash
+
+WhatsAppJpegRepair -dontWaitToClose=false -useCurrentModificationDateTime=false -deleteWhatsAppFiles=false

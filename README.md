@@ -1,20 +1,27 @@
+добавить в конце приложения отчёт
+Total files count: 7 Processed files count: 7
+All repaired files are located in folder: D:\Temp\whatsapp-jpeg-repair-win-x64-v2.2.1\repaired-files
+
+0. Проверь runme.sh для Mac. При его запуске ошибка, что-то с переносами не то.
+   С дистрибутивом для MacOS что-то не то.
 1. Рефакторинг сингнатур функций (сокращение кол-ва параметров)
 2. Покрыть всё тестами, использовать slogassert в тестах
-3. Проверить вручную
+3. Проверить вручную, плюс проверить запись в stderr в Windows/Mac/Linux
 4. Обновить README
-   4.1 Добавить инструкцию по сбросу флага "скачано из интернетов" для mac-executable.
+   4.1 Добавить инструкцию по сбросу флага "скачано из интернетов" для mac-executable и выставлению нужных атрибутов.
 
    ```bash
-       xattr -d com.apple.quarantine /path/to/your/app
+      chmod +x ./prepare.sh
+      ./prepare.sh
    ```
 
-   Наверное лучше сделать отдельный bash-скрипт для сброса этого флага.
+   Убрать из README про выставление атрибута для runme.sh
 
    4.2 Добавить таблицу соответствий новых команд старым
 
 5. Обновить CHANGELOG
 6. Добавить комментарии в bat/bash скрипты с описанием всех ключей и примерами использования.
-7. Обновить скрипты сборки, использовать GoReleaser
+7. Обновить скрипты сборки, использовать GoReleaser, исключить исходники из сборок для Mac/Linux.
 
 ---
 
@@ -62,6 +69,8 @@ Next steps:
 
 ### Apple MacOS users
 
+//TODO напиши про prepare.sh
+
 For users' convenience I've added script file `runme.sh` file. It helps to use various options and switches to users who are not familiar with terminal window. Available options are listed in the `Options and switches` chapter below.
 
 To edit `runme.sh` file launch `TextEdit`, choose `File - Open` from menu and select `runme.sh` file: https://support.apple.com/guide/textedit/open-documents-txte51413d09/mac
@@ -70,7 +79,7 @@ Before using `runme.sh` open terminal in the application folder. Here is how: ht
 
 And then type in the terminal the following command:
 
-`chmod +x runme.sh`
+`chmod +x prepare.sh`
 
 And press Enter. After that just close the terminal window.
 

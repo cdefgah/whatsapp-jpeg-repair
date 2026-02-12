@@ -25,21 +25,15 @@ type ImageRepairerForDirectMode struct {
 
 // NewImageRepairerForDirectMode creates and initializes a new ImageRepairerForDirectMode.
 // It sets up the base repairer with the provided filesystem, writer, and fresh statistics.
-func NewImageRepairerForDirectMode(fs afero.Fs, opts options.DirectModeOptions, out io.Writer, errOut io.Writer) *ImageRepairerForDirectMode {
+func NewImageRepairerForDirectMode(fs afero.Fs, opts options.DirectModeOptions, stderr io.Writer) *ImageRepairerForDirectMode {
 	return &ImageRepairerForDirectMode{
 		ImageRepairerBase: ImageRepairerBase{
 			fs:     fs,
 			stats:  &RepairStats{},
-			out:    out,
-			errOut: errOut,
+			stderr: stderr,
 		},
 		options: opts,
 	}
-}
-
-// DontShowProgress returns true if no progress info should be shown.
-func (ir *ImageRepairerForDirectMode) DontShowProgress() bool {
-	return ir.options.DontShowProgress
 }
 
 // ProcessSingleFile repairs a single image in Direct mode.
@@ -52,12 +46,7 @@ func (ir *ImageRepairerForDirectMode) ProcessSingleFile(ctx context.Context, sou
 
 	backupFilePath, err := ir.createBackupFile(ctx, sourceFilePath)
 	if err != nil {
-		return err
-	}
-
-	// Checking if process interrupted by Ctrl+C
-	if err := ctx.Err(); err != nil {
-		return err
+		return fmt.Errorf("create backup: %w", err)
 	}
 
 	img, err := ir.readImage(ctx, sourceFilePath)
@@ -65,18 +54,8 @@ func (ir *ImageRepairerForDirectMode) ProcessSingleFile(ctx context.Context, sou
 		return fmt.Errorf("read image for repair: %w", err)
 	}
 
-	// Checking if process interrupted by Ctrl+C
-	if err := ctx.Err(); err != nil {
-		return err
-	}
-
 	if err := ir.writeImage(ctx, sourceFilePath, img); err != nil {
 		return fmt.Errorf("write repaired image: %w", err)
-	}
-
-	// Checking if process interrupted by Ctrl+C
-	if err := ctx.Err(); err != nil {
-		return err
 	}
 
 	if err := ir.deleteBackupFile(ctx, backupFilePath); err != nil {

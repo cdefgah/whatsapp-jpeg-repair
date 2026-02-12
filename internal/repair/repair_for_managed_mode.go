@@ -20,21 +20,15 @@ type ImageRepairerForManagedMode struct {
 }
 
 // NewImageRepairerForManagedMode creates new instance of image repairer for managed mode.
-func NewImageRepairerForManagedMode(fs afero.Fs, options options.ManagedModeOptions, out io.Writer, errOut io.Writer) *ImageRepairerForManagedMode {
+func NewImageRepairerForManagedMode(fs afero.Fs, options options.ManagedModeOptions, stderr io.Writer) *ImageRepairerForManagedMode {
 	return &ImageRepairerForManagedMode{
 		ImageRepairerBase: ImageRepairerBase{
 			fs:     fs,
 			stats:  &RepairStats{},
-			out:    out,
-			errOut: errOut,
+			stderr: stderr,
 		},
 		options: options,
 	}
-}
-
-// DontShowProgress returns true if no progress info should be shown.
-func (ir *ImageRepairerForManagedMode) DontShowProgress() bool {
-	return ir.options.DontShowProgress
 }
 
 // createFolderIfItDoesNotExist creates folder if it does not exist.

@@ -1,2 +1,2 @@
-WhatsAppJpegRepair -dontWaitToClose=false -useCurrentModificationDateTime=false -deleteWhatsAppFiles=false
-pause
+whatsapp-jpeg-repair.exe 2>mafilez.txt
+

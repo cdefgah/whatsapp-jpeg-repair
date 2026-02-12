@@ -1,0 +1,20 @@
+run:
+  timeout: 5m
+
+linters:
+  enable:
+    - errcheck      # Проверка пропущенных ошибок
+    - gosimple      # Упрощение кода
+    - govet         # Встроенный линтер Go
+    - staticcheck   # Мощный статический анализ
+    - revive        # Замена golint (стиль и идиомы)
+    - unconvert     # Лишние приведения типов
+    - unused        # Неиспользуемые переменные/функции
+
+linters-settings:
+  revive:
+    rules:
+      - name: context-as-argument # Контекст должен быть первым
+      - name: context-keys-type   # Ключи контекста должны быть своего типа
+      - name: time-naming         # Именование переменных времени
+      - name: var-naming          # Именование переменных

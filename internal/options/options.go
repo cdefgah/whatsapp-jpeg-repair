@@ -27,8 +27,6 @@ const (
 	flagDontWaitToCloseShort      = "c"
 	flagPrcsNestedSrcFolders      = "process-nested-folders"
 	flagPrcsNestedSrcFoldersShort = "n"
-	flagDontShowProgress          = "dont-show-progress"
-	flagDontShowProgressShort     = "p"
 	flagDisplayHelp               = "help"
 	flagDisplayHelpShort          = "h"
 )
@@ -37,8 +35,7 @@ const (
 // The application running in direct mode processes all passed files "in place",
 // source file will be overwritten by result file.
 type DirectModeOptions struct {
-	FilePaths        []string
-	DontShowProgress bool
+	FilePaths []string
 }
 
 // NewDirectOptions returns new instance of DirectModeOptions.
@@ -54,7 +51,6 @@ func NewDirectOptions(args []string) DirectModeOptions {
 type ManagedModeOptions struct {
 	SourceFolderPath           string
 	DestinationFolderPath      string
-	DontShowProgress           bool
 	UseCurrentModificationTime bool
 	DeleteWhatsAppFiles        bool
 	ProcessNestedFolders       bool
@@ -81,7 +77,6 @@ func (mmo *ManagedModeOptions) String() string {
 	// Using fixed width to output flag names (for example, 30 symbols) to display aligned text block
 	fmt.Fprintf(&sb, "%-30s %s\n", "Source folder path:", mmo.SourceFolderPath)
 	fmt.Fprintf(&sb, "%-30s %s\n", "Destination folder path:", mmo.DestinationFolderPath)
-	fmt.Fprintf(&sb, "%-30s %t\n", "Don't show progress:", mmo.DontShowProgress)
 	fmt.Fprintf(&sb, "%-30s %t\n", "Use current modification time:", mmo.UseCurrentModificationTime)
 	fmt.Fprintf(&sb, "%-30s %t\n", "Delete WhatsApp files:", mmo.DeleteWhatsAppFiles)
 	fmt.Fprintf(&sb, "%-30s %t\n", "Process nested folders:", mmo.ProcessNestedFolders)
@@ -137,17 +132,6 @@ func NewManagedFlagSet(
 		flagDestPathShort,
 		managedOptions.DestinationFolderPath,
 		fmt.Sprintf("This is the path to the folder where the repaired files will be stored. If the folder does not exist, it will be created.\nExample: %s.", sampleDestPath),
-	)
-
-	flagSet.BoolVarP(
-		&managedOptions.DontShowProgress,
-		flagDontShowProgress,
-		flagDontShowProgressShort,
-		managedOptions.DontShowProgress,
-		fmt.Sprintf("Setting this value to true will stop the program from displaying progress information while it is running. "+
-			"The program will run in quiet mode, meaning that if errors occur, stderr will only contain error information. "+
-			"This mode is useful if you want to check the error log after the program has finished running. Default: %v.",
-			managedOptions.DontShowProgress),
 	)
 
 	flagSet.BoolVarP(
