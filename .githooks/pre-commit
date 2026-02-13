@@ -1,0 +1,22 @@
+#!/bin/sh
+
+echo "Running pre-commit checks..."
+
+export CGO_ENABLED=1
+
+echo "Running linters..."
+make lint
+if [ $? -ne 0 ]; then
+    echo "Linting failed. Commit aborted."
+    exit 1
+fi
+
+echo "Running tests..."
+make test
+if [ $? -ne 0 ]; then
+    echo "Tests failed. Commit aborted."
+    exit 1
+fi
+
+echo "All checks passed. Committing..."
+exit 0

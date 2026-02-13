@@ -9,6 +9,7 @@ import (
 	"io"
 	"path/filepath"
 
+	"github.com/cdefgah/whatsapp-jpeg-repair/internal/filesystem"
 	"github.com/cdefgah/whatsapp-jpeg-repair/internal/options"
 	"github.com/spf13/afero"
 )
@@ -40,7 +41,7 @@ func (ir *ImageRepairerForManagedMode) createFolderIfItDoesNotExist(pathToFolder
 
 	if !dirExists {
 		// Safe to create directory
-		err = ir.fs.MkdirAll(pathToFolder, defaultFolderPermissions)
+		err = ir.fs.MkdirAll(pathToFolder, filesystem.DefaultFolderPermissions)
 		if err != nil {
 			return err
 		}

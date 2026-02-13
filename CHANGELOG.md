@@ -2,8 +2,10 @@
 
 ## Version 3.0.0
 
-Breaking changes. Introduced POSIX-compliant command line options instead of old ones. Please check README for more details.
+Breaking changes. Introduced POSIX-compliant command line options instead of old ones.
+Please check README for more details.
 Added new option to process nested folders.
+Now app processes only JPEG-related image files (with extensions: ".jpg", ".jpeg", ".jpe", ".jif", ".jfif", ".jfi" case insensitive). Files with other extensions will be ignored. It is because WhatsApp converts received images to JPEG format.
 
 ## Version 2.2.1
 

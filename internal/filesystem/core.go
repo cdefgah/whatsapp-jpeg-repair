@@ -8,6 +8,9 @@ import (
 	"iter"
 )
 
+const DefaultFolderPermissions = 0o755
+const DefaultFilePermissions = 0o644
+
 // FilePathIterator provides a way to iterate over a sequence of file paths.
 type FilePathIterator interface {
 	// All returns an iterator over all files discovered by the iterator.

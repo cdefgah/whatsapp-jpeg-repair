@@ -20,9 +20,6 @@ import (
 	"golang.org/x/term"
 )
 
-const defaultFolderPermissions = 0o755
-const defaultFilePermissions = 0o644
-
 // FileError associates a specific file path with the error that occurred during its processing.
 type FileError struct {
 	FilePath string

@@ -1,4 +1,3 @@
-# Project variables
 GO_VERSION=1.26
 LINTER_VERSION=v1.64.8
 BINARY_NAME=WhatsAppJpegRepair
@@ -21,6 +20,18 @@ help:
 	@echo ""
 	@echo "Targets:"
 	@sed -n 's/^##//p' ${MAKEFILE_LIST} | column -t -s ':' |  sed -e 's/^/ /'
+
+
+## git-hooks: Install git hooks
+git-hooks:
+	@echo "Installing git hooks..."
+ifeq ($(OS),Windows_NT)
+	@for %%f in (.githooks\*) do copy /y "%%f" ".git\hooks\"
+else
+	@cp .githooks/* .git/hooks/
+	@chmod +x .git/hooks/*
+endif
+	@echo "Git hooks installed."
 
 ## update: Update project to actual go version and tidy modules
 update:

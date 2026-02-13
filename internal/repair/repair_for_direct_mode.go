@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cdefgah/whatsapp-jpeg-repair/internal/filesystem"
 	"github.com/cdefgah/whatsapp-jpeg-repair/internal/options"
 	"github.com/spf13/afero"
 )
@@ -90,7 +91,7 @@ func (ir *ImageRepairerForDirectMode) createBackupFile(ctx context.Context, sour
 	}
 	defer src.Close()
 
-	dst, err := ir.fs.OpenFile(backupPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, defaultFilePermissions)
+	dst, err := ir.fs.OpenFile(backupPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, filesystem.DefaultFilePermissions)
 	if err != nil {
 		return "", fmt.Errorf("create backup file: %w", err)
 	}

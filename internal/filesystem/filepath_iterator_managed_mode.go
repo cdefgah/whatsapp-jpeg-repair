@@ -9,6 +9,7 @@ import (
 	"iter"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/spf13/afero"
@@ -116,11 +117,14 @@ func (it *FilePathsIteratorForManagedMode) All(ctx context.Context) iter.Seq[str
 
 // isJpegFileExtension returns true if the filename has a known JPEG extension.
 func isJpegFileExtension(filename string) bool {
-	ext := strings.ToLower(filepath.Ext(filename))
-	switch ext {
-	case ".jpg", ".jpeg", ".jpe", ".jif", ".jfif", ".jfi":
-		return true
-	default:
+	normalizedFullname := strings.ToLower(filename)
+	ext := filepath.Ext(normalizedFullname)
+
+	name := strings.TrimSuffix(filepath.Base(normalizedFullname), ext)
+	if name == "" || name == "." {
 		return false
 	}
+
+	valid := []string{".jpg", ".jpeg", ".jpe", ".jif", ".jfif", ".jfi"}
+	return slices.Contains(valid, ext)
 }
