@@ -20,8 +20,8 @@ import (
 	"golang.org/x/term"
 )
 
-const defaultFolderPermissions = 0755
-const defaultFilePermissions = 0644
+const defaultFolderPermissions = 0o755
+const defaultFilePermissions = 0o644
 
 // FileError associates a specific file path with the error that occurred during its processing.
 type FileError struct {
@@ -34,8 +34,8 @@ func (fe FileError) Error() string {
 	return fmt.Sprintf("%s: %v", fe.FilePath, fe.Err)
 }
 
-// RepairStats holds the results of a batch image repair operation.
-type RepairStats struct {
+// Stats holds the results of a batch image repair operation.
+type Stats struct {
 	Errors   []FileError
 	Total    int
 	Repaired int
@@ -46,7 +46,7 @@ type RepairStats struct {
 // in both direct and managed modes.
 type ImageRepairerBase struct {
 	fs     afero.Fs
-	stats  *RepairStats
+	stats  *Stats
 	stderr io.Writer
 }
 
@@ -206,7 +206,7 @@ func RunAndWaitForExit(ctx context.Context, stdin io.Reader, stderr io.Writer, d
 		return
 	}
 
-	fmt.Fprintln(stderr, "Processing is complete. Press Enter to exit.")
+	fmt.Fprintln(stderr, "\nProcessing is complete. Press Enter to exit.")
 
 	// Creating a channel to receive a signal when required key is pressed
 	done := make(chan struct{})

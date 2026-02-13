@@ -1,5 +1,4 @@
 .DS_Store
 
 repaired-files/
-
-*.exe
+bin/

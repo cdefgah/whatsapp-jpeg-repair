@@ -1,20 +1,57 @@
 run:
+  # Timeout before the linter gives up (useful for large projects)
   timeout: 5m
+  # Use Go version from go.mod and keep it readonly
+  modules-download-mode: readonly
+  # Enable parallel execution for better performance
+  allow-parallel-runners: true
 
 linters:
+  # Disable all linters by default and enable only specific ones
+  disable-all: true
   enable:
-    - errcheck      # Проверка пропущенных ошибок
-    - gosimple      # Упрощение кода
-    - govet         # Встроенный линтер Go
-    - staticcheck   # Мощный статический анализ
-    - revive        # Замена golint (стиль и идиомы)
-    - unconvert     # Лишние приведения типов
-    - unused        # Неиспользуемые переменные/функции
+    - errcheck      # Check for unchecked errors
+    - gosimple      # Suggest code simplifications
+    - govet         # Standard Go tool for reporting suspicious constructs
+    - staticcheck   # Advanced static analysis for bugs and performance
+    - unused        # Find unused constants, variables, functions and types
+    - revive        # Modern and fast replacement for golint
+    - gocritic      # Provides diagnostics, style, and performance checks
+    - goconst       # Find repeated strings that could be replaced by constants
+    - gosec         # Inspect source code for security problems
+    - bodyclose     # Check whether HTTP response bodies are closed
+    - noctx         # Check that no HTTP request is made without a context
+    - nilnil        # Check that there is no return of (nil, nil)
 
 linters-settings:
+  govet:
+    enable-all: true
+    disable:
+      - fieldalignment # Disabled as manual struct padding is often unnecessary
   revive:
+    # Basic style rules (equivalent to the old golint)
     rules:
-      - name: context-as-argument # Контекст должен быть первым
-      - name: context-keys-type   # Ключи контекста должны быть своего типа
-      - name: time-naming         # Именование переменных времени
-      - name: var-naming          # Именование переменных
+      - name: exported
+        severity: warning
+      - name: indent-error-flow
+        severity: warning
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - style
+      - performance
+    disabled-checks:
+      - wrapperFunc # Can be too noisy for simple wrapper functions
+
+issues:
+  # Exclude rules for specific files
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - goconst
+        - gosec
+        - errcheck
+
+  # Do not limit the number of issues reported
+  max-issues-per-linter: 0
+  max-same-issues: 0

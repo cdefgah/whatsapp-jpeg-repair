@@ -24,7 +24,7 @@ func NewImageRepairerForManagedMode(fs afero.Fs, options options.ManagedModeOpti
 	return &ImageRepairerForManagedMode{
 		ImageRepairerBase: ImageRepairerBase{
 			fs:     fs,
-			stats:  &RepairStats{},
+			stats:  &Stats{},
 			stderr: stderr,
 		},
 		options: options,
@@ -65,11 +65,6 @@ func (ir *ImageRepairerForManagedMode) ProcessSingleFile(ctx context.Context, so
 
 	img, err := ir.readImage(ctx, sourceFilePath)
 	if err != nil {
-		return err
-	}
-
-	// Checking if process interrupted by Ctrl+C
-	if err := ctx.Err(); err != nil {
 		return err
 	}
 
@@ -118,7 +113,7 @@ func (ir *ImageRepairerForManagedMode) ensureParticularDestinationFolderPath(sou
 }
 
 // setSourceFileModificationTimeToDestFile sets source file modification time to destingation file.
-func (ir *ImageRepairerForManagedMode) setSourceFileModificationTimeToDestFile(sourceFilePath string, destinationFilePath string) error {
+func (ir *ImageRepairerForManagedMode) setSourceFileModificationTimeToDestFile(sourceFilePath, destinationFilePath string) error {
 	sourceFileStats, err := ir.fs.Stat(sourceFilePath)
 	if err != nil {
 		return err

@@ -29,7 +29,7 @@ func NewImageRepairerForDirectMode(fs afero.Fs, opts options.DirectModeOptions, 
 	return &ImageRepairerForDirectMode{
 		ImageRepairerBase: ImageRepairerBase{
 			fs:     fs,
-			stats:  &RepairStats{},
+			stats:  &Stats{},
 			stderr: stderr,
 		},
 		options: opts,

@@ -15,15 +15,15 @@ import (
 	"github.com/spf13/afero"
 )
 
-// AppRunner encapsulates core params for the application.
-type AppRunner struct {
+// Runner encapsulates core params for the application.
+type Runner struct {
 	fs     afero.Fs
 	stderr io.Writer
 }
 
 // NewAppRunner create new instance of AppRunner structure.
-func NewAppRunner(fs afero.Fs, stderr io.Writer) *AppRunner {
-	return &AppRunner{
+func NewAppRunner(fs afero.Fs, stderr io.Writer) *Runner {
+	return &Runner{
 		fs:     fs,
 		stderr: stderr,
 	}
@@ -46,7 +46,7 @@ func NewGlobalProcessParams(stdin io.Reader, exeFolderPath string, argsWithoutAp
 }
 
 // ProcessCommandLineArguments is entry point to the repair process, handles command line arguments and acts accordingly.
-func (r *AppRunner) ProcessCommandLineArguments(ctx context.Context, params CliProcessParams) error {
+func (r *Runner) ProcessCommandLineArguments(ctx context.Context, params CliProcessParams) error {
 	if err := ctx.Err(); err != nil {
 		return err
 	}
@@ -81,7 +81,7 @@ func (r *AppRunner) ProcessCommandLineArguments(ctx context.Context, params CliP
 }
 
 // runAppInDirectMode runs application in direct mode, repairs files whose paths were specified in the command-line parameters.
-func (r *AppRunner) runAppInDirectMode(ctx context.Context, options options.DirectModeOptions) error {
+func (r *Runner) runAppInDirectMode(ctx context.Context, options options.DirectModeOptions) error {
 	if err := ctx.Err(); err != nil {
 		return err
 	}
@@ -96,13 +96,13 @@ func (r *AppRunner) runAppInDirectMode(ctx context.Context, options options.Dire
 
 	if imageRepairer.HasErrors() {
 		return fmt.Errorf("The processing of image files in direct mode has failed.")
-	} else {
-		return nil
 	}
+
+	return nil
 }
 
 // runAppInManagedMode runs application in managed mode, according to the parameters passed in the command line.
-func (r *AppRunner) runAppInManagedMode(ctx context.Context, stdin io.Reader, options options.ManagedModeOptions) error {
+func (r *Runner) runAppInManagedMode(ctx context.Context, stdin io.Reader, options options.ManagedModeOptions) error {
 	if err := ctx.Err(); err != nil {
 		return err
 	}
@@ -128,7 +128,7 @@ func (r *AppRunner) runAppInManagedMode(ctx context.Context, stdin io.Reader, op
 
 	if imageRepairer.HasErrors() {
 		return fmt.Errorf("The processing of image files in managed mode has failed.")
-	} else {
-		return nil
 	}
+
+	return nil
 }
