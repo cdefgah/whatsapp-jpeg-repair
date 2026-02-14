@@ -26,35 +26,35 @@ func TestFilePathsIteratorForDirectMode_All(t *testing.T) {
 	}
 
 	tests := []struct {
-		name        string
-		sourcePaths []string
-		want        []string
+		name  string
+		input []string
+		want  []string
 	}{
 		{
-			name:        "nil as paths",
-			sourcePaths: nil,
-			want:        []string{},
+			name:  "nil as paths",
+			input: nil,
+			want:  []string{},
 		},
 		{
-			name:        "no paths",
-			sourcePaths: []string{},
-			want:        []string{},
+			name:  "no paths",
+			input: []string{},
+			want:  []string{},
 		},
 		{
-			name:        "single path",
-			sourcePaths: []string{"01.jpg"},
-			want:        []string{"01.jpg"},
+			name:  "single path",
+			input: []string{"01.jpg"},
+			want:  []string{"01.jpg"},
 		},
 		{
-			name:        "multiple paths",
-			sourcePaths: []string{"01.jpg", "02.jpg", "dir/03.jpg", "dir/04.jpg"},
-			want:        []string{"01.jpg", "02.jpg", "dir/03.jpg", "dir/04.jpg"},
+			name:  "multiple paths",
+			input: []string{"01.jpg", "02.jpg", "dir/03.jpg", "dir/04.jpg"},
+			want:  []string{"01.jpg", "02.jpg", "dir/03.jpg", "dir/04.jpg"},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			it := NewFilePathsIteratorForDirectMode(tt.sourcePaths)
+			it := NewFilePathsIteratorForDirectMode(tt.input)
 
 			seq := it.All(context.Background())
 

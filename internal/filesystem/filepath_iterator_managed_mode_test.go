@@ -14,6 +14,95 @@ import (
 	"github.com/spf13/afero"
 )
 
+func TestNewFilePathsIteratorForManagedMode(t *testing.T) {
+	fs := afero.NewMemMapFs()
+
+	validDir := "images"
+	emptyDir := "archive"
+	rootFile := "image.jpg"
+
+	_ = fs.MkdirAll(validDir, DefaultFolderPermissions)
+	_ = fs.MkdirAll(emptyDir, DefaultFolderPermissions)
+	_ = afero.WriteFile(fs, filepath.Join(validDir, "photo.jpg"), []byte("data"), DefaultFilePermissions)
+	_ = afero.WriteFile(fs, rootFile, []byte("data"), DefaultFilePermissions)
+
+	tests := []struct {
+		name          string
+		root          string
+		recursive     bool
+		wantErr       bool
+		expectedStack int
+	}{
+		{
+			name:          "Valid directory with files",
+			root:          validDir,
+			recursive:     true,
+			wantErr:       false,
+			expectedStack: 1,
+		},
+		{
+			name:          "Empty directory",
+			root:          emptyDir,
+			recursive:     false,
+			wantErr:       false,
+			expectedStack: 1,
+		},
+		{
+			name:      "Path is a file (error)",
+			root:      rootFile,
+			recursive: false,
+			wantErr:   true,
+		},
+		{
+			name:      "Path does not exist (error)",
+			root:      "non_existent",
+			recursive: false,
+			wantErr:   true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := NewFilePathsIteratorForManagedMode(fs, tt.root, tt.recursive)
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("NewFilePathsIteratorForManagedMode() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if tt.wantErr {
+				return
+			}
+
+			if got == nil {
+				t.Fatal("Iterator is nil but no error returned")
+			}
+
+			if got.filesystem != fs {
+				t.Error("Filesystem field not set correctly")
+			}
+
+			if got.recursive != tt.recursive {
+				t.Errorf("Recursive flag = %v, want %v", got.recursive, tt.recursive)
+			}
+
+			if len(got.stack) != tt.expectedStack {
+				t.Errorf("Stack size = %d, want %d", len(got.stack), tt.expectedStack)
+			}
+
+			if len(got.stack) > 0 {
+				if got.stack[0].pathToFolder != tt.root {
+					t.Errorf("Initial stack path = %s, want %s", got.stack[0].pathToFolder, tt.root)
+				}
+
+				if got.stack[0].index != 0 {
+					t.Errorf("Initial index = %d, want 0", got.stack[0].index)
+				}
+			}
+		})
+	}
+}
+
 func TestFileSystemIteratorForManagedMode_All(t *testing.T) {
 	type fileEntry struct {
 		path  string
