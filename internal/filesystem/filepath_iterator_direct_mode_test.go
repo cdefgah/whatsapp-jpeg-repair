@@ -20,6 +20,35 @@ func TestFileSystemIteratorForManagedMode_All(t *testing.T) {
 		isDir bool
 	}
 
+	setupFS := func(t *testing.T, files []fileEntry) afero.Fs {
+		t.Helper() // marking helper function to get more clear logs in case of error here
+		fs := afero.NewMemMapFs()
+
+		// We're creating files and folders structure here
+		for _, entry := range files {
+			if entry.isDir {
+				if err := fs.MkdirAll(entry.path, DefaultFolderPermissions); err != nil {
+					t.Fatalf("setup failed: mkdir %q: %v", entry.path, err)
+				}
+			} else {
+				// Creating parent folder
+				dir := filepath.Dir(entry.path)
+				if err := fs.MkdirAll(dir, DefaultFolderPermissions); err != nil {
+					t.Fatalf("setup failed: mkdir parent %q: %v", dir, err)
+				}
+				// Creating file
+				file, err := fs.Create(entry.path)
+				if err != nil {
+					t.Fatalf("setup failed: create file %q: %v", entry.path, err)
+				}
+
+				file.Close()
+			}
+		}
+
+		return fs
+	}
+
 	tests := []struct {
 		name          string
 		recursive     bool
@@ -472,29 +501,7 @@ func TestFileSystemIteratorForManagedMode_All(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fs := afero.NewMemMapFs()
-
-			// We're creating files and folders structure here
-			for _, entry := range tt.filesToCreate {
-				if entry.isDir {
-					if err := fs.MkdirAll(entry.path, DefaultFolderPermissions); err != nil {
-						t.Fatalf("setup failed: mkdir %q: %v", entry.path, err)
-					}
-				} else {
-					// Creating parent folder
-					dir := filepath.Dir(entry.path)
-					if err := fs.MkdirAll(dir, DefaultFolderPermissions); err != nil {
-						t.Fatalf("setup failed: mkdir parent %q: %v", dir, err)
-					}
-					// Creating file
-					file, err := fs.Create(entry.path)
-					if err != nil {
-						t.Fatalf("setup failed: create file %q: %v", entry.path, err)
-					}
-
-					file.Close()
-				}
-			}
+			fs := setupFS(t, tt.filesToCreate)
 
 			iter, err := NewFilePathsIteratorForManagedMode(fs, ".", tt.recursive)
 			if err != nil {
