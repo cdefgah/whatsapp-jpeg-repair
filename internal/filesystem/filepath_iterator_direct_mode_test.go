@@ -152,6 +152,68 @@ func TestFileSystemIteratorForManagedMode_All(t *testing.T) {
 				"01.jif", "02.jiF", "03.jIf", "04.jIF", "05.Jif", "06.image.JiF", "07.JIf", "08.JIF",
 			},
 		},
+		{
+			name:      "Only valid JFIF variations",
+			recursive: false,
+			filesToCreate: []fileEntry{
+				{"01.jfif", false}, {"02.jfiF", false}, {"03.jfIf", false}, {"04.jfIF", false},
+				{"05.jFif", false}, {"06.jFiF", false}, {"07.jFIf", false}, {"08.jFIF", false},
+				{"09.Jfif", false}, {"10.JfiF", false}, {"11.JfIf", false}, {"12.JfIF", false},
+				{"13.JFif", false}, {"14.JFiF", false}, {"15.JFIf", false}, {"16.JFIF", false},
+			},
+			expectedFiles: []string{
+				"01.jfif", "02.jfiF", "03.jfIf", "04.jfIF",
+				"05.jFif", "06.jFiF", "07.jFIf", "08.jFIF",
+				"09.Jfif", "10.JfiF", "11.JfIf", "12.JfIF",
+				"13.JFif", "14.JFiF", "15.JFIf", "16.JFIF",
+			},
+		},
+		{
+			name:      "JFIF variations and invalid files",
+			recursive: false,
+			filesToCreate: []fileEntry{
+				{"01.jfif", false}, {"02.jfiF", false}, {"03.jfIf", false}, {"04.jfIF", false},
+				{"05.jFif", false}, {"06.jFiF", false}, {"07.jFIf", false}, {"08.jFIF", false},
+				{"AA.png", false}, {"BB.bmp", false}, {"CC.jfif.pdf", false}, {".jfif", false},
+				{"DD.", false}, {"EE.jfif.tmp", false}, {"FF.jfif", true}, {"GG.tif", false},
+				{"HH.gif", false}, {"II.apng", false}, {"JJ.avif", false}, {"KK.svg", false},
+				{"LL.webp", false}, {"MM.ico", false}, {"NN.docx", false}, {"PP.txt", false},
+				{"09.Jfif", false}, {"10.JfiF", false}, {"11.JfIf", false}, {"12.JfIF", false},
+				{"13.JFif", false}, {"14.JFiF", false}, {"15.image.JFIf", false}, {"16.JFIF", false},
+			},
+			expectedFiles: []string{
+				"01.jfif", "02.jfiF", "03.jfIf", "04.jfIF",
+				"05.jFif", "06.jFiF", "07.jFIf", "08.jFIF",
+				"09.Jfif", "10.JfiF", "11.JfIf", "12.JfIF",
+				"13.JFif", "14.JFiF", "15.image.JFIf", "16.JFIF",
+			},
+		},
+		{
+			name:      "Only valid JFI variations",
+			recursive: false,
+			filesToCreate: []fileEntry{
+				{"01.jfi", false}, {"02.jfI", false}, {"03.jFi", false}, {"04.jFI", false},
+				{"05.Jfi", false}, {"06.JfI", false}, {"07.JFi", false}, {"08.JFI", false},
+			},
+			expectedFiles: []string{
+				"01.jfi", "02.jfI", "03.jFi", "04.jFI", "05.Jfi", "06.JfI", "07.JFi", "08.JFI",
+			},
+		},
+		{
+			name:      "JFI variations and invalid files",
+			recursive: false,
+			filesToCreate: []fileEntry{
+				{"01.jfi", false}, {"02.jfI", false}, {"03.jFi", false}, {"04.jFI", false},
+				{"AA.png", false}, {"BB.bmp", false}, {"CC.jfi.pdf", false}, {".jfi", false},
+				{"DD.", false}, {"EE.jfi.tmp", false}, {"FF.jfi", true}, {"GG.tif", false},
+				{"HH.gif", false}, {"II.apng", false}, {"JJ.avif", false}, {"KK.svg", false},
+				{"05.image.Jfi", false}, {"06.JfI", false}, {"07.JFi", false}, {"08.JFI", false},
+				{"LL.webp", false}, {"MM.ico", false}, {"NN.docx", false}, {"PP.txt", false},
+			},
+			expectedFiles: []string{
+				"01.jfi", "02.jfI", "03.jFi", "04.jFI", "05.image.Jfi", "06.JfI", "07.JFi", "08.JFI",
+			},
+		},
 	}
 
 	for _, tt := range tests {
