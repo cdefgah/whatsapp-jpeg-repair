@@ -87,8 +87,8 @@ func TestFileSystemIteratorForManagedMode_All(t *testing.T) {
 				{"01.jpeg", false}, {"02.jpeG", false}, {"03.jpEg", false}, {"04.jpEG", false},
 				{"05.jPeg", false}, {"06.jPeG", false}, {"07.jPEg", false}, {"08.jPEG", false},
 				{"09.Jpeg", false}, {"10.JpeG", false}, {"11.JpEg", false}, {"12.JpEG", false},
-				{"AA.png", false}, {"BB.bmp", false}, {"CC.jpg.pdf", false}, {".jpg", false},
-				{"DD.", false}, {"EE.jpg.tmp", false}, {"FF.jpEg", true}, {"GG.tif", false},
+				{"AA.png", false}, {"BB.bmp", false}, {"CC.jpeg.pdf", false}, {".jpeg", false},
+				{"DD.", false}, {"EE.jpeg.tmp", false}, {"FF.jpEg", true}, {"GG.tif", false},
 				{"HH.gif", false}, {"II.apng", false}, {"JJ.avif", false}, {"KK.svg", false},
 				{"LL.webp", false}, {"MM.ico", false}, {"NN.docx", false}, {"PP.txt", false},
 				{"13.JPeg", false}, {"14.JPeG", false}, {"15.image.JPEg", false}, {"16.JPEG", false},
@@ -98,6 +98,58 @@ func TestFileSystemIteratorForManagedMode_All(t *testing.T) {
 				"05.jPeg", "06.jPeG", "07.jPEg", "08.jPEG",
 				"09.Jpeg", "10.JpeG", "11.JpEg", "12.JpEG",
 				"13.JPeg", "14.JPeG", "15.image.JPEg", "16.JPEG",
+			},
+		},
+		{
+			name:      "Only valid JPE variations",
+			recursive: false,
+			filesToCreate: []fileEntry{
+				{"01.jpe", false}, {"02.jpE", false}, {"03.jPe", false}, {"04.jPE", false},
+				{"05.Jpe", false}, {"06.JpE", false}, {"07.JPe", false}, {"08.JPE", false},
+			},
+			expectedFiles: []string{
+				"01.jpe", "02.jpE", "03.jPe", "04.jPE", "05.Jpe", "06.JpE", "07.JPe", "08.JPE",
+			},
+		},
+		{
+			name:      "JPE variations and invalid files",
+			recursive: false,
+			filesToCreate: []fileEntry{
+				{"01.jpe", false}, {"02.jpE", false}, {"03.jPe", false}, {"04.jPE", false},
+				{"05.Jpe", false}, {"06.JpE", false}, {"CC.jpe.pdf", false}, {".jpe", false},
+				{"AA.png", false}, {"BB.bmp", false}, {"FF.jpE", true}, {"GG.tif", false},
+				{"DD.", false}, {"EE.jpe.tmp", false}, {"JJ.avif", false}, {"KK.svg", false},
+				{"HH.gif", false}, {"II.apng", false}, {"NN.docx", false}, {"PP.txt", false},
+				{"LL.webp", false}, {"MM.ico", false}, {"07.image.JPe", false}, {"08.JPE", false},
+			},
+			expectedFiles: []string{
+				"01.jpe", "02.jpE", "03.jPe", "04.jPE", "05.Jpe", "06.JpE", "07.image.JPe", "08.JPE",
+			},
+		},
+		{
+			name:      "Only valid JIF variations",
+			recursive: false,
+			filesToCreate: []fileEntry{
+				{"01.jif", false}, {"02.jiF", false}, {"03.jIf", false}, {"04.jIF", false},
+				{"05.Jif", false}, {"06.JiF", false}, {"07.JIf", false}, {"08.JIF", false},
+			},
+			expectedFiles: []string{
+				"01.jif", "02.jiF", "03.jIf", "04.jIF", "05.Jif", "06.JiF", "07.JIf", "08.JIF",
+			},
+		},
+		{
+			name:      "JIF variations and invalid files",
+			recursive: false,
+			filesToCreate: []fileEntry{
+				{"01.jif", false}, {"02.jiF", false}, {"03.jIf", false}, {"04.jIF", false},
+				{"AA.png", false}, {"BB.bmp", false}, {"CC.jif.pdf", false}, {".jif", false},
+				{"DD.", false}, {"EE.jif.tmp", false}, {"FF.jif", true}, {"GG.tif", false},
+				{"HH.gif", false}, {"II.apng", false}, {"JJ.avif", false}, {"KK.svg", false},
+				{"LL.webp", false}, {"MM.ico", false}, {"NN.docx", false}, {"PP.txt", false},
+				{"05.Jif", false}, {"06.image.JiF", false}, {"07.JIf", false}, {"08.JIF", false},
+			},
+			expectedFiles: []string{
+				"01.jif", "02.jiF", "03.jIf", "04.jIF", "05.Jif", "06.image.JiF", "07.JIf", "08.JIF",
 			},
 		},
 	}
