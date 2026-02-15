@@ -59,7 +59,10 @@ func (r *Runner) ProcessCommandLineArguments(ctx context.Context, params CliProc
 		return nil
 	}
 
-	useManagedMode := options.IsManagedMode(params.ArgsWithoutAppName, flagSet)
+	useManagedMode, err := options.IsManagedMode(params.ArgsWithoutAppName, flagSet)
+	if err != nil {
+		return err
+	}
 
 	if useManagedMode {
 		// check if non-managed mode arguments present for managed mode

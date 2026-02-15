@@ -31,6 +31,12 @@ const (
 	flagDisplayHelpShort          = "h"
 )
 
+// predefined source and dest folder names
+const (
+	predefinedSourceFilesFolder      = "whatsapp-files"
+	predefinedDestinationFilesFolder = "repaired-files"
+)
+
 // DirectModeOptions contains options for the direct processing mode.
 // The application running in direct mode processes all passed files "in place",
 // source file will be overwritten by result file.
@@ -59,11 +65,6 @@ type ManagedModeOptions struct {
 
 // NewDefaultManagedModeOptions creates instance of ManagedModeOptions with default values.
 func NewDefaultManagedModeOptions(currentWorkingFolder string) *ManagedModeOptions {
-	const (
-		predefinedSourceFilesFolder      = "whatsapp-files"
-		predefinedDestinationFilesFolder = "repaired-files"
-	)
-
 	return &ManagedModeOptions{
 		SourceFolderPath:      filepath.Join(currentWorkingFolder, predefinedSourceFilesFolder),
 		DestinationFolderPath: filepath.Join(currentWorkingFolder, predefinedDestinationFilesFolder),
@@ -173,7 +174,11 @@ func NewManagedFlagSet(writer io.Writer, managedOptions *ManagedModeOptions) (fl
 // IsManagedMode returns true if managed mode selected.
 // Function assumes that Parse() method was already called.
 // Otherwise function won't work properly.
-func IsManagedMode(argsWithoutAppName []string, fs *pflag.FlagSet) bool {
+func IsManagedMode(argsWithoutAppName []string, fs *pflag.FlagSet) (bool, error) {
+	if !fs.Parsed() {
+		return false, fmt.Errorf("flags must be parsed before calling IsManagedMode")
+	}
+
 	managedModeFlagUsed := false
 
 	fs.Visit(func(flag *pflag.Flag) {
@@ -184,5 +189,5 @@ func IsManagedMode(argsWithoutAppName []string, fs *pflag.FlagSet) bool {
 		managedModeFlagUsed = true
 	})
 
-	return len(argsWithoutAppName) == 0 || managedModeFlagUsed
+	return len(argsWithoutAppName) == 0 || managedModeFlagUsed, nil
 }
