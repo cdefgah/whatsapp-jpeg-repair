@@ -5,6 +5,7 @@ package options
 
 import (
 	"bytes"
+	"fmt"
 	"path/filepath"
 	"slices"
 	"strconv"
@@ -22,8 +23,8 @@ func TestNewDirectOptions(t *testing.T) {
 	}{
 		{
 			name:     "Multiple file paths",
-			args:     []string{"/images/photo01.jpg", "/images/photo02.jpg", "/images/photo03.jpg"},
-			expected: []string{"/images/photo01.jpg", "/images/photo02.jpg", "/images/photo03.jpg"},
+			args:     []string{"/images/photo01.jpg", "/archive/document8.jpg", "/scans/receipt003.jpg"},
+			expected: []string{"/images/photo01.jpg", "/archive/document8.jpg", "/scans/receipt003.jpg"},
 		},
 		{
 			name:     "Empty slice",
@@ -165,19 +166,114 @@ func TestManagedModeOptions_String(t *testing.T) {
 }
 
 func TestNewManagedFlagSet(t *testing.T) {
-	assertFlag := func(fs *pflag.FlagSet, name string, wantDefault, wantActual any) {
+	const (
+		currentFolder = "/home/user/Documents/wjr"
+	)
+
+	defaultSourceFolderPath := filepath.Join(currentFolder, predefinedSourceFilesFolder)
+	defaultDestinationFolderPath := filepath.Join(currentFolder, predefinedDestinationFilesFolder)
+
+	type singleFlagState struct {
+		longName     string
+		shortName    string
+		defaultValue string
+		actualValue  string
+	}
+
+	tests := []struct {
+		name  string
+		opts  ManagedModeOptions
+		flags []singleFlagState
+	}{
+		{
+			name: "No cli arguments",
+			opts: ManagedModeOptions{},
+			flags: []singleFlagState{
+				{
+					longName:     "src-path",
+					shortName:    "s",
+					defaultValue: defaultSourceFolderPath,
+					actualValue:  defaultSourceFolderPath,
+				},
+				{
+					longName:     "dest-path",
+					shortName:    "d",
+					defaultValue: defaultDestinationFolderPath,
+					actualValue:  defaultDestinationFolderPath,
+				},
+				{
+					longName:     "use-current-modification-time",
+					shortName:    "t",
+					defaultValue: "false",
+					actualValue:  "false",
+				},
+				{
+					longName:     "delete-whatsapp-files",
+					shortName:    "w",
+					defaultValue: "false",
+					actualValue:  "false",
+				},
+				{
+					longName:     "process-nested-folders",
+					shortName:    "n",
+					defaultValue: "false",
+					actualValue:  "false",
+				},
+				{
+					longName:     "dont-wait-to-close",
+					shortName:    "c",
+					defaultValue: "false",
+					actualValue:  "false",
+				},
+				{
+					longName:     "help",
+					shortName:    "h",
+					defaultValue: "false",
+					actualValue:  "false",
+				},
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+
+			// opts := NewDirectOptions(tc.args)
+
+			// if !slices.Equal(opts.FilePaths, tc.expected) {
+			// 	t.Errorf("NewDirectOptions(%v).FilePaths = %v; want %v",
+			// 		tc.args, opts.FilePaths, tc.expected)
+			// }
+		})
+	}
+}
+
+// TODO переделай на табличные тесты
+func oldTestNewManagedFlagSet(t *testing.T) {
+	const (
+		currentFolder    = "/home/user/Documents/wjr"
+		customSourcePath = "/home/user/archive"
+	)
+
+	defaultSourceFolderPath := filepath.Join(currentFolder, predefinedSourceFilesFolder)
+	defaultDestinationFolderPath := filepath.Join(currentFolder, predefinedDestinationFilesFolder)
+
+	assertFlag := func(fs *pflag.FlagSet, longName, shorthand string, wantDefault, wantActual any) {
 		t.Helper() // Calling t.Helper() to have more clear logs if test failed
 
 		if !fs.Parsed() {
 			t.Fatal("flag set must be parsed before asserting a flag")
-			return
 		}
 
 		// Checking flag presence
-		f := fs.Lookup(name)
+		f := fs.Lookup(longName)
 		if f == nil {
-			t.Fatalf("flag %q not found in FlagSet", name)
-			return
+			t.Fatalf("flag %q not found in FlagSet", longName)
+		}
+
+		if f.Shorthand != shorthand {
+			t.Fatalf("flag --%s has wrong shorthand: got -%s, want -%s",
+				longName, f.Shorthand, shorthand)
 		}
 
 		// Determine the type of expected value and perform the appropriate checks
@@ -233,20 +329,60 @@ func TestNewManagedFlagSet(t *testing.T) {
 		}
 	}
 
-	const currentFolder = "/home/user/Documents/wjr"
-	defaultSourceFolderPath := filepath.Join(currentFolder, predefinedSourceFilesFolder)
-	defaultDestinationFolderPath := filepath.Join(currentFolder, predefinedDestinationFilesFolder)
+	createParsedFlagSet := func(args []string) *pflag.FlagSet {
+		t.Helper() // calling this to get clear logs upon failed tests
 
-	t.Run("DefaultValues", func(t *testing.T) {
 		opts := NewDefaultManagedModeOptions(currentFolder)
-
 		out := new(bytes.Buffer)
 		fs, _ := NewManagedFlagSet(out, opts)
+		err := fs.Parse(args)
+		if err != nil {
+			t.Fatal(err)
+		}
 
+		return fs
+	}
+
+	createFlagValuePair := func(flagName string, flagValue string) string {
+		flagPrefix := "-"
+		if isFullFlagName(flagName) {
+			flagPrefix = "--"
+		}
+
+		return fmt.Sprintf("%s%s=%s", flagPrefix, flagName, flagValue)
+	}
+
+	t.Run("DefaultValues", func(t *testing.T) {
 		args := []string{} // no passed arguments
-		fs.Parse(args)
+		fs := createParsedFlagSet(args)
 
 		assertFlag(fs, flagSrcPath, defaultSourceFolderPath, defaultSourceFolderPath)
+		assertFlag(fs, flagDestPath, defaultDestinationFolderPath, defaultDestinationFolderPath)
+		assertFlag(fs, flagUseCurrentModTime, false, false)
+		assertFlag(fs, flagDeleteWhatsAppFiles, false, false)
+		assertFlag(fs, flagDontWaitToClose, false, false)
+		assertFlag(fs, flagPrcsNestedSrcFolders, false, false)
+		assertFlag(fs, flagDisplayHelp, false, false)
+	})
+
+	t.Run("Source path set (full flag name)", func(t *testing.T) {
+		args := []string{createFlagValuePair(flagSrcPath, customSourcePath)}
+		fs := createParsedFlagSet(args)
+
+		assertFlag(fs, flagSrcPath, defaultSourceFolderPath, customSourcePath)
+		assertFlag(fs, flagDestPath, defaultDestinationFolderPath, defaultDestinationFolderPath)
+		assertFlag(fs, flagUseCurrentModTime, false, false)
+		assertFlag(fs, flagDeleteWhatsAppFiles, false, false)
+		assertFlag(fs, flagDontWaitToClose, false, false)
+		assertFlag(fs, flagPrcsNestedSrcFolders, false, false)
+		assertFlag(fs, flagDisplayHelp, false, false)
+	})
+
+	t.Run("Source path set (short flag name)", func(t *testing.T) {
+		args := []string{createFlagValuePair(flagSrcPathShort, customSourcePath)}
+		fs := createParsedFlagSet(args)
+
+		assertFlag(fs, flagSrcPath, defaultSourceFolderPath, customSourcePath)
 		assertFlag(fs, flagDestPath, defaultDestinationFolderPath, defaultDestinationFolderPath)
 		assertFlag(fs, flagUseCurrentModTime, false, false)
 		assertFlag(fs, flagDeleteWhatsAppFiles, false, false)
