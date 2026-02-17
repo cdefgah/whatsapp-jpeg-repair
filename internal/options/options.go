@@ -172,8 +172,7 @@ func NewManagedFlagSet(writer io.Writer, managedOptions *ManagedModeOptions) (fl
 }
 
 // IsManagedMode returns true if managed mode selected.
-// Function assumes that Parse() method was already called.
-// Otherwise function won't work properly.
+// Function assumes that Parse() method was already called. Otherwise function will fail.
 func IsManagedMode(argsWithoutAppName []string, fs *pflag.FlagSet) (bool, error) {
 	if !fs.Parsed() {
 		return false, fmt.Errorf("flags must be parsed before calling IsManagedMode")
