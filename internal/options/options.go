@@ -15,20 +15,20 @@ import (
 
 // Command line parameter keys
 const (
-	flagSrcPath                   = "src-path"
-	flagSrcPathShort              = "s"
-	flagDestPath                  = "dest-path"
-	flagDestPathShort             = "d"
-	flagUseCurrentModTime         = "use-current-modification-time"
-	flagUseCurrentModTimeShort    = "t"
-	flagDeleteWhatsAppFiles       = "delete-whatsapp-files"
-	flagDeleteWhatsAppFilesShort  = "w"
-	flagDontWaitToClose           = "dont-wait-to-close"
-	flagDontWaitToCloseShort      = "c"
-	flagPrcsNestedSrcFolders      = "process-nested-folders"
-	flagPrcsNestedSrcFoldersShort = "n"
-	flagDisplayHelp               = "help"
-	flagDisplayHelpShort          = "h"
+	flagSrcPath                  = "src-path"
+	flagSrcPathShort             = "s"
+	flagDestPath                 = "dest-path"
+	flagDestPathShort            = "d"
+	flagUseCurrentModTime        = "use-current-modification-time"
+	flagUseCurrentModTimeShort   = "t"
+	flagDeleteWhatsAppFiles      = "delete-whatsapp-files"
+	flagDeleteWhatsAppFilesShort = "w"
+	flagDontWaitToClose          = "dont-wait-to-close"
+	flagDontWaitToCloseShort     = "c"
+	flagPrcsNestedFolders        = "process-nested-folders"
+	flagPrcsNestedFoldersShort   = "n"
+	flagDisplayHelp              = "help"
+	flagDisplayHelpShort         = "h"
 )
 
 // predefined source and dest folder names
@@ -152,8 +152,8 @@ func NewManagedFlagSet(writer io.Writer, managedOptions *ManagedModeOptions) (fl
 
 	flagSet.BoolVarP(
 		&managedOptions.ProcessNestedFolders,
-		flagPrcsNestedSrcFolders,
-		flagPrcsNestedSrcFoldersShort,
+		flagPrcsNestedFolders,
+		flagPrcsNestedFoldersShort,
 		managedOptions.ProcessNestedFolders,
 		fmt.Sprintf("If it is true, then the application processes files in nested folders recursively. Default: %v.", managedOptions.ProcessNestedFolders),
 	)
