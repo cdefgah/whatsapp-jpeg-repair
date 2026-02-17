@@ -337,7 +337,7 @@ func TestIsManagedMode(t *testing.T) {
 		},
 		{
 			name:          "Not managed if only help flag provided",
-			args:          []string{flagDisplayHelp},
+			args:          []string{"--" + flagDisplayHelp},
 			skipParseCall: false,
 			isManagedMode: false,
 			wantErr:       false,
