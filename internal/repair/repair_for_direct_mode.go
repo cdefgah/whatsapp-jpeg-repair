@@ -22,11 +22,23 @@ import (
 type ImageRepairerForDirectMode struct {
 	ImageRepairerBase
 	options options.DirectModeOptions
+	clock   Clock
 }
+
+// Clock interface is used to help to inject clock implementation for production and for testing environments.
+type Clock interface {
+	Now() time.Time
+}
+
+// RealClock is used in the actual operation of the application.
+type RealClock struct{}
+
+// Now returns current time.
+func (RealClock) Now() time.Time { return time.Now() }
 
 // NewImageRepairerForDirectMode creates and initializes a new ImageRepairerForDirectMode.
 // It sets up the base repairer with the provided filesystem, writer, and fresh statistics.
-func NewImageRepairerForDirectMode(fs afero.Fs, opts options.DirectModeOptions, stderr io.Writer) *ImageRepairerForDirectMode {
+func NewImageRepairerForDirectMode(fs afero.Fs, opts options.DirectModeOptions, stderr io.Writer, clock Clock) *ImageRepairerForDirectMode {
 	return &ImageRepairerForDirectMode{
 		ImageRepairerBase: ImageRepairerBase{
 			fs:     fs,
@@ -34,6 +46,7 @@ func NewImageRepairerForDirectMode(fs afero.Fs, opts options.DirectModeOptions, 
 			stderr: stderr,
 		},
 		options: opts,
+		clock:   clock,
 	}
 }
 
@@ -81,7 +94,7 @@ func (ir *ImageRepairerForDirectMode) createBackupFile(ctx context.Context, sour
 	ext := filepath.Ext(sourceFilePath)
 	nameOnly := strings.TrimSuffix(filepath.Base(sourceFilePath), ext)
 
-	timestamp := time.Now().Format(timeFormatLayout)
+	timestamp := ir.clock.Now().Format(timeFormatLayout)
 	backupName := fmt.Sprintf("%s_%s_backup%s", nameOnly, timestamp, ext)
 	backupPath := filepath.Join(dir, backupName)
 

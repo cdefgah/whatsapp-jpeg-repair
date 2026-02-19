@@ -14,6 +14,7 @@ import (
 	"syscall"
 
 	"github.com/cdefgah/whatsapp-jpeg-repair/internal/app"
+	"github.com/cdefgah/whatsapp-jpeg-repair/internal/repair"
 	"github.com/spf13/afero"
 	"github.com/spf13/pflag"
 )
@@ -27,13 +28,14 @@ func main() {
 	fmt.Fprintln(appOutput, "\nProject web-site, source code and documentation: https://github.com/cdefgah/whatsapp-jpeg-repair")
 	fmt.Fprintln(appOutput)
 
-	if err := runApp(stdin, appOutput); err != nil {
+	var clock repair.RealClock
+	if err := runApp(stdin, appOutput, clock); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
 }
 
-func runApp(stdin io.Reader, stderr io.Writer) error {
+func runApp(stdin io.Reader, stderr io.Writer, clock repair.Clock) error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
@@ -47,7 +49,7 @@ func runApp(stdin io.Reader, stderr io.Writer) error {
 	filesystem := afero.NewOsFs()
 	argsWithoutAppName := os.Args[1:]
 
-	appRunner := app.NewAppRunner(filesystem, stderr)
+	appRunner := app.NewAppRunner(filesystem, stderr, clock)
 	globalParams := app.NewGlobalProcessParams(stdin, exeFolderPath, argsWithoutAppName)
 
 	err = appRunner.ProcessCommandLineArguments(ctx, *globalParams)

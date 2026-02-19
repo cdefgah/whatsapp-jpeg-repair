@@ -19,13 +19,15 @@ import (
 type Runner struct {
 	fs     afero.Fs
 	stderr io.Writer
+	clock  repair.Clock
 }
 
 // NewAppRunner create new instance of AppRunner structure.
-func NewAppRunner(fs afero.Fs, stderr io.Writer) *Runner {
+func NewAppRunner(fs afero.Fs, stderr io.Writer, clock repair.Clock) *Runner {
 	return &Runner{
 		fs:     fs,
 		stderr: stderr,
+		clock:  clock,
 	}
 }
 
@@ -80,18 +82,18 @@ func (r *Runner) ProcessCommandLineArguments(ctx context.Context, params CliProc
 	}
 
 	directOptions := options.NewDirectOptions(flagSet.Args())
-	return r.runAppInDirectMode(ctx, directOptions)
+	return r.runAppInDirectMode(ctx, directOptions, r.clock)
 }
 
 // runAppInDirectMode runs application in direct mode, repairs files whose paths were specified in the command-line parameters.
-func (r *Runner) runAppInDirectMode(ctx context.Context, options options.DirectModeOptions) error {
+func (r *Runner) runAppInDirectMode(ctx context.Context, options options.DirectModeOptions, clock repair.Clock) error {
 	if err := ctx.Err(); err != nil {
 		return err
 	}
 
 	fmt.Fprintln(r.stderr, "Now the application runs in direct mode, processing file paths that are passed in the command line.")
 
-	imageRepairer := repair.NewImageRepairerForDirectMode(r.fs, options, r.stderr)
+	imageRepairer := repair.NewImageRepairerForDirectMode(r.fs, options, r.stderr, clock)
 	filePathIterator := filesystem.NewFilePathsIteratorForDirectMode(options.FilePaths)
 
 	repair.ProcessAllFiles(ctx, filePathIterator, imageRepairer)
