@@ -22,6 +22,8 @@ import (
 
 func TestImageRepairerBase_readImage(t *testing.T) {
 	createTestJPEG := func() []byte {
+		t.Helper() // for clean logs
+
 		img := image.NewRGBA(image.Rect(0, 0, 10, 10))
 		var buf bytes.Buffer
 		jpeg.Encode(&buf, img, nil)

@@ -82,9 +82,17 @@ func (ir *ImageRepairerForDirectMode) ProcessSingleFile(ctx context.Context, sou
 // createBackupFile creates a copy in the same directory as the source.
 // The backup file is expected to be cleaned up later by the caller or a cleanup function.
 func (ir *ImageRepairerForDirectMode) createBackupFile(ctx context.Context, sourceFilePath string) (string, error) {
-	// Checking if process interrupted by Ctrl+C
 	if err := ctx.Err(); err != nil {
 		return "", err
+	}
+
+	fileInfo, err := ir.fs.Stat(sourceFilePath)
+	if err != nil {
+		return "", err
+	}
+
+	if !fileInfo.Mode().IsRegular() {
+		return "", fmt.Errorf("source file is not a regular file")
 	}
 
 	// Format constant: 2006(6) 01(1) 02(2) _ 15(3) 04(4) 05(5)

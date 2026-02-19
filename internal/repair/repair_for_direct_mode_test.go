@@ -6,6 +6,8 @@ package repair
 import (
 	"bytes"
 	"context"
+	"image"
+	"image/jpeg"
 	"io"
 	"path/filepath"
 	"reflect"
@@ -139,7 +141,7 @@ func TestDeleteBackupFile(t *testing.T) {
 			name:             "Error: filesystem is read-only",
 			wrapFsAsReadonly: true,
 			setupFs: func(fs afero.Fs) {
-				_ = afero.WriteFile(fs, "readonly.bak", []byte("data"), 0644)
+				_ = afero.WriteFile(fs, "readonly.bak", []byte("data"), filesystem.DefaultFilePermissions)
 			},
 			path:    "readonly.bak",
 			wantErr: true,
@@ -194,29 +196,225 @@ func TestDeleteBackupFile(t *testing.T) {
 }
 
 func TestCreateBackupFile(t *testing.T) {
-	fixedTime := time.Date(2026, 12, 25, 17, 59, 47, 0, time.UTC)
-	mockClock := MockClock{FixedTime: fixedTime}
+	fixedTime := time.Date(2026, 12, 25, 17, 18, 19, 0, time.UTC)
+	const expectedTimestamp = "20261225_171819"
 
-	fs := afero.NewMemMapFs()
-	sourcePath := "image.jfif"
-	_ = afero.WriteFile(fs, sourcePath, []byte("data"), filesystem.DefaultFilePermissions)
-
-	ir := &ImageRepairerForDirectMode{
-		ImageRepairerBase: ImageRepairerBase{
-			fs: fs,
+	tests := []struct {
+		name             string
+		sourcePath       string
+		content          string
+		wrapFsAsReadonly bool
+		setupFs          func(fs afero.Fs)
+		cancelCtx        bool
+		wantErr          bool
+		expectedPath     string
+		expectedErrSub   string
+	}{
+		{
+			name:       "Success: regular copy",
+			sourcePath: "photos/vacation.jpg",
+			content:    "fake-image-bytes",
+			setupFs: func(fs afero.Fs) {
+				_ = fs.MkdirAll("photos", filesystem.DefaultFolderPermissions)
+				_ = afero.WriteFile(fs, "photos/vacation.jpg", []byte("fake-image-bytes"), filesystem.DefaultFilePermissions)
+			},
+			wantErr:      false,
+			expectedPath: filepath.Join("photos", "vacation_"+expectedTimestamp+"_backup.jpg"),
 		},
-
-		clock: mockClock,
+		{
+			name:           "Error: context already cancelled",
+			sourcePath:     "any.jpg",
+			setupFs:        func(fs afero.Fs) {},
+			cancelCtx:      true,
+			wantErr:        true,
+			expectedErrSub: context.Canceled.Error(),
+		},
+		{
+			name:           "Error: source file not found",
+			sourcePath:     "non_existent.jpg",
+			setupFs:        func(fs afero.Fs) {}, // Empty filesystem
+			wantErr:        true,
+			expectedErrSub: "file does not exist",
+		},
+		{
+			name:       "Error: source is a directory",
+			sourcePath: "my_dir",
+			setupFs: func(fs afero.Fs) {
+				_ = fs.MkdirAll("my_dir", filesystem.DefaultFolderPermissions)
+			},
+			wantErr:        true,
+			expectedErrSub: "source file is not a regular file",
+		},
+		{
+			name:             "Error: destination not writable (ReadOnly filesystem)",
+			sourcePath:       "writable.jpg",
+			wrapFsAsReadonly: true,
+			setupFs: func(fs afero.Fs) {
+				_ = afero.WriteFile(fs, "writable.jpg", []byte("data"), filesystem.DefaultFilePermissions)
+			},
+			wantErr:        true,
+			expectedErrSub: "create backup file",
+		},
 	}
 
-	backupPath, err := ir.createBackupFile(context.Background(), sourcePath)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			memFs := afero.NewMemMapFs()
+			if tt.setupFs != nil {
+				tt.setupFs(memFs)
+			}
 
-	if err != nil {
-		t.Fatalf("Unexpected error: %v", err)
+			var finalFs afero.Fs = memFs
+			if tt.wrapFsAsReadonly {
+				finalFs = afero.NewReadOnlyFs(memFs)
+			}
+
+			ir := &ImageRepairerForDirectMode{
+				ImageRepairerBase: ImageRepairerBase{
+					fs: finalFs,
+				},
+				clock: MockClock{fixedTime},
+			}
+
+			ctx := context.Background()
+			if tt.cancelCtx {
+				var cancel context.CancelFunc
+				ctx, cancel = context.WithCancel(ctx)
+				cancel()
+			}
+
+			backupPath, err := ir.createBackupFile(ctx, tt.sourcePath)
+
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("wantErr is %v, but got error: %v", tt.wantErr, err)
+			}
+
+			if tt.wantErr {
+				if tt.expectedErrSub != "" && !strings.Contains(err.Error(), tt.expectedErrSub) {
+					t.Errorf("expected error to contain %q, but got %q", tt.expectedErrSub, err.Error())
+				}
+				return
+			}
+
+			if backupPath != tt.expectedPath {
+				t.Errorf("path mismatch: expected %q, got %q", tt.expectedPath, backupPath)
+			}
+
+			exists, _ := afero.Exists(finalFs, backupPath)
+			if !exists {
+				t.Error("backup file was not created")
+			}
+
+			data, _ := afero.ReadFile(finalFs, backupPath)
+			if string(data) != tt.content {
+				t.Errorf("content corruption: expected %q, got %q", tt.content, string(data))
+			}
+		})
+	}
+}
+
+func TestProcessSingleFile(t *testing.T) {
+	createTestJPEG := func() []byte {
+		t.Helper() // for clean logs
+
+		img := image.NewRGBA(image.Rect(0, 0, 10, 10))
+		var buf bytes.Buffer
+		jpeg.Encode(&buf, img, nil)
+		return buf.Bytes()
 	}
 
-	expectedName := "image_20261225_175947_backup.jfif"
-	if filepath.Base(backupPath) != expectedName {
-		t.Errorf("Expected filename %q, got %q", expectedName, filepath.Base(backupPath))
+	fixedTime := time.Date(2026, 12, 25, 17, 18, 19, 0, time.UTC)
+	const expectedTimestamp = "20261225_171819"
+
+	tests := []struct {
+		name           string
+		sourcePath     string
+		setupFs        func(fs afero.Fs)
+		cancelCtx      bool
+		wantErr        bool
+		expectedErrSub string
+		verify         func(t *testing.T, fs afero.Fs) // Additional checks
+	}{
+		{
+			name:       "Success: full cycle",
+			sourcePath: "image.jpg",
+			setupFs: func(fs afero.Fs) {
+				afero.WriteFile(fs, "image.jpg", createTestJPEG(), filesystem.DefaultFilePermissions)
+			},
+			wantErr: false,
+			verify: func(t *testing.T, fs afero.Fs) {
+				backupName := "image_" + expectedTimestamp + "_backup.jpg"
+				exists, _ := afero.Exists(fs, backupName)
+				if exists {
+					t.Error("Backup file should have been deleted after success")
+				}
+			},
+		},
+		{
+			name:           "Error: backup creation fails",
+			sourcePath:     "missing.jpg",
+			setupFs:        func(fs afero.Fs) {}, // Empty FS triggers error in createBackupFile
+			wantErr:        true,
+			expectedErrSub: "create backup",
+		},
+		{
+			name:       "Error: context canceled before start",
+			sourcePath: "image.jpg",
+			setupFs: func(fs afero.Fs) {
+				_ = afero.WriteFile(fs, "image.jpg", createTestJPEG(), filesystem.DefaultFilePermissions)
+			},
+			cancelCtx:      true,
+			wantErr:        true,
+			expectedErrSub: context.Canceled.Error(),
+		},
+		{
+			name:       "Error: repair fails (read image)",
+			sourcePath: "corrupt.jpg",
+			setupFs: func(fs afero.Fs) {
+				_ = afero.WriteFile(fs, "corrupt.jpg", []byte("invalid"), filesystem.DefaultFilePermissions)
+			},
+			wantErr:        true,
+			expectedErrSub: "unknown format",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fs := afero.NewMemMapFs()
+			if tt.setupFs != nil {
+				tt.setupFs(fs)
+			}
+
+			ir := &ImageRepairerForDirectMode{
+				ImageRepairerBase: ImageRepairerBase{
+					fs: fs,
+				},
+
+				clock: MockClock{fixedTime},
+			}
+
+			ctx := context.Background()
+			if tt.cancelCtx {
+				var cancel context.CancelFunc
+				ctx, cancel = context.WithCancel(ctx)
+				cancel()
+			}
+
+			err := ir.ProcessSingleFile(ctx, tt.sourcePath)
+
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("ProcessSingleFile() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			if tt.wantErr && tt.expectedErrSub != "" {
+				if !strings.Contains(err.Error(), tt.expectedErrSub) {
+					t.Errorf("Expected error to contain %q, got %q", tt.expectedErrSub, err.Error())
+				}
+			}
+
+			if !tt.wantErr && tt.verify != nil {
+				tt.verify(t, fs)
+			}
+		})
 	}
 }
