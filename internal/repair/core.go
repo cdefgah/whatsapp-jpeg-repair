@@ -206,13 +206,13 @@ func RunAndWaitForExit(ctx context.Context, stdin io.Reader, stderr io.Writer, d
 	fmt.Fprintln(stderr, "\nProcessing is complete. Press Enter to exit.")
 
 	// Creating a channel to receive a signal when required key is pressed
-	done := make(chan struct{})
+	signalIsReceived := make(chan struct{})
 
 	scanner := bufio.NewScanner(stdin)
 
 	go func() {
 		_ = scanner.Scan()
-		close(done)
+		close(signalIsReceived)
 	}()
 
 	select {
@@ -222,7 +222,7 @@ func RunAndWaitForExit(ctx context.Context, stdin io.Reader, stderr io.Writer, d
 		// The goroutine above will leak, but since the application is about to exit,
 		// the operating system will reclaim and free all resources immediately.
 		return
-	case <-done:
+	case <-signalIsReceived:
 		// If pressed Enter key
 		return
 	}
