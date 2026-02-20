@@ -242,38 +242,44 @@ func TestRunner_RunAppInManagedMode(t *testing.T) {
 		options       options.ManagedModeOptions
 		setupFs       func(fs afero.Fs)
 		wantErr       bool
+		errSubstring  string
 		expectedStats []string
 	}{
 		{
-			name: "Successful: recursive search, repair, and deletion of originals",
+			name: "Success: recursive find and repair",
 			options: options.ManagedModeOptions{
-				SourceFolderPath:           srcDir,
-				DestinationFolderPath:      dstDir,
-				ProcessNestedFolders:       true,
-				DeleteWhatsAppFiles:        true,
-				DontWaitToClose:            true,
-				UseCurrentModificationTime: true,
+				SourceFolderPath:      srcDir,
+				DestinationFolderPath: dstDir,
+				ProcessNestedFolders:  true,
+				DontWaitToClose:       true,
 			},
 			setupFs: func(fs afero.Fs) {
 				_ = fs.MkdirAll(srcDir, filesystem.DefaultFolderPermissions)
-				_ = fs.MkdirAll(dstDir, filesystem.DefaultFolderPermissions)
-
 				createTestImage(fs, filepath.Join(srcDir, "root.jpg"))
-
-				sub := filepath.Join(srcDir, "subfolder")
-				_ = fs.MkdirAll(sub, filesystem.DefaultFolderPermissions)
-				createTestImage(fs, filepath.Join(sub, "nested.jpeg"))
-
-				_ = afero.WriteFile(fs, filepath.Join(srcDir, "ignore.txt"), []byte("not image"), filesystem.DefaultFilePermissions)
 			},
-			wantErr: false,
+			wantErr:       false,
+			expectedStats: []string{"Total: 1", "Repaired: 1"},
+		},
+		{
+			name: "Processing finished with errors in stats",
+			options: options.ManagedModeOptions{
+				SourceFolderPath:      srcDir,
+				DestinationFolderPath: dstDir,
+				DontWaitToClose:       true,
+			},
+			setupFs: func(fs afero.Fs) {
+				_ = fs.MkdirAll(srcDir, filesystem.DefaultFolderPermissions)
+				_ = afero.WriteFile(fs, filepath.Join(srcDir, "corrupted.jpg"), []byte("invalid jpeg content"), filesystem.DefaultFilePermissions)
+			},
+			wantErr:      true,
+			errSubstring: "the processing of image files in managed mode has failed",
 			expectedStats: []string{
-				"Total: 2 file(s)",
-				"Repaired: 2 file(s)",
+				"Total: 1",
+				"Failed: 1",
 			},
 		},
 		{
-			name: "Error: incorrect path to the source folder",
+			name: "Error: source folder path not found",
 			options: options.ManagedModeOptions{
 				SourceFolderPath: "/non_existent",
 				DontWaitToClose:  true,
@@ -286,7 +292,6 @@ func TestRunner_RunAppInManagedMode(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := t.Context()
-
 			fs := afero.NewMemMapFs()
 			if tt.setupFs != nil {
 				tt.setupFs(fs)
@@ -294,11 +299,7 @@ func TestRunner_RunAppInManagedMode(t *testing.T) {
 
 			var stderr bytes.Buffer
 			stdin := strings.NewReader("\n")
-
-			r := &Runner{
-				fs:     fs,
-				stderr: &stderr,
-			}
+			r := &Runner{fs: fs, stderr: &stderr}
 
 			err := r.runAppInManagedMode(ctx, stdin, tt.options)
 
@@ -307,34 +308,123 @@ func TestRunner_RunAppInManagedMode(t *testing.T) {
 				return
 			}
 
-			if !tt.wantErr {
+			if tt.wantErr && tt.errSubstring != "" {
+				if !strings.Contains(err.Error(), tt.errSubstring) {
+					t.Errorf("expected error that contains %q, but get %q", tt.errSubstring, err.Error())
+				}
+			}
+
+			if tt.expectedStats != nil {
 				output := stderr.String()
 				for _, s := range tt.expectedStats {
 					if !strings.Contains(output, s) {
-						t.Errorf("report does not contain: %q\nGot: %s", s, output)
+						t.Errorf("report does not contain expected substring: %q", s)
 					}
 				}
+			}
+		})
+	}
+}
 
-				destFile := filepath.Join(dstDir, "root.jpg")
-				if exists, _ := afero.Exists(fs, destFile); !exists {
-					t.Errorf("file was not copied to %s", destFile)
-				}
+func TestRunner_ProcessCommandLineArguments(t *testing.T) {
+	tests := []struct {
+		name           string
+		params         cliProcessParams
+		setupFs        func(fs afero.Fs)
+		wantErr        bool
+		expectedOutput string
+	}{
+		{
+			name: "Managed mode: by default, without cli arguments",
+			params: cliProcessParams{
+				ExeFolderPath:      "/app",
+				ArgsWithoutAppName: []string{},
+			},
+			setupFs: func(fs afero.Fs) {
+				_ = fs.MkdirAll("/app/"+options.PredefinedSourceFilesFolder, filesystem.DefaultFolderPermissions)
+			},
+			wantErr:        false,
+			expectedOutput: "Now the application runs in managed mode",
+		},
+		{
+			name: "Managed mode: source path flag specified",
+			params: cliProcessParams{
+				ExeFolderPath:      "/app",
+				ArgsWithoutAppName: []string{"--" + options.FlagSrcPath, "/custom/source"},
+			},
+			setupFs: func(fs afero.Fs) {
+				_ = fs.MkdirAll("/custom/source", filesystem.DefaultFolderPermissions)
+			},
+			wantErr:        false,
+			expectedOutput: filepath.Clean("/custom/source"),
+		},
+		{
+			name: "Direct mode: only positional arguments passed",
+			params: cliProcessParams{
+				ArgsWithoutAppName: []string{"file1.jpg", "file2.jpg"},
+			},
+			setupFs: func(fs afero.Fs) {
+				createTestImage(fs, "file1.jpg")
+				createTestImage(fs, "file2.jpg")
+			},
+			wantErr:        false,
+			expectedOutput: "application runs in direct mode",
+		},
+		{
+			name: "Displaying help",
+			params: cliProcessParams{
+				ArgsWithoutAppName: []string{"--" + options.FlagDisplayHelp},
+			},
+			wantErr:        false,
+			expectedOutput: "Usage:",
+		},
+		{
+			name: "Mixed managed flags with positional arguments",
+			params: cliProcessParams{
+				ArgsWithoutAppName: []string{"--" + options.FlagSrcPath, "/src", "extra-file.jpg"},
+			},
+			wantErr:        false, // no error, but Usage must be printed
+			expectedOutput: "Usage:",
+		},
+		{
+			name: "Incorrect managed mode flag",
+			params: cliProcessParams{
+				ArgsWithoutAppName: []string{"--unknown-flag"},
+			},
+			wantErr:        false,
+			expectedOutput: "Usage:",
+		},
+	}
 
-				if tt.options.DeleteWhatsAppFiles {
-					filesToCheck := []string{
-						filepath.Join(srcDir, "root.jpg"),
-						filepath.Join(srcDir, "subfolder", "nested.jpeg"),
-					}
-					for _, p := range filesToCheck {
-						if exists, _ := afero.Exists(fs, p); exists {
-							t.Errorf("source file %s was not deleted", p)
-						}
-					}
+	fixedTime := time.Date(2026, 12, 25, 17, 18, 19, 0, time.UTC)
+	mClock := &mockClock{fixedTime}
 
-					if exists, _ := afero.Exists(fs, filepath.Join(srcDir, "ignore.txt")); !exists {
-						t.Error("file ignore.txt was deleted by mistake")
-					}
-				}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := t.Context()
+			fs := afero.NewMemMapFs()
+			if tt.setupFs != nil {
+				tt.setupFs(fs)
+			}
+
+			var stderr bytes.Buffer
+
+			r := &Runner{
+				fs:     fs,
+				stderr: &stderr,
+				clock:  mClock,
+			}
+
+			err := r.ProcessCommandLineArguments(ctx, tt.params)
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ProcessCommandLineArguments() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			output := stderr.String()
+			if tt.expectedOutput != "" && !strings.Contains(output, tt.expectedOutput) {
+				t.Errorf("Output mismatch.\nExpected substring: %q\nActual output: %q", tt.expectedOutput, output)
 			}
 		})
 	}

@@ -76,12 +76,12 @@ func TestNewDefaultManagedModeOptions(t *testing.T) {
 			got := NewDefaultManagedModeOptions(tc.cwd)
 
 			// Проверяем пути
-			expectedSrc := filepath.Join(tc.cwd, predefinedSourceFilesFolder)
+			expectedSrc := filepath.Join(tc.cwd, PredefinedSourceFilesFolder)
 			if got.SourceFolderPath != expectedSrc {
 				t.Errorf("SourceFolderPath mismatch: got %q, want %q", got.SourceFolderPath, expectedSrc)
 			}
 
-			expectedDest := filepath.Join(tc.cwd, predefinedDestinationFilesFolder)
+			expectedDest := filepath.Join(tc.cwd, PredefinedDestinationFilesFolder)
 			if got.DestinationFolderPath != expectedDest {
 				t.Errorf("DestinationFolderPath mismatch: got %q, want %q", got.DestinationFolderPath, expectedDest)
 			}
@@ -191,7 +191,7 @@ func TestNewManagedFlagSet(t *testing.T) {
 		{
 			name:           "Set use-current-modification-time shorthand",
 			initialOptions: ManagedModeOptions{},
-			args:           []string{shorthandPrefix + flagUseCurrentModTimeShort},
+			args:           []string{shorthandPrefix + FlagUseCurrentModTimeShort},
 			wantOptions: ManagedModeOptions{
 				UseCurrentModificationTime: true,
 			},
@@ -200,7 +200,7 @@ func TestNewManagedFlagSet(t *testing.T) {
 		{
 			name:           "Set use-current-modification-time full name",
 			initialOptions: ManagedModeOptions{},
-			args:           []string{fullNamePrefix + flagUseCurrentModTime},
+			args:           []string{fullNamePrefix + FlagUseCurrentModTime},
 			wantOptions: ManagedModeOptions{
 				UseCurrentModificationTime: true,
 			},
@@ -209,7 +209,7 @@ func TestNewManagedFlagSet(t *testing.T) {
 		{
 			name:           "Set delete-whatsapp-files shorthand",
 			initialOptions: ManagedModeOptions{},
-			args:           []string{shorthandPrefix + flagDeleteWhatsAppFilesShort},
+			args:           []string{shorthandPrefix + FlagDeleteWhatsAppFilesShort},
 			wantOptions: ManagedModeOptions{
 				DeleteWhatsAppFiles: true,
 			},
@@ -218,7 +218,7 @@ func TestNewManagedFlagSet(t *testing.T) {
 		{
 			name:           "Set delete-whatsapp-files full name",
 			initialOptions: ManagedModeOptions{},
-			args:           []string{fullNamePrefix + flagDeleteWhatsAppFiles},
+			args:           []string{fullNamePrefix + FlagDeleteWhatsAppFiles},
 			wantOptions: ManagedModeOptions{
 				DeleteWhatsAppFiles: true,
 			},
@@ -227,7 +227,7 @@ func TestNewManagedFlagSet(t *testing.T) {
 		{
 			name:           "Set process-nested-folders shorthand",
 			initialOptions: ManagedModeOptions{},
-			args:           []string{shorthandPrefix + flagPrcsNestedFoldersShort},
+			args:           []string{shorthandPrefix + FlagPrcsNestedFoldersShort},
 			wantOptions: ManagedModeOptions{
 				ProcessNestedFolders: true,
 			},
@@ -236,7 +236,7 @@ func TestNewManagedFlagSet(t *testing.T) {
 		{
 			name:           "Set process-nested-folders full name",
 			initialOptions: ManagedModeOptions{},
-			args:           []string{fullNamePrefix + flagPrcsNestedFolders},
+			args:           []string{fullNamePrefix + FlagPrcsNestedFolders},
 			wantOptions: ManagedModeOptions{
 				ProcessNestedFolders: true,
 			},
@@ -245,7 +245,7 @@ func TestNewManagedFlagSet(t *testing.T) {
 		{
 			name:           "Set dont-wait-to-close shorthand",
 			initialOptions: ManagedModeOptions{},
-			args:           []string{shorthandPrefix + flagDontWaitToCloseShort},
+			args:           []string{shorthandPrefix + FlagDontWaitToCloseShort},
 			wantOptions: ManagedModeOptions{
 				DontWaitToClose: true,
 			},
@@ -254,7 +254,7 @@ func TestNewManagedFlagSet(t *testing.T) {
 		{
 			name:           "Set dont-wait-to-close full name",
 			initialOptions: ManagedModeOptions{},
-			args:           []string{fullNamePrefix + flagDontWaitToClose},
+			args:           []string{fullNamePrefix + FlagDontWaitToClose},
 			wantOptions: ManagedModeOptions{
 				DontWaitToClose: true,
 			},
@@ -263,14 +263,14 @@ func TestNewManagedFlagSet(t *testing.T) {
 		{
 			name:           "Help flag triggered via shorthand",
 			initialOptions: ManagedModeOptions{},
-			args:           []string{shorthandPrefix + flagDisplayHelpShort},
+			args:           []string{shorthandPrefix + FlagDisplayHelpShort},
 			wantOptions:    ManagedModeOptions{},
 			wantHelp:       true,
 		},
 		{
 			name:           "Help flag triggered via fullname",
 			initialOptions: ManagedModeOptions{},
-			args:           []string{fullNamePrefix + flagDisplayHelp},
+			args:           []string{fullNamePrefix + FlagDisplayHelp},
 			wantOptions:    ManagedModeOptions{},
 			wantHelp:       true,
 		},
@@ -323,7 +323,7 @@ func TestIsManagedMode(t *testing.T) {
 		},
 		{
 			name:          "Managed Mode: At least one managed flag is present",
-			args:          []string{"--" + flagSrcPath, "/home/user/Documents/brokenFiles"},
+			args:          []string{"--" + FlagSrcPath, "/home/user/Documents/brokenFiles"},
 			skipParseCall: false,
 			isManagedMode: true,
 			wantErr:       false,
@@ -337,14 +337,14 @@ func TestIsManagedMode(t *testing.T) {
 		},
 		{
 			name:          "Not managed if only help flag provided",
-			args:          []string{"--" + flagDisplayHelp},
+			args:          []string{"--" + FlagDisplayHelp},
 			skipParseCall: false,
 			isManagedMode: false,
 			wantErr:       false,
 		},
 		{
 			name:          "Managed Mode: mixed flags and positional args",
-			args:          []string{"--" + flagSrcPath, "/home/user/Documents/brokenFiles", "file05.jpg"},
+			args:          []string{"--" + FlagSrcPath, "/home/user/Documents/brokenFiles", "file05.jpg"},
 			skipParseCall: false,
 			isManagedMode: true,
 			wantErr:       false,

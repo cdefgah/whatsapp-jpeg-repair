@@ -15,26 +15,26 @@ import (
 
 // Command line parameter keys
 const (
-	flagSrcPath                  = "src-path"
-	flagSrcPathShort             = "s"
-	flagDestPath                 = "dest-path"
-	flagDestPathShort            = "d"
-	flagUseCurrentModTime        = "use-current-modification-time"
-	flagUseCurrentModTimeShort   = "t"
-	flagDeleteWhatsAppFiles      = "delete-whatsapp-files"
-	flagDeleteWhatsAppFilesShort = "w"
-	flagDontWaitToClose          = "dont-wait-to-close"
-	flagDontWaitToCloseShort     = "c"
-	flagPrcsNestedFolders        = "process-nested-folders"
-	flagPrcsNestedFoldersShort   = "n"
-	flagDisplayHelp              = "help"
-	flagDisplayHelpShort         = "h"
+	FlagSrcPath                  = "src-path"
+	FlagSrcPathShort             = "s"
+	FlagDestPath                 = "dest-path"
+	FlagDestPathShort            = "d"
+	FlagUseCurrentModTime        = "use-current-modification-time"
+	FlagUseCurrentModTimeShort   = "t"
+	FlagDeleteWhatsAppFiles      = "delete-whatsapp-files"
+	FlagDeleteWhatsAppFilesShort = "w"
+	FlagDontWaitToClose          = "dont-wait-to-close"
+	FlagDontWaitToCloseShort     = "c"
+	FlagPrcsNestedFolders        = "process-nested-folders"
+	FlagPrcsNestedFoldersShort   = "n"
+	FlagDisplayHelp              = "help"
+	FlagDisplayHelpShort         = "h"
 )
 
 // predefined source and dest folder names
 const (
-	predefinedSourceFilesFolder      = "whatsapp-files"
-	predefinedDestinationFilesFolder = "repaired-files"
+	PredefinedSourceFilesFolder      = "whatsapp-files"
+	PredefinedDestinationFilesFolder = "repaired-files"
 )
 
 // DirectModeOptions contains options for the direct processing mode.
@@ -66,8 +66,8 @@ type ManagedModeOptions struct {
 // NewDefaultManagedModeOptions creates instance of ManagedModeOptions with default values.
 func NewDefaultManagedModeOptions(currentWorkingFolder string) *ManagedModeOptions {
 	return &ManagedModeOptions{
-		SourceFolderPath:      filepath.Join(currentWorkingFolder, predefinedSourceFilesFolder),
-		DestinationFolderPath: filepath.Join(currentWorkingFolder, predefinedDestinationFilesFolder),
+		SourceFolderPath:      filepath.Join(currentWorkingFolder, PredefinedSourceFilesFolder),
+		DestinationFolderPath: filepath.Join(currentWorkingFolder, PredefinedDestinationFilesFolder),
 	}
 }
 
@@ -113,21 +113,21 @@ func NewManagedFlagSet(writer io.Writer, managedOptions *ManagedModeOptions) (fl
 		exampleHomeDocsFolder = "c:\\Users\\YourUsername\\Documents"
 	}
 
-	sampleSourcePath := fmt.Sprintf("--%s=%s", flagSrcPath, filepath.Join(exampleHomeDocsFolder, "brokenWhatsAppFiles"))
-	sampleDestPath := fmt.Sprintf("--%s=%s", flagDestPath, filepath.Join(exampleHomeDocsFolder, "repairedImageFiles"))
+	sampleSourcePath := fmt.Sprintf("--%s=%s", FlagSrcPath, filepath.Join(exampleHomeDocsFolder, "brokenWhatsAppFiles"))
+	sampleDestPath := fmt.Sprintf("--%s=%s", FlagDestPath, filepath.Join(exampleHomeDocsFolder, "repairedImageFiles"))
 
 	flagSet.StringVarP(
 		&managedOptions.SourceFolderPath,
-		flagSrcPath,
-		flagSrcPathShort,
+		FlagSrcPath,
+		FlagSrcPathShort,
 		managedOptions.SourceFolderPath,
 		fmt.Sprintf("Path to the folder containing the broken WhatsApp files.\nExample: %s.", sampleSourcePath),
 	)
 
 	flagSet.StringVarP(
 		&managedOptions.DestinationFolderPath,
-		flagDestPath,
-		flagDestPathShort,
+		FlagDestPath,
+		FlagDestPathShort,
 		managedOptions.DestinationFolderPath,
 		fmt.Sprintf("This is the path to the folder where the repaired files will be stored.\n"+
 			"If the folder does not exist, it will be created.\nExample: %s.", sampleDestPath),
@@ -135,8 +135,8 @@ func NewManagedFlagSet(writer io.Writer, managedOptions *ManagedModeOptions) (fl
 
 	flagSet.BoolVarP(
 		&managedOptions.UseCurrentModificationTime,
-		flagUseCurrentModTime,
-		flagUseCurrentModTimeShort,
+		FlagUseCurrentModTime,
+		FlagUseCurrentModTimeShort,
 		managedOptions.UseCurrentModificationTime,
 		"If this is true, the current time will be set as the file's modification time. "+
 			"The default is the modification time of the source file.",
@@ -144,29 +144,29 @@ func NewManagedFlagSet(writer io.Writer, managedOptions *ManagedModeOptions) (fl
 
 	flagSet.BoolVarP(
 		&managedOptions.DeleteWhatsAppFiles,
-		flagDeleteWhatsAppFiles,
-		flagDeleteWhatsAppFilesShort,
+		FlagDeleteWhatsAppFiles,
+		FlagDeleteWhatsAppFilesShort,
 		managedOptions.DeleteWhatsAppFiles,
 		fmt.Sprintf("If it is true, the successfully processed source WhatsApp files will be deleted. Default: %v.", managedOptions.DeleteWhatsAppFiles),
 	)
 
 	flagSet.BoolVarP(
 		&managedOptions.ProcessNestedFolders,
-		flagPrcsNestedFolders,
-		flagPrcsNestedFoldersShort,
+		FlagPrcsNestedFolders,
+		FlagPrcsNestedFoldersShort,
 		managedOptions.ProcessNestedFolders,
 		fmt.Sprintf("If it is true, then the application processes files in nested folders recursively. Default: %v.", managedOptions.ProcessNestedFolders),
 	)
 
 	flagSet.BoolVarP(
 		&managedOptions.DontWaitToClose,
-		flagDontWaitToClose,
-		flagDontWaitToCloseShort,
+		FlagDontWaitToClose,
+		FlagDontWaitToCloseShort,
 		managedOptions.DontWaitToClose,
 		fmt.Sprintf("If this is true, the application will exit immediately once processing is complete. Default: %v.", managedOptions.DontWaitToClose),
 	)
 
-	displayHelp = flagSet.BoolP(flagDisplayHelp, flagDisplayHelpShort, false, "Show this help message and exit.")
+	displayHelp = flagSet.BoolP(FlagDisplayHelp, FlagDisplayHelpShort, false, "Show this help message and exit.")
 
 	return flagSet, displayHelp
 }
@@ -182,7 +182,7 @@ func IsManagedMode(argsWithoutAppName []string, fs *pflag.FlagSet) (bool, error)
 
 	fs.Visit(func(flag *pflag.Flag) {
 		// Even the help shorthand passed, here will be the long flag name present
-		if flag.Name == flagDisplayHelp {
+		if flag.Name == FlagDisplayHelp {
 			return
 		}
 		managedModeFlagUsed = true
