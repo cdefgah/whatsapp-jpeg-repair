@@ -78,7 +78,7 @@ func TestNewImageRepairerForManagedMode(t *testing.T) {
 	}
 }
 
-func TestCreateFolderIfItDoesNotExist(t *testing.T) {
+func TestMakeFolderIfMissing(t *testing.T) {
 	tests := []struct {
 		name           string
 		setupFS        func(fs afero.Fs)
@@ -141,10 +141,10 @@ func TestCreateFolderIfItDoesNotExist(t *testing.T) {
 				},
 			}
 
-			err := ir.createFolderIfItDoesNotExist(tt.pathToFolder)
+			err := ir.makeFolderIfMissing(tt.pathToFolder)
 
 			if (err != nil) != tt.wantErr {
-				t.Errorf("createFolderIfItDoesNotExist() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("makeFolderIfMissing() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
@@ -238,6 +238,97 @@ func TestEnsureDestFolderPath(t *testing.T) {
 				exists, _ := afero.DirExists(fs, gotPath)
 				if !exists {
 					t.Errorf("directory %q was not actually created in FS", gotPath)
+				}
+			}
+		})
+	}
+}
+
+func TestImageRepairerForManagedMode_PrepareDestFilePath(t *testing.T) {
+	tests := []struct {
+		name         string
+		srcBase      string // ir.options.SourceFolderPath
+		dstBase      string // ir.options.DestinationFolderPath
+		srcFilePath  string
+		expectedPath string
+		wantErr      bool
+	}{
+		{
+			name:         "Успешное сопоставление в подпапке",
+			srcBase:      "/data/source",
+			dstBase:      "/data/destination",
+			srcFilePath:  "/data/source/vacation/photo.jpg",
+			expectedPath: filepath.Clean("/data/destination/vacation/photo.jpg"),
+			wantErr:      false,
+		},
+		{
+			name:         "Файл в корне исходной папки",
+			srcBase:      "/data/source",
+			dstBase:      "/data/destination",
+			srcFilePath:  "/data/source/root-image.png",
+			expectedPath: filepath.Clean("/data/destination/root-image.png"),
+			wantErr:      false,
+		},
+		{
+			name:         "Глубокая вложенность",
+			srcBase:      "/src",
+			dstBase:      "/dst",
+			srcFilePath:  "/src/2023/reports/january/file.pdf",
+			expectedPath: filepath.Clean("/dst/2023/reports/january/file.pdf"),
+			wantErr:      false,
+		},
+		{
+			name:         "Ошибка: файл вне исходной папки",
+			srcBase:      "/data/source",
+			dstBase:      "/data/destination",
+			srcFilePath:  "/data/other/intruder.jpg",
+			expectedPath: "",
+			wantErr:      true,
+		},
+		{
+			name:         "Пустой путь к файлу",
+			srcBase:      "/data/source",
+			dstBase:      "/data/destination",
+			srcFilePath:  "",
+			expectedPath: "",
+			wantErr:      true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Используем In-Memory файловую систему, чтобы не мусорить на диске
+			fs := afero.NewMemMapFs()
+
+			ir := &ImageRepairerForManagedMode{
+				ImageRepairerBase: ImageRepairerBase{
+					fs: fs,
+				},
+				options: options.ManagedModeOptions{
+					SourceFolderPath:      tt.srcBase,
+					DestinationFolderPath: tt.dstBase,
+				},
+			}
+
+			// Вызываем тестируемую функцию
+			got, err := ir.prepareDestFilePath(tt.srcFilePath)
+
+			// Проверка на наличие ошибки
+			if (err != nil) != tt.wantErr {
+				t.Errorf("prepareDestFilePath() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			// Проверка результата
+			if got != tt.expectedPath {
+				t.Errorf("prepareDestFilePath() got = %v, want %v", got, tt.expectedPath)
+			}
+
+			// Если ошибки не должно быть, проверим, создалась ли папка в MemMapFs
+			if !tt.wantErr {
+				exists, _ := afero.DirExists(fs, filepath.Dir(got))
+				if !exists {
+					t.Errorf("expected destination directory %q was not created", filepath.Dir(got))
 				}
 			}
 		})

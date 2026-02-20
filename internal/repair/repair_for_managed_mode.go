@@ -35,8 +35,8 @@ func NewImageRepairerForManagedMode(fs afero.Fs, options options.ManagedModeOpti
 	}
 }
 
-// createFolderIfItDoesNotExist creates folder if it does not exist.
-func (ir *ImageRepairerForManagedMode) createFolderIfItDoesNotExist(pathToFolder string) error {
+// makeFolderIfMissing creates folder if it does not exist.
+func (ir *ImageRepairerForManagedMode) makeFolderIfMissing(pathToFolder string) error {
 	info, err := ir.fs.Stat(pathToFolder)
 	if err != nil {
 		if errors.Is(err, fs.ErrNotExist) {
@@ -110,7 +110,7 @@ func (ir *ImageRepairerForManagedMode) ensureDestFolderPath(srcFilePath string) 
 	dstBase := ir.options.DestinationFolderPath
 	dstDir := filepath.Join(dstBase, relPath)
 
-	if err := ir.createFolderIfItDoesNotExist(dstDir); err != nil {
+	if err := ir.makeFolderIfMissing(dstDir); err != nil {
 		return "", err
 	}
 
@@ -134,7 +134,7 @@ func (ir *ImageRepairerForManagedMode) prepareDestFilePath(srcFilePath string) (
 	srcFileName := filepath.Base(srcFilePath)
 	destFolderPath, err := ir.ensureDestFolderPath(srcFilePath)
 	if err != nil {
-		return "", fmt.Errorf("error upon ensuring particular destination folder path: %w", err)
+		return "", fmt.Errorf("ensure destination folder: %w", err)
 	}
 
 	return filepath.Join(destFolderPath, srcFileName), nil
