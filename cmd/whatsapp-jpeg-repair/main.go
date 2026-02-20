@@ -19,6 +19,14 @@ import (
 	"github.com/spf13/pflag"
 )
 
+type Env struct {
+	fs     afero.Fs
+	stderr io.Writer
+	stdin  io.Reader
+	args   []string
+	clock  repair.Clock
+}
+
 func main() {
 	appOutput := os.Stderr
 	stdin := os.Stdin
@@ -28,14 +36,24 @@ func main() {
 	fmt.Fprintln(appOutput, "\nProject web-site, source code and documentation: https://github.com/cdefgah/whatsapp-jpeg-repair")
 	fmt.Fprintln(appOutput)
 
-	var clock repair.RealClock
-	if err := runApp(stdin, appOutput, clock); err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+	env := NewEnv(appOutput, stdin, os.Args[1:])
+	if err := env.runApp(); err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)
 	}
 }
 
-func runApp(stdin io.Reader, stderr io.Writer, clock repair.Clock) error {
+func NewEnv(stderr io.Writer, stdin io.Reader, args []string) *Env {
+	return &Env{
+		fs:     afero.NewOsFs(),
+		stdin:  stdin,
+		stderr: stderr,
+		args:   args,
+		clock:  repair.RealClock{},
+	}
+}
+
+func (env *Env) runApp() error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
@@ -46,11 +64,8 @@ func runApp(stdin io.Reader, stderr io.Writer, clock repair.Clock) error {
 
 	exeFolderPath := filepath.Dir(exeFilePath)
 
-	filesystem := afero.NewOsFs()
-	argsWithoutAppName := os.Args[1:]
-
-	appRunner := app.NewAppRunner(filesystem, stderr, clock)
-	globalParams := app.NewGlobalProcessParams(stdin, exeFolderPath, argsWithoutAppName)
+	appRunner := app.NewAppRunner(env.fs, env.stderr, env.clock)
+	globalParams := app.NewGlobalProcessParams(env.stdin, exeFolderPath, env.args)
 
 	err = appRunner.ProcessCommandLineArguments(ctx, *globalParams)
 	if err != nil {
@@ -59,7 +74,7 @@ func runApp(stdin io.Reader, stderr io.Writer, clock repair.Clock) error {
 		}
 
 		if errors.Is(err, context.Canceled) {
-			fmt.Fprintln(stderr, "\ninterrupted by user")
+			fmt.Fprintln(env.stderr, "\ninterrupted by user")
 			return nil
 		}
 
