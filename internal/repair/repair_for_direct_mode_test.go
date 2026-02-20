@@ -20,7 +20,6 @@ import (
 	"github.com/spf13/afero"
 )
 
-// MockClock всегда возвращает одно и то же время
 type MockClock struct {
 	FixedTime time.Time
 }

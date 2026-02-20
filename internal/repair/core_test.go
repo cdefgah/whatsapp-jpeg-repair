@@ -641,3 +641,42 @@ func TestIsInteractive(t *testing.T) {
 		})
 	}
 }
+
+func TestRunAndWaitForExit(t *testing.T) {
+	tests := []struct {
+		name         string
+		dontWait     bool
+		stdinContent string
+	}{
+		{
+			name:     "Exit: dontWait=true",
+			dontWait: true,
+		},
+		{
+			name:         "Exit: non-interactive mode",
+			dontWait:     false,
+			stdinContent: "\n",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := t.Context()
+			var stderr bytes.Buffer
+			stdin := strings.NewReader(tt.stdinContent)
+
+			done := make(chan struct{})
+			go func() {
+				RunAndWaitForExit(ctx, stdin, &stderr, tt.dontWait)
+				close(done)
+			}()
+
+			select {
+			case <-done:
+				// Success
+			case <-ctx.Done():
+				t.Fatal("the function did not complete within the specified timeout period")
+			}
+		})
+	}
+}

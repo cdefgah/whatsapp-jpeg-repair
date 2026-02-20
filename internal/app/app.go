@@ -31,16 +31,16 @@ func NewAppRunner(fs afero.Fs, stderr io.Writer, clock repair.Clock) *Runner {
 	}
 }
 
-// CliProcessParams encapsulates processing command line params for the application.
-type CliProcessParams struct {
+// cliProcessParams encapsulates processing command line params for the application.
+type cliProcessParams struct {
 	Stdin              io.Reader
 	ExeFolderPath      string
 	ArgsWithoutAppName []string
 }
 
 // NewGlobalProcessParams creates new instance of GlobalProcessParams structure.
-func NewGlobalProcessParams(stdin io.Reader, exeFolderPath string, argsWithoutAppName []string) *CliProcessParams {
-	return &CliProcessParams{
+func NewGlobalProcessParams(stdin io.Reader, exeFolderPath string, argsWithoutAppName []string) *cliProcessParams {
+	return &cliProcessParams{
 		Stdin:              stdin,
 		ExeFolderPath:      exeFolderPath,
 		ArgsWithoutAppName: argsWithoutAppName,
@@ -48,7 +48,7 @@ func NewGlobalProcessParams(stdin io.Reader, exeFolderPath string, argsWithoutAp
 }
 
 // ProcessCommandLineArguments is entry point to the repair process, handles command line arguments and acts accordingly.
-func (r *Runner) ProcessCommandLineArguments(ctx context.Context, params CliProcessParams) error {
+func (r *Runner) ProcessCommandLineArguments(ctx context.Context, params cliProcessParams) error {
 	if err := ctx.Err(); err != nil {
 		return err
 	}
