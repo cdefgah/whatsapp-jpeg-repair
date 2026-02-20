@@ -5,9 +5,14 @@ package repair
 
 import (
 	"bytes"
+	"context"
+	"image"
+	"image/color"
+	"image/jpeg"
 	"io"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/cdefgah/whatsapp-jpeg-repair/internal/filesystem"
 	"github.com/cdefgah/whatsapp-jpeg-repair/internal/options"
@@ -78,7 +83,7 @@ func TestNewImageRepairerForManagedMode(t *testing.T) {
 	}
 }
 
-func TestMakeFolderIfMissing(t *testing.T) {
+func TestImageRepairerForManagedMode_MakeFolderIfMissing(t *testing.T) {
 	tests := []struct {
 		name           string
 		setupFS        func(fs afero.Fs)
@@ -155,7 +160,7 @@ func TestMakeFolderIfMissing(t *testing.T) {
 	}
 }
 
-func TestEnsureDestFolderPath(t *testing.T) {
+func TestImageRepairerForManagedMode_EnsureDestFolderPath(t *testing.T) {
 	tests := []struct {
 		name           string
 		opts           options.ManagedModeOptions
@@ -254,7 +259,7 @@ func TestImageRepairerForManagedMode_PrepareDestFilePath(t *testing.T) {
 		wantErr      bool
 	}{
 		{
-			name:         "Успешное сопоставление в подпапке",
+			name:         "Successfull processing",
 			srcBase:      "/data/source",
 			dstBase:      "/data/destination",
 			srcFilePath:  "/data/source/vacation/photo.jpg",
@@ -262,7 +267,7 @@ func TestImageRepairerForManagedMode_PrepareDestFilePath(t *testing.T) {
 			wantErr:      false,
 		},
 		{
-			name:         "Файл в корне исходной папки",
+			name:         "File in the root of the source folder",
 			srcBase:      "/data/source",
 			dstBase:      "/data/destination",
 			srcFilePath:  "/data/source/root-image.png",
@@ -270,7 +275,7 @@ func TestImageRepairerForManagedMode_PrepareDestFilePath(t *testing.T) {
 			wantErr:      false,
 		},
 		{
-			name:         "Глубокая вложенность",
+			name:         "Deeply nested folders",
 			srcBase:      "/src",
 			dstBase:      "/dst",
 			srcFilePath:  "/src/2023/reports/january/file.pdf",
@@ -278,7 +283,7 @@ func TestImageRepairerForManagedMode_PrepareDestFilePath(t *testing.T) {
 			wantErr:      false,
 		},
 		{
-			name:         "Ошибка: файл вне исходной папки",
+			name:         "Error: file is outside of the source folder",
 			srcBase:      "/data/source",
 			dstBase:      "/data/destination",
 			srcFilePath:  "/data/other/intruder.jpg",
@@ -286,7 +291,7 @@ func TestImageRepairerForManagedMode_PrepareDestFilePath(t *testing.T) {
 			wantErr:      true,
 		},
 		{
-			name:         "Пустой путь к файлу",
+			name:         "Empty path to file",
 			srcBase:      "/data/source",
 			dstBase:      "/data/destination",
 			srcFilePath:  "",
@@ -297,7 +302,6 @@ func TestImageRepairerForManagedMode_PrepareDestFilePath(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Используем In-Memory файловую систему, чтобы не мусорить на диске
 			fs := afero.NewMemMapFs()
 
 			ir := &ImageRepairerForManagedMode{
@@ -310,26 +314,262 @@ func TestImageRepairerForManagedMode_PrepareDestFilePath(t *testing.T) {
 				},
 			}
 
-			// Вызываем тестируемую функцию
 			got, err := ir.prepareDestFilePath(tt.srcFilePath)
 
-			// Проверка на наличие ошибки
 			if (err != nil) != tt.wantErr {
 				t.Errorf("prepareDestFilePath() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
-			// Проверка результата
 			if got != tt.expectedPath {
 				t.Errorf("prepareDestFilePath() got = %v, want %v", got, tt.expectedPath)
 			}
 
-			// Если ошибки не должно быть, проверим, создалась ли папка в MemMapFs
 			if !tt.wantErr {
 				exists, _ := afero.DirExists(fs, filepath.Dir(got))
 				if !exists {
 					t.Errorf("expected destination directory %q was not created", filepath.Dir(got))
 				}
+			}
+		})
+	}
+}
+
+func TestImageRepairerForManagedMode_SetSrcFileModTimeToDestFile(t *testing.T) {
+	testTime := time.Date(2026, time.January, 3, 12, 0, 0, 0, time.UTC)
+
+	tests := []struct {
+		name        string
+		srcPath     string
+		dstPath     string
+		setupFs     func(fs afero.Fs)
+		wantErr     bool
+		expectedErr error
+	}{
+		{
+			name:    "Successful operation",
+			srcPath: "/source.jpg",
+			dstPath: "/dest.jpg",
+			setupFs: func(fs afero.Fs) {
+				_ = afero.WriteFile(fs, "/source.jpg", []byte("data"), filesystem.DefaultFilePermissions)
+				_ = fs.Chtimes("/source.jpg", testTime, testTime)
+				_ = afero.WriteFile(fs, "/dest.jpg", []byte("data"), filesystem.DefaultFilePermissions)
+				_ = fs.Chtimes("/dest.jpg", testTime.Add(time.Hour), testTime.Add(time.Hour))
+			},
+			wantErr: false,
+		},
+		{
+			name:    "Error: source file dos not exist",
+			srcPath: "/missing.jpg",
+			dstPath: "/dest.jpg",
+			setupFs: func(fs afero.Fs) {
+				_ = afero.WriteFile(fs, "/dest.jpg", []byte("data"), filesystem.DefaultFilePermissions)
+			},
+			wantErr: true,
+		},
+		{
+			name:    "Error: target file does not exist",
+			srcPath: "/source.jpg",
+			dstPath: "/ghost.jpg",
+			setupFs: func(fs afero.Fs) {
+				_ = afero.WriteFile(fs, "/source.jpg", []byte("data"), filesystem.DefaultFilePermissions)
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fs := afero.NewMemMapFs()
+			if tt.setupFs != nil {
+				tt.setupFs(fs)
+			}
+
+			ir := &ImageRepairerForManagedMode{
+				ImageRepairerBase: ImageRepairerBase{fs: fs},
+			}
+
+			err := ir.setSrcFileModTimeToDestFile(tt.srcPath, tt.dstPath)
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("setSrcFileModTimeToDestFile() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if !tt.wantErr {
+				dstStat, _ := fs.Stat(tt.dstPath)
+				if !dstStat.ModTime().Equal(testTime) {
+					t.Errorf("ModTime mismatch: got %v, want %v", dstStat.ModTime(), testTime)
+				}
+			}
+		})
+	}
+}
+
+func TestImageRepairerForManagedMode_ProcessSingleFile(t *testing.T) {
+	createValidImage := func(fs afero.Fs, path string) error {
+		t.Helper() // to ensure clean logs if test fails
+
+		img := image.NewRGBA(image.Rect(0, 0, 1, 1))
+		img.Set(0, 0, color.White)
+
+		f, err := fs.Create(path)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+		return jpeg.Encode(f, img, nil)
+	}
+
+	const (
+		srcDir   = "/source"
+		dstDir   = "/dest"
+		fileName = "test.jpg"
+	)
+
+	tests := []struct {
+		name        string
+		options     options.ManagedModeOptions
+		setupCtx    func() (context.Context, context.CancelFunc)
+		setupFs     func(fs afero.Fs)
+		srcPath     string
+		wantErr     bool
+		checkResult func(t *testing.T, fs afero.Fs)
+	}{
+		{
+			name: "Successfull processing without deleting source file",
+			options: options.ManagedModeOptions{
+				SourceFolderPath:           srcDir,
+				DestinationFolderPath:      dstDir,
+				UseCurrentModificationTime: true,
+				DeleteWhatsAppFiles:        false,
+			},
+			setupFs: func(fs afero.Fs) {
+				_ = fs.MkdirAll(srcDir, filesystem.DefaultFolderPermissions)
+				_ = createValidImage(fs, filepath.Join(srcDir, fileName))
+			},
+			srcPath: filepath.Join(srcDir, fileName),
+			wantErr: false,
+			checkResult: func(t *testing.T, fs afero.Fs) {
+				exists, _ := afero.Exists(fs, filepath.Join(dstDir, fileName))
+				if !exists {
+					t.Error("target file is not found")
+				}
+				exists, _ = afero.Exists(fs, filepath.Join(srcDir, fileName))
+				if !exists {
+					t.Error("the source file must not be deleted")
+				}
+			},
+		},
+		{
+			name: "Successfull processing with deleting source file",
+			options: options.ManagedModeOptions{
+				SourceFolderPath:      srcDir,
+				DestinationFolderPath: dstDir,
+				DeleteWhatsAppFiles:   true,
+			},
+			setupFs: func(fs afero.Fs) {
+				_ = fs.MkdirAll(srcDir, filesystem.DefaultFolderPermissions)
+				_ = createValidImage(fs, filepath.Join(srcDir, fileName))
+			},
+			srcPath: filepath.Join(srcDir, fileName),
+			wantErr: false,
+			checkResult: func(t *testing.T, fs afero.Fs) {
+				exists, _ := afero.Exists(fs, filepath.Join(srcDir, fileName))
+				if exists {
+					t.Error("source file must be deleted")
+				}
+			},
+		},
+		{
+			name: "Copying source file modification time",
+			options: options.ManagedModeOptions{
+				SourceFolderPath:           srcDir,
+				DestinationFolderPath:      dstDir,
+				UseCurrentModificationTime: false,
+			},
+			setupFs: func(fs afero.Fs) {
+				p := filepath.Join(srcDir, fileName)
+				_ = fs.MkdirAll(srcDir, filesystem.DefaultFolderPermissions)
+				_ = createValidImage(fs, p)
+				past := time.Now().Add(-24 * time.Hour).Truncate(time.Second)
+				_ = fs.Chtimes(p, past, past)
+			},
+			srcPath: filepath.Join(srcDir, fileName),
+			wantErr: false,
+			checkResult: func(t *testing.T, fs afero.Fs) {
+				sStat, _ := fs.Stat(filepath.Join(srcDir, fileName))
+				dStat, _ := fs.Stat(filepath.Join(dstDir, fileName))
+				if !sStat.ModTime().Equal(dStat.ModTime()) {
+					t.Errorf("file modification time does not match: src=%v, dst=%v", sStat.ModTime(), dStat.ModTime())
+				}
+			},
+		},
+		{
+			name: "Error: cancelling context before start",
+			setupCtx: func() (context.Context, context.CancelFunc) {
+				ctx, cancel := context.WithCancel(context.Background())
+				cancel()
+				return ctx, cancel
+			},
+			srcPath: filepath.Join(srcDir, fileName),
+			wantErr: true,
+		},
+		{
+			name: "Error: file is outside of source folder",
+			options: options.ManagedModeOptions{
+				SourceFolderPath:      srcDir,
+				DestinationFolderPath: dstDir,
+			},
+			srcPath: "/etc/passwd", // path is outside of srcDir
+			wantErr: true,
+		},
+		{
+			name: "Error: corrupted image file",
+			options: options.ManagedModeOptions{
+				SourceFolderPath:      srcDir,
+				DestinationFolderPath: dstDir,
+			},
+			setupFs: func(fs afero.Fs) {
+				_ = fs.MkdirAll(srcDir, filesystem.DefaultFolderPermissions)
+				_ = afero.WriteFile(fs, filepath.Join(srcDir, fileName), []byte("non-image data"), filesystem.DefaultFilePermissions)
+			},
+			srcPath: filepath.Join(srcDir, fileName),
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fs := afero.NewMemMapFs()
+			if tt.setupFs != nil {
+				tt.setupFs(fs)
+			}
+
+			ctx := context.Background()
+			if tt.setupCtx != nil {
+				var cancel context.CancelFunc
+				ctx, cancel = tt.setupCtx()
+				defer cancel()
+			}
+
+			ir := &ImageRepairerForManagedMode{
+				ImageRepairerBase: ImageRepairerBase{
+					fs:    fs,
+					stats: &Stats{},
+				},
+				options: tt.options,
+			}
+
+			err := ir.ProcessSingleFile(ctx, tt.srcPath)
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ProcessSingleFile() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if !tt.wantErr && tt.checkResult != nil {
+				tt.checkResult(t, fs)
 			}
 		})
 	}

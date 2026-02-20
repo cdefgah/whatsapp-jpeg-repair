@@ -97,7 +97,7 @@ func TestNewImageRepairerForDirectMode(t *testing.T) {
 	}
 }
 
-func TestDeleteBackupFile(t *testing.T) {
+func TestImageRepairerForDirectMode_DeleteBackupFile(t *testing.T) {
 	tests := []struct {
 		name             string
 		wrapFsAsReadonly bool
@@ -195,7 +195,7 @@ func TestDeleteBackupFile(t *testing.T) {
 	}
 }
 
-func TestCreateBackupFile(t *testing.T) {
+func TestImageRepairerForDirectMode_CreateBackupFile(t *testing.T) {
 	fixedTime := time.Date(2026, 12, 25, 17, 18, 19, 0, time.UTC)
 	const expectedTimestamp = "20261225_171819"
 
@@ -313,10 +313,8 @@ func TestCreateBackupFile(t *testing.T) {
 	}
 }
 
-func TestProcessSingleFile(t *testing.T) {
+func TestImageRepairerForDirectMode_ProcessSingleFile(t *testing.T) {
 	createTestJPEG := func() []byte {
-		t.Helper() // for clean logs
-
 		img := image.NewRGBA(image.Rect(0, 0, 10, 10))
 		var buf bytes.Buffer
 		jpeg.Encode(&buf, img, nil)
