@@ -188,7 +188,7 @@ func TestDeleteBackupFile(t *testing.T) {
 			if !tt.wantErr && tt.path != "" {
 				exists, _ := afero.Exists(currentFs, tt.path)
 				if exists {
-					t.Errorf("File %s should have been deleted, but it still exists", tt.path)
+					t.Errorf("File %q should have been deleted, but it still exists", tt.path)
 				}
 			}
 		})

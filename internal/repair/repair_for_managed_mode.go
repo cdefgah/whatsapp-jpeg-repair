@@ -5,9 +5,12 @@ package repair
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"path/filepath"
+	"strings"
 
 	"github.com/cdefgah/whatsapp-jpeg-repair/internal/filesystem"
 	"github.com/cdefgah/whatsapp-jpeg-repair/internal/options"
@@ -34,48 +37,45 @@ func NewImageRepairerForManagedMode(fs afero.Fs, options options.ManagedModeOpti
 
 // createFolderIfItDoesNotExist creates folder if it does not exist.
 func (ir *ImageRepairerForManagedMode) createFolderIfItDoesNotExist(pathToFolder string) error {
-	dirExists, err := afero.DirExists(ir.fs, pathToFolder)
+	info, err := ir.fs.Stat(pathToFolder)
 	if err != nil {
+		if errors.Is(err, fs.ErrNotExist) {
+			return ir.fs.MkdirAll(pathToFolder, filesystem.DefaultFolderPermissions)
+		}
+
 		return err
 	}
 
-	if !dirExists {
-		// Safe to create directory
-		err = ir.fs.MkdirAll(pathToFolder, filesystem.DefaultFolderPermissions)
-		if err != nil {
-			return err
-		}
-		return nil
+	if !info.IsDir() {
+		return fmt.Errorf("path %q already exists and is not a directory", pathToFolder)
 	}
 
-	// Don't need to create folder, return no error
 	return nil
 }
 
 // ProcessSingleFile performs single image file repair.
-func (ir *ImageRepairerForManagedMode) ProcessSingleFile(ctx context.Context, sourceFilePath string) error {
-	// Checking if process interrupted by Ctrl+C
+func (ir *ImageRepairerForManagedMode) ProcessSingleFile(ctx context.Context, srcFilePath string) error {
 	if err := ctx.Err(); err != nil {
 		return err
 	}
 
-	destinationFilePath, err := ir.prepareDestinationFilePath(sourceFilePath)
+	destFilePath, err := ir.prepareDestFilePath(srcFilePath)
 	if err != nil {
-		return fmt.Errorf("Error upon preparing destination file path: %w", err)
+		return fmt.Errorf("error upon preparing destination file path: %w", err)
 	}
 
-	img, err := ir.readImage(ctx, sourceFilePath)
+	img, err := ir.readImage(ctx, srcFilePath)
 	if err != nil {
 		return err
 	}
 
-	err = ir.writeImage(ctx, destinationFilePath, img)
+	err = ir.writeImage(ctx, destFilePath, img)
 	if err != nil {
 		return err
 	}
 
 	if !ir.options.UseCurrentModificationTime {
-		if err := ir.setSourceFileModificationTimeToDestFile(sourceFilePath, destinationFilePath); err != nil {
+		if err := ir.setSrcFileModTimeToDestFile(srcFilePath, destFilePath); err != nil {
 			return err
 		}
 	}
@@ -86,52 +86,56 @@ func (ir *ImageRepairerForManagedMode) ProcessSingleFile(ctx context.Context, so
 	}
 
 	if ir.options.DeleteWhatsAppFiles {
-		return ir.fs.Remove(sourceFilePath)
+		return ir.fs.Remove(srcFilePath)
 	}
 
 	return nil
 }
 
-// ensureParticularDestinationFolderPath ensures that particular destination path exist, creates it when necessary.
-func (ir *ImageRepairerForManagedMode) ensureParticularDestinationFolderPath(sourceFilePath string) (string, error) {
+// ensureDestFolderPath ensures that particular destination path exist, creates it when necessary.
+func (ir *ImageRepairerForManagedMode) ensureDestFolderPath(srcFilePath string) (string, error) {
 
-	initialSourceFolderPath := ir.options.SourceFolderPath
-	processingSourceFolderPath := filepath.Dir(sourceFilePath)
-	relativeSourceFolderPath, err := filepath.Rel(initialSourceFolderPath, processingSourceFolderPath)
+	srcBase := ir.options.SourceFolderPath
+	srcDir := filepath.Dir(srcFilePath)
+
+	relPath, err := filepath.Rel(srcBase, srcDir)
 	if err != nil {
 		return "", err
 	}
 
-	initialDestFolderPath := ir.options.DestinationFolderPath
-	processingDestFolderPath := filepath.Join(initialDestFolderPath, relativeSourceFolderPath)
-
-	destinationFolderCreationError := ir.createFolderIfItDoesNotExist(processingDestFolderPath)
-	if destinationFolderCreationError != nil {
-		return "", destinationFolderCreationError
+	if strings.HasPrefix(relPath, "..") {
+		return "", fmt.Errorf("path %q is outside of source folder", srcFilePath)
 	}
 
-	return processingDestFolderPath, nil
+	dstBase := ir.options.DestinationFolderPath
+	dstDir := filepath.Join(dstBase, relPath)
+
+	if err := ir.createFolderIfItDoesNotExist(dstDir); err != nil {
+		return "", err
+	}
+
+	return dstDir, nil
 }
 
-// setSourceFileModificationTimeToDestFile sets source file modification time to destingation file.
-func (ir *ImageRepairerForManagedMode) setSourceFileModificationTimeToDestFile(sourceFilePath, destinationFilePath string) error {
-	sourceFileStats, err := ir.fs.Stat(sourceFilePath)
+// setSrcFileModTimeToDestFile sets source file modification time to destingation file.
+func (ir *ImageRepairerForManagedMode) setSrcFileModTimeToDestFile(srcFilePath, destFilePath string) error {
+	stats, err := ir.fs.Stat(srcFilePath)
 	if err != nil {
 		return err
 	}
 
-	modTime := sourceFileStats.ModTime()
+	modTime := stats.ModTime()
 
-	return ir.fs.Chtimes(destinationFilePath, modTime, modTime)
+	return ir.fs.Chtimes(destFilePath, modTime, modTime)
 }
 
-// prepareDestinationFilePath prepares destination folder to store the result file.
-func (ir *ImageRepairerForManagedMode) prepareDestinationFilePath(sourceFilePath string) (string, error) {
-	sourceFileName := filepath.Base(sourceFilePath)
-	destinationFolderPath, err := ir.ensureParticularDestinationFolderPath(sourceFilePath)
+// prepareDestFilePath prepares destination folder to store the result file.
+func (ir *ImageRepairerForManagedMode) prepareDestFilePath(srcFilePath string) (string, error) {
+	srcFileName := filepath.Base(srcFilePath)
+	destFolderPath, err := ir.ensureDestFolderPath(srcFilePath)
 	if err != nil {
-		return "", fmt.Errorf("Error upon ensuring particular destination folder path: %w", err)
+		return "", fmt.Errorf("error upon ensuring particular destination folder path: %w", err)
 	}
 
-	return filepath.Join(destinationFolderPath, sourceFileName), nil
+	return filepath.Join(destFolderPath, srcFileName), nil
 }

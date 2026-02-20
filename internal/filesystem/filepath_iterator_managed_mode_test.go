@@ -92,7 +92,7 @@ func TestNewFilePathsIteratorForManagedMode(t *testing.T) {
 
 			if len(got.stack) > 0 {
 				if got.stack[0].pathToFolder != tt.root {
-					t.Errorf("Initial stack path = %s, want %s", got.stack[0].pathToFolder, tt.root)
+					t.Errorf("Initial stack path = %q, want %q", got.stack[0].pathToFolder, tt.root)
 				}
 
 				if got.stack[0].index != 0 {

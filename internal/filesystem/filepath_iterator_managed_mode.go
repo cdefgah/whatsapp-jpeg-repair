@@ -37,7 +37,7 @@ func NewFilePathsIteratorForManagedMode(fs afero.Fs, root string, recursive bool
 	}
 
 	if !info.IsDir() {
-		return nil, fmt.Errorf("path is not a directory: %s", root)
+		return nil, fmt.Errorf("path is not a directory: %q", root)
 	}
 
 	entries, err := afero.ReadDir(fs, root)

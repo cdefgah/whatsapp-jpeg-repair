@@ -100,7 +100,7 @@ func (r *Runner) runAppInDirectMode(ctx context.Context, options options.DirectM
 	fmt.Fprintln(r.stderr, imageRepairer.TextReport())
 
 	if imageRepairer.HasErrors() {
-		return fmt.Errorf("The processing of image files in direct mode has failed.")
+		return fmt.Errorf("the processing of image files in direct mode has failed")
 	}
 
 	return nil
@@ -132,7 +132,7 @@ func (r *Runner) runAppInManagedMode(ctx context.Context, stdin io.Reader, optio
 	repair.RunAndWaitForExit(ctx, stdin, r.stderr, options.DontWaitToClose)
 
 	if imageRepairer.HasErrors() {
-		return fmt.Errorf("The processing of image files in managed mode has failed.")
+		return fmt.Errorf("the processing of image files in managed mode has failed")
 	}
 
 	return nil

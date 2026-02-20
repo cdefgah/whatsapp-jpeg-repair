@@ -72,7 +72,7 @@ func (ir *ImageRepairerBase) readImage(ctx context.Context, path string) (image.
 
 	img, _, err := image.Decode(reader)
 	if err != nil {
-		return nil, fmt.Errorf("decode image %s: %w", path, err)
+		return nil, fmt.Errorf("decode image %q: %w", path, err)
 	}
 
 	return img, nil
