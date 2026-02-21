@@ -19,6 +19,9 @@ import (
 )
 
 func TestNewImageRepairerForManagedMode(t *testing.T) {
+	fixedTime := time.Date(2026, 12, 25, 17, 18, 19, 0, time.UTC)
+	mockClock := testutil.MockClock{FixedTime: fixedTime}
+
 	memFS := afero.NewMemMapFs()
 	var buf bytes.Buffer
 
@@ -26,6 +29,7 @@ func TestNewImageRepairerForManagedMode(t *testing.T) {
 		fs     afero.Fs
 		opts   options.ManagedModeOptions
 		stderr io.Writer
+		clock  Clock
 	}
 
 	tests := []struct {
@@ -41,6 +45,7 @@ func TestNewImageRepairerForManagedMode(t *testing.T) {
 					SourceFolderPath:      "/src",
 					DestinationFolderPath: "/dst",
 				},
+				clock: mockClock,
 			},
 		},
 		{
@@ -49,13 +54,14 @@ func TestNewImageRepairerForManagedMode(t *testing.T) {
 				fs:     nil,
 				stderr: nil,
 				opts:   options.ManagedModeOptions{},
+				clock:  mockClock,
 			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := NewImageRepairerForManagedMode(tt.args.fs, tt.args.opts, tt.args.stderr)
+			got := NewImageRepairerForManagedMode(tt.args.fs, tt.args.opts, tt.args.stderr, tt.args.clock)
 
 			if got == nil {
 				t.Fatal("expected non-nil ImageRepairerForManagedMode")
@@ -77,6 +83,10 @@ func TestNewImageRepairerForManagedMode(t *testing.T) {
 
 			if got.options != tt.args.opts {
 				t.Errorf("options: got %+v, want %+v", got.options, tt.args.opts)
+			}
+
+			if got.clock != tt.args.clock {
+				t.Errorf("clock: got %+v, want %+v", got.clock, tt.args.clock)
 			}
 		})
 	}

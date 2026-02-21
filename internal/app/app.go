@@ -124,7 +124,7 @@ func (r *Runner) runAppInManagedMode(ctx context.Context, stdin io.Reader, optio
 		return err
 	}
 
-	imageRepairer := repair.NewImageRepairerForManagedMode(r.fs, options, r.stderr)
+	imageRepairer := repair.NewImageRepairerForManagedMode(r.fs, options, r.stderr, r.clock)
 
 	repair.ProcessAllFiles(ctx, filePathIterator, imageRepairer)
 	fmt.Fprintln(r.stderr, imageRepairer.TextReport())
