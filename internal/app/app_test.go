@@ -19,22 +19,15 @@ import (
 	"github.com/cdefgah/whatsapp-jpeg-repair/internal/filesystem"
 	"github.com/cdefgah/whatsapp-jpeg-repair/internal/options"
 	"github.com/cdefgah/whatsapp-jpeg-repair/internal/repair"
+	"github.com/cdefgah/whatsapp-jpeg-repair/internal/testutil"
 	"github.com/spf13/afero"
 )
-
-type mockClock struct {
-	fixedTime time.Time
-}
-
-func (m *mockClock) Now() time.Time {
-	return m.fixedTime
-}
 
 func TestNewAppRunner(t *testing.T) {
 	memFs := afero.NewMemMapFs()
 	var buf bytes.Buffer
 	fixedTime := time.Date(2026, 12, 25, 17, 18, 19, 0, time.UTC)
-	mClock := &mockClock{fixedTime}
+	mClock := &testutil.MockClock{FixedTime: fixedTime}
 
 	tests := []struct {
 		name   string
@@ -144,7 +137,7 @@ func createTestImage(fs afero.Fs, path string) {
 
 func TestRunner_RunAppInDirectMode(t *testing.T) {
 	fixedTime := time.Date(2026, 2, 20, 14, 0, 0, 0, time.UTC)
-	mClock := &mockClock{fixedTime}
+	mClock := &testutil.MockClock{FixedTime: fixedTime}
 
 	tests := []struct {
 		name          string
@@ -397,7 +390,7 @@ func TestRunner_ProcessCommandLineArguments(t *testing.T) {
 	}
 
 	fixedTime := time.Date(2026, 12, 25, 17, 18, 19, 0, time.UTC)
-	mClock := &mockClock{fixedTime}
+	mClock := &testutil.MockClock{FixedTime: fixedTime}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

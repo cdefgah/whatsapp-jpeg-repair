@@ -11,11 +11,13 @@ import (
 	"image/jpeg"
 	"io"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/cdefgah/whatsapp-jpeg-repair/internal/filesystem"
 	"github.com/cdefgah/whatsapp-jpeg-repair/internal/options"
+	"github.com/cdefgah/whatsapp-jpeg-repair/internal/testutil"
 	"github.com/spf13/afero"
 )
 
@@ -427,6 +429,9 @@ func TestImageRepairerForManagedMode_ProcessSingleFile(t *testing.T) {
 		fileName = "test.jpg"
 	)
 
+	fixedTime := time.Date(2026, 12, 25, 17, 18, 19, 0, time.UTC)
+	const expectedTimestamp = "20261225_171819"
+
 	tests := []struct {
 		name        string
 		options     options.ManagedModeOptions
@@ -458,6 +463,39 @@ func TestImageRepairerForManagedMode_ProcessSingleFile(t *testing.T) {
 				exists, _ = afero.Exists(fs, filepath.Join(srcDir, fileName))
 				if !exists {
 					t.Error("the source file must not be deleted")
+				}
+			},
+		},
+		{
+			name: "Successfull processing with creating backup file",
+			options: options.ManagedModeOptions{
+				SourceFolderPath:           srcDir,
+				DestinationFolderPath:      dstDir,
+				UseCurrentModificationTime: true,
+				DeleteWhatsAppFiles:        false,
+			},
+			setupFs: func(fs afero.Fs) {
+				_ = fs.MkdirAll(srcDir, filesystem.DefaultFolderPermissions)
+				_ = fs.MkdirAll(dstDir, filesystem.DefaultFolderPermissions)
+				_ = createValidImage(fs, filepath.Join(srcDir, fileName))
+				_ = createValidImage(fs, filepath.Join(dstDir, fileName))
+			},
+			srcPath: filepath.Join(srcDir, fileName),
+			wantErr: false,
+			checkResult: func(t *testing.T, fs afero.Fs) {
+				exists, _ := afero.Exists(fs, filepath.Join(dstDir, fileName))
+				if !exists {
+					t.Error("target file is not found")
+				}
+				exists, _ = afero.Exists(fs, filepath.Join(srcDir, fileName))
+				if !exists {
+					t.Error("the source file must not be deleted")
+				}
+
+				backupFileName := "test_" + expectedTimestamp + "_backup.jpg"
+				exists, _ = afero.Exists(fs, filepath.Join(dstDir, backupFileName))
+				if !exists {
+					t.Errorf("backup file not found %q", backupFileName)
 				}
 			},
 		},
@@ -557,6 +595,7 @@ func TestImageRepairerForManagedMode_ProcessSingleFile(t *testing.T) {
 				ImageRepairerBase: ImageRepairerBase{
 					fs:    fs,
 					stats: &Stats{},
+					clock: testutil.MockClock{FixedTime: fixedTime},
 				},
 				options: tt.options,
 			}
@@ -570,6 +609,124 @@ func TestImageRepairerForManagedMode_ProcessSingleFile(t *testing.T) {
 
 			if !tt.wantErr && tt.checkResult != nil {
 				tt.checkResult(t, fs)
+			}
+		})
+	}
+}
+
+func TestImageRepairerForManagedMode_CreateBackupIfFileExists(t *testing.T) {
+	fixedTime := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
+
+	tests := []struct {
+		name      string
+		ctx       func() context.Context
+		setupFS   func(fs afero.Fs) string
+		wantErr   bool
+		errString string
+		checkFS   func(t *testing.T, fs afero.Fs)
+	}{
+		{
+			name: "Context is canceled immediately",
+			ctx: func() context.Context {
+				ctx, cancel := context.WithCancel(context.Background())
+				cancel()
+				return ctx
+			},
+			setupFS: func(fs afero.Fs) string {
+				return "dummy.jpg"
+			},
+			wantErr:   true,
+			errString: context.Canceled.Error(),
+		},
+		{
+			name: "File does not exist (returns nil error)",
+			ctx: func() context.Context {
+				return context.Background()
+			},
+			setupFS: func(fs afero.Fs) string {
+				return "missing.jpg"
+			},
+			wantErr: false,
+		},
+		{
+			name: "File exists but is a directory (fails in createBackupFile)",
+			ctx: func() context.Context {
+				return context.Background()
+			},
+			setupFS: func(fs afero.Fs) string {
+				path := "dir_image.jpg"
+				err := fs.Mkdir(path, filesystem.DefaultFolderPermissions)
+				if err != nil {
+					t.Fatalf("setup: failed to create dir: %v", err)
+				}
+				return path
+			},
+			wantErr:   true,
+			errString: "source file is not a regular file",
+		},
+		{
+			name: "Successful backup creation",
+			ctx: func() context.Context {
+				return context.Background()
+			},
+			setupFS: func(fs afero.Fs) string {
+				path := "test_image.jpg"
+				err := afero.WriteFile(fs, path, []byte("fake image data"), filesystem.DefaultFilePermissions)
+				if err != nil {
+					t.Fatalf("setup: failed to write file: %v", err)
+				}
+				return path
+			},
+			wantErr: false,
+			checkFS: func(t *testing.T, fs afero.Fs) {
+				backupPath := "test_image_20260101_120000_backup.jpg"
+				exists, err := afero.Exists(fs, backupPath)
+				if err != nil {
+					t.Fatalf("check: failed to check file existence: %v", err)
+				}
+				if !exists {
+					t.Errorf("expected backup file %q to exist, but it doesn't", backupPath)
+				}
+
+				content, err := afero.ReadFile(fs, backupPath)
+				if err != nil {
+					t.Fatalf("check: failed to read backup file: %v", err)
+				}
+
+				if string(content) != "fake image data" {
+					t.Errorf("expected backup content 'fake image data', got %q", string(content))
+				}
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockFS := afero.NewMemMapFs()
+
+			targetFilePath := tt.setupFS(mockFS)
+
+			ir := &ImageRepairerForManagedMode{
+				ImageRepairerBase: ImageRepairerBase{
+					fs:    mockFS,
+					clock: testutil.MockClock{FixedTime: fixedTime},
+				},
+			}
+
+			err := ir.createBackupIfFileExists(tt.ctx(), targetFilePath)
+
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("createBackupIfFileExists() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			if tt.wantErr && tt.errString != "" && err != nil {
+				if !strings.Contains(err.Error(), tt.errString) {
+					t.Errorf("createBackupIfFileExists() error = %v, expected to contain %q", err, tt.errString)
+				}
+			}
+
+			if tt.checkFS != nil {
+				tt.checkFS(t, mockFS)
 			}
 		})
 	}

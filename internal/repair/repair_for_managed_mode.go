@@ -64,6 +64,11 @@ func (ir *ImageRepairerForManagedMode) ProcessSingleFile(ctx context.Context, sr
 		return fmt.Errorf("error upon preparing destination file path: %w", err)
 	}
 
+	err = ir.createBackupIfFileExists(ctx, destFilePath)
+	if err != nil {
+		return fmt.Errorf("error upon backing up existing file: %w", err)
+	}
+
 	img, err := ir.readImage(ctx, srcFilePath)
 	if err != nil {
 		return err
@@ -90,6 +95,25 @@ func (ir *ImageRepairerForManagedMode) ProcessSingleFile(ctx context.Context, sr
 	}
 
 	return nil
+}
+
+// createBackupIfFileExists checks if file exists, creates its backup.
+func (ir *ImageRepairerForManagedMode) createBackupIfFileExists(ctx context.Context, filePath string) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+
+	fileExists, err := afero.Exists(ir.fs, filePath)
+	if err != nil {
+		return err
+	}
+
+	if !fileExists {
+		return nil
+	}
+
+	_, err = ir.createBackupFile(ctx, filePath)
+	return err
 }
 
 // ensureDestFolderPath ensures that particular destination path exist, creates it when necessary.

@@ -9,11 +9,7 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
-	"strings"
-	"time"
 
-	"github.com/cdefgah/whatsapp-jpeg-repair/internal/filesystem"
 	"github.com/cdefgah/whatsapp-jpeg-repair/internal/options"
 	"github.com/spf13/afero"
 )
@@ -22,19 +18,7 @@ import (
 type ImageRepairerForDirectMode struct {
 	ImageRepairerBase
 	options options.DirectModeOptions
-	clock   Clock
 }
-
-// Clock interface is used to help to inject clock implementation for production and for testing environments.
-type Clock interface {
-	Now() time.Time
-}
-
-// RealClock is used in the actual operation of the application.
-type RealClock struct{}
-
-// Now returns current time.
-func (RealClock) Now() time.Time { return time.Now() }
 
 // NewImageRepairerForDirectMode creates and initializes a new ImageRepairerForDirectMode.
 // It sets up the base repairer with the provided filesystem, writer, and fresh statistics.
@@ -44,9 +28,9 @@ func NewImageRepairerForDirectMode(fs afero.Fs, opts options.DirectModeOptions, 
 			fs:     fs,
 			stats:  &Stats{},
 			stderr: stderr,
+			clock:  clock,
 		},
 		options: opts,
-		clock:   clock,
 	}
 }
 
@@ -77,59 +61,6 @@ func (ir *ImageRepairerForDirectMode) ProcessSingleFile(ctx context.Context, sou
 	}
 
 	return nil
-}
-
-// createBackupFile creates a copy in the same directory as the source.
-// The backup file is expected to be cleaned up later by the caller or a cleanup function.
-func (ir *ImageRepairerForDirectMode) createBackupFile(ctx context.Context, sourceFilePath string) (string, error) {
-	if err := ctx.Err(); err != nil {
-		return "", err
-	}
-
-	fileInfo, err := ir.fs.Stat(sourceFilePath)
-	if err != nil {
-		return "", err
-	}
-
-	if !fileInfo.Mode().IsRegular() {
-		return "", fmt.Errorf("source file is not a regular file")
-	}
-
-	// Format constant: 2006(6) 01(1) 02(2) _ 15(3) 04(4) 05(5)
-	const timeFormatLayout = "20060102_150405"
-
-	dir := filepath.Dir(sourceFilePath)
-	ext := filepath.Ext(sourceFilePath)
-	nameOnly := strings.TrimSuffix(filepath.Base(sourceFilePath), ext)
-
-	timestamp := ir.clock.Now().Format(timeFormatLayout)
-	backupName := fmt.Sprintf("%s_%s_backup%s", nameOnly, timestamp, ext)
-	backupPath := filepath.Join(dir, backupName)
-
-	src, err := ir.fs.Open(sourceFilePath)
-	if err != nil {
-		return "", fmt.Errorf("open source file: %w", err)
-	}
-	defer src.Close()
-
-	dst, err := ir.fs.OpenFile(backupPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, filesystem.DefaultFilePermissions)
-	if err != nil {
-		return "", fmt.Errorf("create backup file: %w", err)
-	}
-
-	// We use the defer close() call to close the file in the event of an error when calling io.Copy().
-	defer dst.Close()
-
-	if _, err = io.Copy(dst, src); err != nil {
-		return "", fmt.Errorf("copy data to backup: %w", err)
-	}
-
-	// Calling the close() method explicitly to identify any issues when writing data to disk.
-	if err := dst.Close(); err != nil {
-		return "", fmt.Errorf("close backup file: %w", err)
-	}
-
-	return backupPath, nil
 }
 
 // deleteBackupFile removes the backup file. It returns an error if the file

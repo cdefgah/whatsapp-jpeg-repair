@@ -17,14 +17,9 @@ import (
 
 	"github.com/cdefgah/whatsapp-jpeg-repair/internal/filesystem"
 	"github.com/cdefgah/whatsapp-jpeg-repair/internal/options"
+	"github.com/cdefgah/whatsapp-jpeg-repair/internal/testutil"
 	"github.com/spf13/afero"
 )
-
-type MockClock struct {
-	FixedTime time.Time
-}
-
-func (m MockClock) Now() time.Time { return m.FixedTime }
 
 func TestNewImageRepairerForDirectMode(t *testing.T) {
 	tests := []struct {
@@ -65,7 +60,7 @@ func TestNewImageRepairerForDirectMode(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var mockClock MockClock
+			var mockClock testutil.MockClock
 			repairer := NewImageRepairerForDirectMode(tt.fs, tt.opts, tt.stderr, mockClock)
 
 			if repairer == nil {
@@ -270,9 +265,9 @@ func TestImageRepairerForDirectMode_CreateBackupFile(t *testing.T) {
 
 			ir := &ImageRepairerForDirectMode{
 				ImageRepairerBase: ImageRepairerBase{
-					fs: finalFs,
+					fs:    finalFs,
+					clock: testutil.MockClock{FixedTime: fixedTime},
 				},
-				clock: MockClock{fixedTime},
 			}
 
 			ctx := context.Background()
@@ -384,10 +379,9 @@ func TestImageRepairerForDirectMode_ProcessSingleFile(t *testing.T) {
 
 			ir := &ImageRepairerForDirectMode{
 				ImageRepairerBase: ImageRepairerBase{
-					fs: fs,
+					fs:    fs,
+					clock: testutil.MockClock{FixedTime: fixedTime},
 				},
-
-				clock: MockClock{fixedTime},
 			}
 
 			ctx := context.Background()
