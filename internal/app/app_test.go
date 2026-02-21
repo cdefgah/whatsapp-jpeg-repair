@@ -6,9 +6,6 @@ package app
 import (
 	"bytes"
 	"context"
-	"image"
-	"image/color"
-	"image/jpeg"
 	"io"
 	"path/filepath"
 	"slices"
@@ -127,14 +124,6 @@ func TestNewGlobalProcessParams(t *testing.T) {
 	}
 }
 
-func createTestImage(fs afero.Fs, path string) {
-	img := image.NewRGBA(image.Rect(0, 0, 1, 1))
-	img.Set(0, 0, color.RGBA{255, 0, 0, 255})
-	f, _ := fs.Create(path)
-	defer f.Close()
-	_ = jpeg.Encode(f, img, nil)
-}
-
 func TestRunner_RunAppInDirectMode(t *testing.T) {
 	fixedTime := time.Date(2026, 2, 20, 14, 0, 0, 0, time.UTC)
 	mClock := &testutil.MockClock{FixedTime: fixedTime}
@@ -150,7 +139,7 @@ func TestRunner_RunAppInDirectMode(t *testing.T) {
 			name:      "Successful repair: backup created and deleted, file overwritten",
 			filePaths: []string{"/photo.jpg"},
 			setupFs: func(fs afero.Fs) {
-				createTestImage(fs, "/photo.jpg")
+				testutil.CreateJpegFile(fs, "/photo.jpg")
 			},
 			wantErr: false,
 			expectedStats: []string{
@@ -248,7 +237,7 @@ func TestRunner_RunAppInManagedMode(t *testing.T) {
 			},
 			setupFs: func(fs afero.Fs) {
 				_ = fs.MkdirAll(srcDir, filesystem.DefaultFolderPermissions)
-				createTestImage(fs, filepath.Join(srcDir, "root.jpg"))
+				testutil.CreateJpegFile(fs, filepath.Join(srcDir, "root.jpg"))
 			},
 			wantErr:       false,
 			expectedStats: []string{"Total: 1", "Repaired: 1"},
@@ -357,8 +346,8 @@ func TestRunner_ProcessCommandLineArguments(t *testing.T) {
 				ArgsWithoutAppName: []string{"file1.jpg", "file2.jpg"},
 			},
 			setupFs: func(fs afero.Fs) {
-				createTestImage(fs, "file1.jpg")
-				createTestImage(fs, "file2.jpg")
+				testutil.CreateJpegFile(fs, "file1.jpg")
+				testutil.CreateJpegFile(fs, "file2.jpg")
 			},
 			wantErr:        false,
 			expectedOutput: "application runs in direct mode",

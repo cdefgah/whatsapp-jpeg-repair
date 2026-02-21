@@ -20,11 +20,12 @@ import (
 )
 
 type Env struct {
-	fs     afero.Fs
-	stderr io.Writer
-	stdin  io.Reader
-	args   []string
-	clock  repair.Clock
+	fs          afero.Fs
+	stderr      io.Writer
+	stdin       io.Reader
+	exeFilePath string
+	args        []string
+	clock       repair.Clock
 }
 
 func main() {
@@ -36,20 +37,27 @@ func main() {
 	fmt.Fprintln(appOutput, "\nProject web-site, source code and documentation: https://github.com/cdefgah/whatsapp-jpeg-repair")
 	fmt.Fprintln(appOutput)
 
-	env := NewEnv(appOutput, stdin, os.Args[1:])
+	exeFilePath, err := os.Executable()
+	if err != nil {
+		fmt.Fprintf(appOutput, "failed to get executable file path: %v\n", err)
+		os.Exit(1)
+	}
+
+	env := NewEnv(appOutput, stdin, exeFilePath, os.Args[1:])
 	if err := env.runApp(); err != nil {
-		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		fmt.Fprintf(appOutput, "error: %v\n", err)
 		os.Exit(1)
 	}
 }
 
-func NewEnv(stderr io.Writer, stdin io.Reader, args []string) *Env {
+func NewEnv(stderr io.Writer, stdin io.Reader, exeFilePath string, args []string) *Env {
 	return &Env{
-		fs:     afero.NewOsFs(),
-		stdin:  stdin,
-		stderr: stderr,
-		args:   args,
-		clock:  repair.RealClock{},
+		fs:          afero.NewOsFs(),
+		stdin:       stdin,
+		stderr:      stderr,
+		exeFilePath: exeFilePath,
+		args:        args,
+		clock:       repair.RealClock{},
 	}
 }
 
@@ -57,17 +65,12 @@ func (env *Env) runApp() error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	exeFilePath, err := os.Executable()
-	if err != nil {
-		return fmt.Errorf("failed to get executable file path: %w", err)
-	}
-
-	exeFolderPath := filepath.Dir(exeFilePath)
-
 	appRunner := app.NewAppRunner(env.fs, env.stderr, env.clock)
+
+	exeFolderPath := filepath.Dir(env.exeFilePath)
 	globalParams := app.NewGlobalProcessParams(env.stdin, exeFolderPath, env.args)
 
-	err = appRunner.ProcessCommandLineArguments(ctx, *globalParams)
+	err := appRunner.ProcessCommandLineArguments(ctx, *globalParams)
 	if err != nil {
 		if errors.Is(err, pflag.ErrHelp) {
 			return nil

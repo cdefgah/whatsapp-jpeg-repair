@@ -16,20 +16,12 @@ import (
 	"testing"
 
 	"github.com/cdefgah/whatsapp-jpeg-repair/internal/filesystem"
+	"github.com/cdefgah/whatsapp-jpeg-repair/internal/testutil"
 	"github.com/spf13/afero"
 	"golang.org/x/term"
 )
 
 func TestImageRepairerBase_readImage(t *testing.T) {
-	createTestJPEG := func() []byte {
-		t.Helper() // for clean logs
-
-		img := image.NewRGBA(image.Rect(0, 0, 10, 10))
-		var buf bytes.Buffer
-		jpeg.Encode(&buf, img, nil)
-		return buf.Bytes()
-	}
-
 	tests := []struct {
 		name       string
 		setup      func(fs afero.Fs)
@@ -41,7 +33,8 @@ func TestImageRepairerBase_readImage(t *testing.T) {
 		{
 			name: "success",
 			setup: func(fs afero.Fs) {
-				afero.WriteFile(fs, "/test.jpg", createTestJPEG(), filesystem.DefaultFilePermissions)
+				imageBytes, _ := testutil.CreateJpegBytesBuffer()
+				afero.WriteFile(fs, "/test.jpg", imageBytes, filesystem.DefaultFilePermissions)
 			},
 			path:    "/test.jpg",
 			ctx:     context.Background(),

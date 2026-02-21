@@ -6,8 +6,6 @@ package repair
 import (
 	"bytes"
 	"context"
-	"image"
-	"image/jpeg"
 	"io"
 	"path/filepath"
 	"reflect"
@@ -308,13 +306,6 @@ func TestImageRepairerForDirectMode_CreateBackupFile(t *testing.T) {
 }
 
 func TestImageRepairerForDirectMode_ProcessSingleFile(t *testing.T) {
-	createTestJPEG := func() []byte {
-		img := image.NewRGBA(image.Rect(0, 0, 10, 10))
-		var buf bytes.Buffer
-		jpeg.Encode(&buf, img, nil)
-		return buf.Bytes()
-	}
-
 	fixedTime := time.Date(2026, 12, 25, 17, 18, 19, 0, time.UTC)
 	const expectedTimestamp = "20261225_171819"
 
@@ -331,7 +322,8 @@ func TestImageRepairerForDirectMode_ProcessSingleFile(t *testing.T) {
 			name:       "Success: full cycle",
 			sourcePath: "image.jpg",
 			setupFs: func(fs afero.Fs) {
-				afero.WriteFile(fs, "image.jpg", createTestJPEG(), filesystem.DefaultFilePermissions)
+				imageBytes, _ := testutil.CreateJpegBytesBuffer()
+				afero.WriteFile(fs, "image.jpg", imageBytes, filesystem.DefaultFilePermissions)
 			},
 			wantErr: false,
 			verify: func(t *testing.T, fs afero.Fs) {
@@ -353,7 +345,8 @@ func TestImageRepairerForDirectMode_ProcessSingleFile(t *testing.T) {
 			name:       "Error: context canceled before start",
 			sourcePath: "image.jpg",
 			setupFs: func(fs afero.Fs) {
-				_ = afero.WriteFile(fs, "image.jpg", createTestJPEG(), filesystem.DefaultFilePermissions)
+				imageBytes, _ := testutil.CreateJpegBytesBuffer()
+				_ = afero.WriteFile(fs, "image.jpg", imageBytes, filesystem.DefaultFilePermissions)
 			},
 			cancelCtx:      true,
 			wantErr:        true,

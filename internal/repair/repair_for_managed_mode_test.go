@@ -6,9 +6,6 @@ package repair
 import (
 	"bytes"
 	"context"
-	"image"
-	"image/color"
-	"image/jpeg"
 	"io"
 	"path/filepath"
 	"strings"
@@ -174,43 +171,43 @@ func TestImageRepairerForManagedMode_EnsureDestFolderPath(t *testing.T) {
 		{
 			name: "Basic mapping: file in root source",
 			opts: options.ManagedModeOptions{
-				SourceFolderPath:      "/src",
-				DestinationFolderPath: "/dst",
+				SourceFolderPath:      "src",
+				DestinationFolderPath: "dst",
 			},
-			sourceFilePath: "/src/image.jpg",
-			wantPath:       filepath.Join("/dst", "."),
+			sourceFilePath: "src/image.jpg",
+			wantPath:       filepath.Join("dst", "."),
 			wantErr:        false,
 		},
 		{
 			name: "Nested mapping: file in subfolder",
 			opts: options.ManagedModeOptions{
-				SourceFolderPath:      "/src",
-				DestinationFolderPath: "/dst",
+				SourceFolderPath:      "src",
+				DestinationFolderPath: "dst",
 			},
-			sourceFilePath: "/src/vacation/2023/photo.png",
-			wantPath:       filepath.Join("/dst", "vacation/2023"),
+			sourceFilePath: "src/vacation/2023/photo.png",
+			wantPath:       filepath.Join("dst", "vacation", "2023"),
 			wantErr:        false,
 			setupFS:        func(fs afero.Fs) {},
 		},
 		{
 			name: "Path outside of source folder",
 			opts: options.ManagedModeOptions{
-				SourceFolderPath:      "/src/images",
-				DestinationFolderPath: "/dst",
+				SourceFolderPath:      "src/images",
+				DestinationFolderPath: "dst",
 			},
-			sourceFilePath: "/other/random_file.jpg",
+			sourceFilePath: "other/random_file.jpg",
 			wantErr:        true, // filepath.Rel should return error for this case
 		},
 		{
 			name: "Conflict: destination path is a file",
 			opts: options.ManagedModeOptions{
-				SourceFolderPath:      "/src",
-				DestinationFolderPath: "/dst",
+				SourceFolderPath:      "src",
+				DestinationFolderPath: "dst",
 			},
-			sourceFilePath: "/src/folder/img.jpg",
+			sourceFilePath: "src/folder/img.jpg",
 			setupFS: func(fs afero.Fs) {
-				_ = fs.MkdirAll("/dst", filesystem.DefaultFolderPermissions)
-				_ = afero.WriteFile(fs, "/dst/folder", []byte("I am a file"), filesystem.DefaultFilePermissions)
+				_ = fs.MkdirAll("dst", filesystem.DefaultFolderPermissions)
+				_ = afero.WriteFile(fs, "dst/folder", []byte("I am a file"), filesystem.DefaultFilePermissions)
 			},
 			wantErr: true, // ensureDestFolderPath should return error
 		},
@@ -409,19 +406,6 @@ func TestImageRepairerForManagedMode_SetSrcFileModTimeToDestFile(t *testing.T) {
 }
 
 func TestImageRepairerForManagedMode_ProcessSingleFile(t *testing.T) {
-	createValidImage := func(fs afero.Fs, path string) error {
-		t.Helper() // to ensure clean logs if test fails
-
-		img := image.NewRGBA(image.Rect(0, 0, 1, 1))
-		img.Set(0, 0, color.White)
-
-		f, err := fs.Create(path)
-		if err != nil {
-			return err
-		}
-		defer f.Close()
-		return jpeg.Encode(f, img, nil)
-	}
 
 	const (
 		srcDir   = "/source"
@@ -451,7 +435,7 @@ func TestImageRepairerForManagedMode_ProcessSingleFile(t *testing.T) {
 			},
 			setupFs: func(fs afero.Fs) {
 				_ = fs.MkdirAll(srcDir, filesystem.DefaultFolderPermissions)
-				_ = createValidImage(fs, filepath.Join(srcDir, fileName))
+				_ = testutil.CreateJpegFile(fs, filepath.Join(srcDir, fileName))
 			},
 			srcPath: filepath.Join(srcDir, fileName),
 			wantErr: false,
@@ -477,8 +461,8 @@ func TestImageRepairerForManagedMode_ProcessSingleFile(t *testing.T) {
 			setupFs: func(fs afero.Fs) {
 				_ = fs.MkdirAll(srcDir, filesystem.DefaultFolderPermissions)
 				_ = fs.MkdirAll(dstDir, filesystem.DefaultFolderPermissions)
-				_ = createValidImage(fs, filepath.Join(srcDir, fileName))
-				_ = createValidImage(fs, filepath.Join(dstDir, fileName))
+				_ = testutil.CreateJpegFile(fs, filepath.Join(srcDir, fileName))
+				_ = testutil.CreateJpegFile(fs, filepath.Join(dstDir, fileName))
 			},
 			srcPath: filepath.Join(srcDir, fileName),
 			wantErr: false,
@@ -508,7 +492,7 @@ func TestImageRepairerForManagedMode_ProcessSingleFile(t *testing.T) {
 			},
 			setupFs: func(fs afero.Fs) {
 				_ = fs.MkdirAll(srcDir, filesystem.DefaultFolderPermissions)
-				_ = createValidImage(fs, filepath.Join(srcDir, fileName))
+				_ = testutil.CreateJpegFile(fs, filepath.Join(srcDir, fileName))
 			},
 			srcPath: filepath.Join(srcDir, fileName),
 			wantErr: false,
@@ -529,7 +513,7 @@ func TestImageRepairerForManagedMode_ProcessSingleFile(t *testing.T) {
 			setupFs: func(fs afero.Fs) {
 				p := filepath.Join(srcDir, fileName)
 				_ = fs.MkdirAll(srcDir, filesystem.DefaultFolderPermissions)
-				_ = createValidImage(fs, p)
+				_ = testutil.CreateJpegFile(fs, p)
 				past := time.Now().Add(-24 * time.Hour).Truncate(time.Second)
 				_ = fs.Chtimes(p, past, past)
 			},
@@ -640,9 +624,7 @@ func TestImageRepairerForManagedMode_CreateBackupIfFileExists(t *testing.T) {
 		},
 		{
 			name: "File does not exist (returns nil error)",
-			ctx: func() context.Context {
-				return context.Background()
-			},
+			ctx:  context.Background,
 			setupFS: func(fs afero.Fs) string {
 				return "missing.jpg"
 			},
@@ -650,9 +632,7 @@ func TestImageRepairerForManagedMode_CreateBackupIfFileExists(t *testing.T) {
 		},
 		{
 			name: "File exists but is a directory (fails in createBackupFile)",
-			ctx: func() context.Context {
-				return context.Background()
-			},
+			ctx:  context.Background,
 			setupFS: func(fs afero.Fs) string {
 				path := "dir_image.jpg"
 				err := fs.Mkdir(path, filesystem.DefaultFolderPermissions)
@@ -666,9 +646,7 @@ func TestImageRepairerForManagedMode_CreateBackupIfFileExists(t *testing.T) {
 		},
 		{
 			name: "Successful backup creation",
-			ctx: func() context.Context {
-				return context.Background()
-			},
+			ctx:  context.Background,
 			setupFS: func(fs afero.Fs) string {
 				path := "test_image.jpg"
 				err := afero.WriteFile(fs, path, []byte("fake image data"), filesystem.DefaultFilePermissions)

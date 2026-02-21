@@ -8,8 +8,10 @@ package testutil
 
 import "time"
 
+// Mock implementation of Clock interface for testing purposes.
 type MockClock struct {
 	FixedTime time.Time
 }
 
+// Now gets the actual time for the MockClock instance.
 func (m MockClock) Now() time.Time { return m.FixedTime }
