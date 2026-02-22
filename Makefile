@@ -6,16 +6,33 @@ BIN_FOLDER=WhatsAppJpegRepair_$(APP_VERSION)
 BINARY_NAME=WhatsAppJpegRepair
 
 ifeq ($(OS),Windows_NT)
+    DETECTED_OS := Windows
+else
+    DETECTED_OS := $(shell uname -s)
+endif
+
+ifeq ($(DETECTED_OS),Windows)
     BINARY_EXT=.exe
 	COPY_SOURCE_FILES_DIR = xcopy /E /I /Y "whatsapp-files" "$(BIN_FOLDER)\whatsapp-files"
 	MKDIR_REPAIRED = mkdir $(BIN_FOLDER)\repaired-files
 	COPY_SHELL_FILES = copy /Y platform\win\runme.bat $(BIN_FOLDER)\	
 	COPY_LICENSE_FILE = copy /Y LICENSE.txt $(BIN_FOLDER)\
 
-else
+endif
+
+ifeq ($(DETECTED_OS),Darwin)
 	COPY_SOURCE_FILES_DIR = cp -r "whatsapp-files" "$(BIN_FOLDER)/whatsapp-files"
 	MKDIR_REPAIRED = mkdir -p $(BIN_FOLDER)/repaired-files	
-	COPY_SHELL_FILES = cp platform/nix/*.* $(BIN_FOLDER)/
+	COPY_SHELL_FILES = cp platform/mac/*.* $(BIN_FOLDER)/
+	COPY_LICENSE_FILE = cp LICENSE.txt $(BIN_FOLDER)/
+	BINARY_EXT=	    
+
+endif
+
+ifeq ($(DETECTED_OS),Linux)
+	COPY_SOURCE_FILES_DIR = cp -r "whatsapp-files" "$(BIN_FOLDER)/whatsapp-files"
+	MKDIR_REPAIRED = mkdir -p $(BIN_FOLDER)/repaired-files	
+	COPY_SHELL_FILES = cp platform/linux/*.* $(BIN_FOLDER)/
 	COPY_LICENSE_FILE = cp LICENSE.txt $(BIN_FOLDER)/
 	BINARY_EXT=	    
 
@@ -39,7 +56,7 @@ help:
 ## git-hooks: Install git hooks
 git-hooks:
 	@echo "Installing git hooks..."
-ifeq ($(OS),Windows_NT)
+ifeq ($(DETECTED_OS),Windows)
 	@for %%f in (.githooks\*) do copy /y "%%f" ".git\hooks\"
 else
 	@cp .githooks/* .git/hooks/
@@ -79,7 +96,7 @@ build: clean
 ## clean: Remove build artifacts
 clean:
 	@echo "Cleaning up..."
-ifeq ($(OS),Windows_NT)
+ifeq ($(DETECTED_OS),Windows)
 	@if exist bin rmdir /s /q $(BIN_FOLDER)
 else
 	@rm -rf $(BIN_FOLDER)
