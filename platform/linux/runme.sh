@@ -30,5 +30,5 @@
 #
 #   -h, --help                            Show this help message and exit.
 
-WhatsAppJpegRepair --dont-wait-to-close=false --use-current-modification-time=false --delete-whatsapp-files=false
+./WhatsAppJpegRepair --dont-wait-to-close=false --use-current-modification-time=false --delete-whatsapp-files=false
 
