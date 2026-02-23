@@ -153,15 +153,46 @@ chmod +x ./your-new-script.sh
 
 ## <a name="managed-mode-params">Managed Mode Parameters</a>
 
-Таблица всех доступных новых флагов.
+## Usage Options
 
-Про интерактивный режим и ожидание в конце работы порграммы. Ожидание всегда отключено при запуске с пайпом.
+| Option                            | Shorthand | Description                                       | Default          |
+| :-------------------------------- | :-------- | :------------------------------------------------ | :--------------- |
+| `--src-path`                      | `-s`      | Path to the folder with broken WhatsApp files     | ./whatsapp-files |
+| `--dest-path`                     | `-d`      | Path to store repaired files (created if missing) | ./repaired-files |
+| `--use-current-modification-time` | `-t`      | Use current time for file modification date       | `false`          |
+| `--delete-whatsapp-files`         | `-w`      | Delete source files after successful processing   | `false`          |
+| `--process-nested-folders`        | `-n`      | Process files in subfolders recursively           | `false`          |
+| `--dont-wait-to-close`            | `-c`      | Exit immediately after completion                 | `false`          |
+| `--help`                          | `-h`      | Show all available options                        | -                |
+
+Note: The `-c`, `--dont-wait-to-close` flag is automatically ignored in non-interactive sessions. If the application detects that output is being redirected to a file (e.g., `WhatsAppJpegRepair 2>log.txt`), it will exit immediately upon completion without waiting for a keypress.
 
 ## <a name="migration-guide">Migration Guide</a>
 
-Таблица соответствия старых флагов новым.
+The default behavior remains unchanged. When launched without parameters — either via terminal or by double-clicking the executable — the application searches for source files in the `whatsapp-files` folder located in the same directory as the executable. Repaired results are saved to the `repaired-files` folder in the same location.
+
+Note: The old parameter format (camelCase with a single dash) is now deprecated. Please use the new kebab-case format or shorthands for future compatibility.
+
+This table shows the correspondence between the old and new parameter names.
+
+| Old parameter name                | New parameter name                | Shorthand |
+| :-------------------------------- | :-------------------------------- | :-------- |
+| `-srcPath`                        | `--src-path`                      | `-s`      |
+| `-destPath`                       | `--dest-path`                     | `-d`      |
+| `-dontWaitToClose`                | `--dont-wait-to-close`            | `-c`      |
+| `-useCurrentModificationDateTime` | `--use-current-modification-time` | `-t`      |
+| `-deleteWhatsAppFiles`            | `--delete-whatsapp-files`         | `-w`      |
 
 ## <a name="faq">Frequently Asked Questions</a>
+
+1. Windows user: What is the purpose of the .bat files in the application folder?
+2. Linux user: What is the purpose of the .sh files in the application folder?
+3. macOS user: What is the purpose of the .command and .sh files in the application folder?
+4. How can the same file modification time be applied to the repaired file as to the source file?
+5. How can the application be launched with the output redirected to a file?
+6. Why does nothing happen when I try to run a `.sh`, `.command` or application executable file?
+7. Why do I get permission errors when I run the application?
+8. What should I do if I have an idea for an improvement or want to report a bug?
 
 Здесь можно описать всякое такое, как открыть консоль, что делать при ошибке прав на Mac/Linux и т.д.
 

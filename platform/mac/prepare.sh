@@ -6,3 +6,4 @@
 xattr -c ./WhatsAppJpegRepair
 chmod +x ./WhatsAppJpegRepair
 chmod +x ./runme.sh
+chmod +x ./open_terminal.command
