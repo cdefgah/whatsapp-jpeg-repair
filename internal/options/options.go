@@ -138,8 +138,9 @@ func NewManagedFlagSet(writer io.Writer, managedOptions *ManagedModeOptions) (fl
 		FlagUseCurrentModTime,
 		FlagUseCurrentModTimeShort,
 		managedOptions.UseCurrentModificationTime,
-		"If this is true, the current time will be set as the file's modification time. "+
-			"The default is the modification time of the source file.",
+		"If this is true, the current time will be used to set the file's modification time. "+
+			"The default setting is false, meaning that the repaired file will have "+
+			"the same modification time as the source file.",
 	)
 
 	flagSet.BoolVarP(

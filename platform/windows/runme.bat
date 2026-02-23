@@ -15,7 +15,8 @@
 ::                                         If the folder does not exist, it will be created.
 ::                                         Example: --dest-path=c:\Users\YourUsername\Documents\repairedImageFiles.
 ::
-::   -t, --use-current-modification-time   If this is true, the current time will be set as the file's modification time. The default is the modification time of the source file.
+::   -t, --use-current-modification-time   If this is true, the current time will be used to set the file's modification time.
+::                                         The default setting is false, meaning that the repaired file will have the same modification time as the source file.
 ::
 ::   -w, --delete-whatsapp-files           If it is true, the successfully processed source WhatsApp files will be deleted. Default: false.
 ::
