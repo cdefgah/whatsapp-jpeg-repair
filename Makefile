@@ -1,8 +1,7 @@
 GO_VERSION=1.26
 LINTER_VERSION=v1.64.8
 
-APP_VERSION=3.0.0
-BIN_FOLDER=WhatsAppJpegRepair_$(APP_VERSION)
+DIST_FOLDER=dist
 BINARY_NAME=WhatsAppJpegRepair
 
 ifeq ($(OS),Windows_NT)
@@ -13,27 +12,27 @@ endif
 
 ifeq ($(DETECTED_OS),Windows)
     BINARY_EXT=.exe
-	COPY_SOURCE_FILES_DIR = xcopy /E /I /Y "whatsapp-files" "$(BIN_FOLDER)\whatsapp-files"
-	MKDIR_REPAIRED = mkdir $(BIN_FOLDER)\repaired-files
-	COPY_SHELL_FILES = copy /Y platform\win\runme.bat $(BIN_FOLDER)\	
-	COPY_LICENSE_FILE = copy /Y LICENSE.txt $(BIN_FOLDER)\
+	COPY_SOURCE_FILES_DIR = xcopy /E /I /Y "whatsapp-files" "$(DIST_FOLDER)\whatsapp-files"
+	MKDIR_REPAIRED = mkdir $(DIST_FOLDER)\repaired-files
+	COPY_SHELL_FILES = copy /Y platform\win\runme.bat $(DIST_FOLDER)\	
+	COPY_LICENSE_FILE = copy /Y LICENSE.txt $(DIST_FOLDER)\
 
 endif
 
 ifeq ($(DETECTED_OS),Darwin)
-	COPY_SOURCE_FILES_DIR = cp -r "whatsapp-files" "$(BIN_FOLDER)/whatsapp-files"
-	MKDIR_REPAIRED = mkdir -p $(BIN_FOLDER)/repaired-files	
-	COPY_SHELL_FILES = cp platform/mac/*.* $(BIN_FOLDER)/
-	COPY_LICENSE_FILE = cp LICENSE.txt $(BIN_FOLDER)/
+	COPY_SOURCE_FILES_DIR = cp -r "whatsapp-files" "$(DIST_FOLDER)/whatsapp-files"
+	MKDIR_REPAIRED = mkdir -p $(DIST_FOLDER)/repaired-files	
+	COPY_SHELL_FILES = cp platform/mac/*.* $(DIST_FOLDER)/
+	COPY_LICENSE_FILE = cp LICENSE.txt $(DIST_FOLDER)/
 	BINARY_EXT=	    
 
 endif
 
 ifeq ($(DETECTED_OS),Linux)
-	COPY_SOURCE_FILES_DIR = cp -r "whatsapp-files" "$(BIN_FOLDER)/whatsapp-files"
-	MKDIR_REPAIRED = mkdir -p $(BIN_FOLDER)/repaired-files	
-	COPY_SHELL_FILES = cp platform/linux/*.* $(BIN_FOLDER)/
-	COPY_LICENSE_FILE = cp LICENSE.txt $(BIN_FOLDER)/
+	COPY_SOURCE_FILES_DIR = cp -r "whatsapp-files" "$(DIST_FOLDER)/whatsapp-files"
+	MKDIR_REPAIRED = mkdir -p $(DIST_FOLDER)/repaired-files	
+	COPY_SHELL_FILES = cp platform/linux/*.* $(DIST_FOLDER)/
+	COPY_LICENSE_FILE = cp LICENSE.txt $(DIST_FOLDER)/
 	BINARY_EXT=	    
 
 endif
@@ -84,7 +83,7 @@ test:
 ## build: Compile the binary for the current OS/Arch
 build: clean
 	@echo "Building binary..."
-	go build -trimpath -ldflags="-s -w" -o $(BIN_FOLDER)/$(FULL_BINARY_NAME) ./cmd/whatsapp-jpeg-repair
+	go build -trimpath -ldflags="-s -w" -o $(DIST_FOLDER)/$(FULL_BINARY_NAME) ./cmd/whatsapp-jpeg-repair
 	
 	@echo "Copying assets..."
 	$(COPY_SOURCE_FILES_DIR)
@@ -97,8 +96,8 @@ build: clean
 clean:
 	@echo "Cleaning up..."
 ifeq ($(DETECTED_OS),Windows)
-	@if exist bin rmdir /s /q $(BIN_FOLDER)
+	@if exist bin rmdir /s /q $(DIST_FOLDER)
 else
-	@rm -rf $(BIN_FOLDER)
+	@rm -rf $(DIST_FOLDER)
 endif
 	@echo "Cleaned."

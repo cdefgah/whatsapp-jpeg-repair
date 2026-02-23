@@ -63,13 +63,13 @@ If you want to use all the application's capabilities, refer to the `runme.bat` 
 WhatsAppJpegRepair --dont-wait-to-close=false --use-current-modification-time=false --delete-whatsapp-files=false
 ```
 
+This line shows the application being launched with three random options selected. Feel free to use any other options you think are necessary.
+
 `WhatsAppJpegRepair` is the application name; do not alter this text. However, you can add, remove or alter any parameters that follow the application name according to your requirements. More information on the available parameters is provided in the [Managed Mode Parameters](#managed-mode-params) section.
 
 Once you have finished making changes to the `runme.bat` file, save it, close Notepad, then double-click on `runme.bat`. This will launch `WhatsAppJpegRepair` with all the parameters you provided in the `runme.bat` file.
 
-### macOS users
-
-### Linux users
+### macOS and Linux users
 
 You need to perform the following steps once before using the application. Open terminal in the application folder. Then run the following command in the terminal:
 
@@ -85,7 +85,11 @@ This will set the `executable` attribute for the `prepare.sh` script file. Then 
 
 It will set the required attributes for both the application file and the runme.sh file.
 
-You can now put the files downloaded from WhatsApp into the `whatsapp-files` folder. Launch the `WhatsAppJpegRepair` application by double-clicking on it. Then retrieve the repaired files from the `repaired-files` folder. Please note that no additional window will be displayed, which may not be convenient.
+You can now put the files downloaded from WhatsApp into the `whatsapp-files` folder. Launch the `WhatsAppJpegRepair` application by double-clicking on it. Then retrieve the repaired files from the `repaired-files` folder.
+
+Mac OS users should note that they will need to close the displayed window manually when the text `[Process completed]` appears.
+
+Please note that Linux users will not see an additional window, which may be inconvenient.
 
 To control the application's output, open a Terminal window in the application's folder and enter the following command:
 
@@ -99,6 +103,8 @@ You can use the `runme.sh` script to add extra options to the application comman
 ./WhatsAppJpegRepair --dont-wait-to-close=false --use-current-modification-time=false --delete-whatsapp-files=false
 ```
 
+This line shows the application being launched with three random options selected. Feel free to use any other options you think are necessary.
+
 Do not alter the text `./WhatsAppJpegRepair` as this is the name of the application itself. However, you can add, remove or alter any parameters that follow the application name according to your requirements. More information on the available parameters is provided in the [Managed Mode Parameters](#managed-mode-params) section.
 
 Once you have finished editing the `runme.sh` file, save it and close the text editor. Then, open a terminal window in the application folder. And run the command:
@@ -111,13 +117,45 @@ This will launch `WhatsAppJpegRepair` with all the parameters you provided in th
 
 ## <a name="how-it-works">How it Works: Direct vs Managed Mode</a>
 
-Про перетаскивание (drag-n-drop).
-Про интерактивный режим и ожидание в конце работы порграммы.
-Как запустить обработку в Direct Mode и Managed Mode.
+The application supports two operating modes: `Direct Mode` and `Managed Mode`.
+
+### Direct Mode
+
+`Direct Mode` is used when an image file is dragged and dropped onto the WhatsAppJpegRepair application file. In this case, the file will be repaired in situ.
+
+This mode is also used when passing an arbitrary number of file paths via the command line, as demonstrated below.
+
+For macOS/Linux environment:
+
+```bash
+./WhatsAppJpegRepair /home/yourusername/Documents/photo126.jpeg /home/yourusername/Documents/Scans/photo18.jpeg /home/yourusername/Documents/Archive/photo154.jpeg
+```
+
+For Windows environment:
+
+```console
+WhatsAppJpegRepair c:\Users\yourusername\Documents\photo126.jpeg c:\Users\yourusername\Documents\Scans\photo18.jpeg c:\Users\yourusername\Documents\Archive\photo154.jpeg
+```
+
+All of these files: `photo126.jpeg`, `photo18.jpeg` and `photo154.jpeg` will be processed and saved in the same location.
+
+### Managed Mode
+
+`Managed mode` is used when the application is started without parameters or via a double-click of the mouse. This mode is also turned on if at least one managed mode parameter is included in the command-line arguments.
+
+If the application is launched without parameters or via a double-click of the mouse, all managed options use their default values. To find the files to be repaired, the application looks in the `whatsApp-files` folder, which is located in the same folder as the application file. The repaired files are stored in the `repaired-files` folder, which is also located in the same folder as the application file.
+
+For your convenience, you can use the `runme.bat` (for Windows users) or `runme.sh` (for macOS/Linux users) scripts, or create your own. If you are a macOS/Linux user creating new script files, remember to set the `executable` attribute for the new script file.
+
+```bash
+chmod +x ./your-new-script.sh
+```
 
 ## <a name="managed-mode-params">Managed Mode Parameters</a>
 
 Таблица всех доступных новых флагов.
+
+Про интерактивный режим и ожидание в конце работы порграммы. Ожидание всегда отключено при запуске с пайпом.
 
 ## <a name="migration-guide">Migration Guide</a>
 
