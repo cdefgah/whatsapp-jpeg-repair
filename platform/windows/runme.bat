@@ -23,6 +23,6 @@
 ::
 ::   -c, --dont-wait-to-close              If this is true, the application will exit immediately once processing is complete. Default: false.
 ::
-::   -h, --help                            Show this help message and exit.
+::   -h, --help                            Display a list of all the available options.
 
 WhatsAppJpegRepair --dont-wait-to-close=false --use-current-modification-time=false --delete-whatsapp-files=false

@@ -71,8 +71,43 @@ Once you have finished making changes to the `runme.bat` file, save it, close No
 
 ### Linux users
 
-Про запуск двойным кликом и дефолтные параметры работы.
-Отдельно для каждой платформы.
+You need to perform the following steps once before using the application. Open terminal in the application folder. Then run the following command in the terminal:
+
+```bash
+chmod +x ./prepare.sh
+```
+
+This will set the `executable` attribute for the `prepare.sh` script file. Then run the following command:
+
+```bash
+./prepare.sh
+```
+
+It will set the required attributes for both the application file and the runme.sh file.
+
+You can now put the files downloaded from WhatsApp into the `whatsapp-files` folder. Launch the `WhatsAppJpegRepair` application by double-clicking on it. Then retrieve the repaired files from the `repaired-files` folder. Please note that no additional window will be displayed, which may not be convenient.
+
+To control the application's output, open a Terminal window in the application's folder and enter the following command:
+
+```bash
+./WhatsAppJpegRepair
+```
+
+You can use the `runme.sh` script to add extra options to the application command line. Open the file with a text editor and scroll down to the line.
+
+```bash
+./WhatsAppJpegRepair --dont-wait-to-close=false --use-current-modification-time=false --delete-whatsapp-files=false
+```
+
+Do not alter the text `./WhatsAppJpegRepair` as this is the name of the application itself. However, you can add, remove or alter any parameters that follow the application name according to your requirements. More information on the available parameters is provided in the [Managed Mode Parameters](#managed-mode-params) section.
+
+Once you have finished editing the `runme.sh` file, save it and close the text editor. Then, open a terminal window in the application folder. And run the command:
+
+```bash
+./runme.sh
+```
+
+This will launch `WhatsAppJpegRepair` with all the parameters you provided in the `runme.sh` file.
 
 ## <a name="how-it-works">How it Works: Direct vs Managed Mode</a>
 
