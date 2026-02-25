@@ -5,7 +5,8 @@
 Breaking changes. Introduced POSIX-compliant command line options instead of old ones.
 Please check README for more details.
 Added new option to process nested folders.
-Now app processes only JPEG-related image files (with extensions: ".jpg", ".jpeg", ".jpe", ".jif", ".jfif", ".jfi" case insensitive). Files with other extensions will be ignored. It is because WhatsApp converts received images to JPEG format.
+The app now only processes JPEG-related image files with the following extensions: `.jpg`, `.jpeg`, `.jpe`, `.jif`, `.jfif` and `.jfi`, which are case insensitive. Files with other extensions will be ignored. This is because WhatsApp converts received images to JPEG format. The previous version of the application processed all files indiscriminately. It converted non-JPEG files that did not require repair into JPEG format while retaining their original extensions.
+
 Mac users can now launch the application hassle-free with Gatekeeper (please refer to the README instructions).
 Если в managed-режиме в target-папке попадётся файл, который рискует быть перезаписанным, то будет создана его резервная копия.
 

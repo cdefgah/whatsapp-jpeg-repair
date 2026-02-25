@@ -63,7 +63,7 @@ If you want to use all the application's capabilities, refer to the `runme.bat` 
 whatsapp-jpeg-repair --dont-wait-to-close=false --use-current-modification-time=false --delete-whatsapp-files=false
 ```
 
-This line shows the application being launched with three random options selected. Feel free to use any other options you think are necessary.
+This line shows the application launching with three random options selected. Feel free to use any other options or combinations that you think are necessary.
 
 `whatsapp-jpeg-repair` is the application name; do not alter this text. However, you can add, remove or alter any parameters that follow the application name according to your requirements. More information on the available parameters is provided in the [Managed Mode Parameters](#managed-mode-params) section.
 
@@ -71,7 +71,7 @@ Once you have finished making changes to the `runme.bat` file, save it, close No
 
 ### macOS and Linux users
 
-You need to perform the following steps once before using the application. Open terminal in the application folder. Then run the following command in the terminal:
+Before using the application, **it is important** to perform the following steps. Open terminal in the application folder. Then run the following command in the terminal:
 
 ```bash
 chmod +x ./prepare.sh
@@ -87,17 +87,15 @@ It will set the required attributes for both the application file and the runme.
 
 You can now put the files downloaded from WhatsApp into the `whatsapp-files` folder. Launch the `whatsapp-jpeg-repair` application by double-clicking on it. Then retrieve the repaired files from the `repaired-files` folder.
 
-Mac OS users should note that they will need to close the displayed window manually when the text `[Process completed]` appears.
+Mac OS users, please note that if you launch the application by double-clicking on it in the graphical user interface, the application window will open and you will need to close it manually when the text `[Process completed]` appears.
 
-Please note that Linux users will not see an additional window, which may be inconvenient.
-
-To control the application's output, open a Terminal window in the application's folder and enter the following command:
+Please note that Linux users will not see an additional window when they double-click an executable file in the graphical user interface. This may be inconvenient. To control the application's output, open a Terminal window in the application's folder and enter the following command:
 
 ```bash
 ./whatsapp-jpeg-repair
 ```
 
-You can use the `runme.sh` script to add extra options to the application command line. Open the file with a text editor and scroll down to the line.
+You can use the `runme.sh` script to add an additional combination of supported options to the application command line. Open the file in a text editor and scroll down to the relevant line.
 
 ```bash
 ./whatsapp-jpeg-repair --dont-wait-to-close=false --use-current-modification-time=false --delete-whatsapp-files=false
@@ -143,12 +141,12 @@ All of these files: `photo126.jpeg`, `photo18.jpeg` and `photo154.jpeg` will be 
 
 `Managed mode` is used when the application is started without parameters or via a double-click of the mouse. This mode is also turned on if at least one managed mode parameter is included in the command-line arguments.
 
-If the application is launched without parameters or via a double-click of the mouse, all managed options use their default values. To find the files to be repaired, the application looks in the `whatsApp-files` folder, which is located in the same folder as the application file. The repaired files are stored in the `repaired-files` folder, which is also located in the same folder as the application file.
+If the application is launched without parameters or via a double-click of the mouse, all managed options use their default values. To find the files to be repaired, the application looks in the `whatsapp-files` folder, which is located in the same folder as the application file. The repaired files are stored in the `repaired-files` folder, which is also located in the same folder as the application file.
 
-For your convenience, you can use the `runme.bat` (for Windows users) or `runme.sh` (for macOS/Linux users) scripts, or create your own. If you are a macOS/Linux user creating new script files, remember to set the `executable` attribute for the new script file.
+For your convenience, you can use the `runme.bat` (for Windows users) or `runme.sh` (for macOS/Linux users) scripts, or create your own. If you are a macOS or Linux user creating new custom script files, remember to set the `executable` attribute for each new file.
 
 ```bash
-chmod +x ./your-new-script.sh
+chmod +x ./your-new-custom-script.sh
 ```
 
 ## <a name="managed-mode-params">Managed Mode Parameters</a>
@@ -169,6 +167,8 @@ Note: The `-c`, `--dont-wait-to-close` flag is automatically ignored in non-inte
 
 ## <a name="migration-guide">Migration Guide</a>
 
+The name of the executable file has changed. The old name was `WhatsAppJpegRepair`; the new name is `whatsapp-jpeg-repair`. If you have any custom script files that call the executable, please update them accordingly.
+
 The default behavior remains unchanged. When launched without parameters — either via terminal or by double-clicking the executable — the application searches for source files in the `whatsapp-files` folder located in the same directory as the executable. Repaired results are saved to the `repaired-files` folder in the same location.
 
 Note: The old parameter format (camelCase with a single dash) is now deprecated. Please use the new kebab-case format or shorthands for future compatibility.
@@ -183,17 +183,24 @@ This table shows the correspondence between the old and new parameter names.
 | `-useCurrentModificationDateTime` | `--use-current-modification-time` | `-t`      |
 | `-deleteWhatsAppFiles`            | `--delete-whatsapp-files`         | `-w`      |
 
+The app now only processes JPEG-related image files with the following extensions: `.jpg`, `.jpeg`, `.jpe`, `.jif`, `.jfif` and `.jfi`, which are case insensitive. Files with other extensions will be ignored. This is because WhatsApp converts received images to JPEG format. The previous version of the application processed all files indiscriminately. It converted non-JPEG files that did not require repair into JPEG format while retaining their original extensions.
+
 ## <a name="faq">Frequently Asked Questions</a>
 
 1. Windows user: What is the purpose of the .bat files in the application folder?
-2. macOS/Linux user: What is the purpose of the .sh files in the application folder?
-3. How can the same file modification time be applied to the repaired file as to the source file?
-4. How can the application be launched with the output redirected to a file?
-5. Why does nothing happen when I try to run a `.sh`, `.command` or application executable file?
-6. Why do I get permission errors when I run the application?
-7. What should I do if I have an idea for an improvement or want to report a bug?
-
-Здесь можно описать всякое такое, как открыть консоль, что делать при ошибке прав на Mac/Linux и т.д.
+2. macOS/Linux user: What is the purpose of the `.sh` files in the application folder?
+3. How can I specify a custom folder from which the application will take files for processing?
+4. How can I specify a custom folder in which the application can store the results of file processing?
+5. How can the same modification time be applied to the repaired file as to the original file?
+6. What steps should I take to ensure that the source files are deleted after processing?
+7. What is the best course of action if I want all my source files, including those in subfolders, to be processed?
+8. How can I stop the program from waiting for me to press Enter after it has finished running?
+9. How can I display information on all the possible operating modes and command line parameters?
+10. What if I want to process a file so that it is processed directly on the spot?
+11. How can the application be launched so that its output is redirected to a file?
+12. Why is nothing happening when I try to run a `.sh` or `.bat` file?
+13. Why am I getting permission errors when I run the application?
+14. How should I go about reporting a bug or suggesting an improvement?
 
 ## <a name="building-from-source">Building from Source</a>
 
