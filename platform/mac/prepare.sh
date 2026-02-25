@@ -3,7 +3,6 @@
 # This file should be run once as you have downloaded the application. It clears and sets the required attributes to the files.
 # Important! Please remember to set the eXecutable attribute for the prepare.sh file. This can be done via the command: chmod +x ./prepare.sh.
 
-xattr -c ./WhatsAppJpegRepair
-chmod +x ./WhatsAppJpegRepair
+xattr -c ./whatsapp-jpeg-repair
+chmod +x ./whatsapp-jpeg-repair
 chmod +x ./runme.sh
-chmod +x ./open_terminal.command

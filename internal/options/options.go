@@ -95,8 +95,8 @@ func NewManagedFlagSet(writer io.Writer, managedOptions *ManagedModeOptions) (fl
 
 	flagSet.Usage = func() {
 		fmt.Fprintln(writer, "Usage: ")
-		fmt.Fprintln(writer, "\tWhatsAppJpegRepair [managed mode options]")
-		fmt.Fprintln(writer, "\tWhatsAppJpegRepair <file>...")
+		fmt.Fprintln(writer, "\twhatsapp-jpeg-repair [managed mode options]")
+		fmt.Fprintln(writer, "\twhatsapp-jpeg-repair <file>...")
 
 		fmt.Fprintln(writer, "\nDescription:")
 		fmt.Fprintln(writer, "\tThe application operates in one of two modes, depending on the arguments provided.")
@@ -138,7 +138,7 @@ func NewManagedFlagSet(writer io.Writer, managedOptions *ManagedModeOptions) (fl
 		FlagUseCurrentModTime,
 		FlagUseCurrentModTimeShort,
 		managedOptions.UseCurrentModificationTime,
-		"If this is true, the current time will be used to set the file's modification time. "+
+		"If this is true, the current time will be used to set the file's modification time.\n"+
 			"The default setting is false, meaning that the repaired file will have "+
 			"the same modification time as the source file.",
 	)

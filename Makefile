@@ -2,7 +2,7 @@ GO_VERSION=1.26
 LINTER_VERSION=v1.64.8
 
 DIST_FOLDER=dist
-BINARY_NAME=WhatsAppJpegRepair
+BINARY_NAME=whatsapp-jpeg-repair
 
 ifeq ($(OS),Windows_NT)
     DETECTED_OS := Windows
@@ -14,7 +14,7 @@ ifeq ($(DETECTED_OS),Windows)
     BINARY_EXT=.exe
 	COPY_SOURCE_FILES_DIR = xcopy /E /I /Y "whatsapp-files" "$(DIST_FOLDER)\whatsapp-files"
 	MKDIR_REPAIRED = mkdir $(DIST_FOLDER)\repaired-files
-	COPY_SHELL_FILES = copy /Y platform\win\runme.bat $(DIST_FOLDER)\	
+	COPY_SHELL_FILES = copy /Y platform\windows\runme.bat $(DIST_FOLDER)\	
 	COPY_LICENSE_FILE = copy /Y LICENSE.txt $(DIST_FOLDER)\
 
 endif
@@ -96,7 +96,7 @@ build: clean
 clean:
 	@echo "Cleaning up..."
 ifeq ($(DETECTED_OS),Windows)
-	@if exist bin rmdir /s /q $(DIST_FOLDER)
+	@if exist $(DIST_FOLDER) rmdir /s /q $(DIST_FOLDER)
 else
 	@rm -rf $(DIST_FOLDER)
 endif

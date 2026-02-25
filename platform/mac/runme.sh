@@ -31,5 +31,5 @@
 #
 #   -h, --help                            Display a list of all the available options.
 
-./WhatsAppJpegRepair --dont-wait-to-close=false --use-current-modification-time=false --delete-whatsapp-files=false
+./whatsapp-jpeg-repair --dont-wait-to-close=false --use-current-modification-time=false --delete-whatsapp-files=false
 

@@ -14,7 +14,7 @@ The WhatsApp JPEG Image Repair application solves this problem by repairing mult
 
 **Breaking Changes in v3.0.0**
 
-All command-line flags have been renamed in v3.0.0. See the [Migration Guide](#migration-guide) for details.
+Application executable file and all command-line flags have been renamed in v3.0.0. See the [Migration Guide](#migration-guide) for details.
 
 ---
 
@@ -53,21 +53,21 @@ Further instructions are provided below depending on the operating system you ar
 
 ### Windows users
 
-The simplest way is to put the files downloaded from WhatsApp into the `whatsapp-files` folder. Launch the `WhatsAppJpegRepair.exe` application by double-clicking on it and wait until it has finished. Then get the repaired files from the repaired-files folder.
+The simplest way is to put the files downloaded from WhatsApp into the `whatsapp-files` folder. Launch the `whatsapp-jpeg-repair.exe` application by double-clicking on it and wait until it has finished. Then get the repaired files from the repaired-files folder.
 
-It is also possible to drag and drop an image file from WhatsApp to `WhatsAppJpegRepair.exe`. In this case, the file will be repaired in situ.
+It is also possible to drag and drop an image file from WhatsApp to `whatsapp-jpeg-repair.exe`. In this case, the file will be repaired in situ.
 
 If you want to use all the application's capabilities, refer to the `runme.bat` file. Open the file in Notepad and edit the following line:
 
 ```
-WhatsAppJpegRepair --dont-wait-to-close=false --use-current-modification-time=false --delete-whatsapp-files=false
+whatsapp-jpeg-repair --dont-wait-to-close=false --use-current-modification-time=false --delete-whatsapp-files=false
 ```
 
 This line shows the application being launched with three random options selected. Feel free to use any other options you think are necessary.
 
-`WhatsAppJpegRepair` is the application name; do not alter this text. However, you can add, remove or alter any parameters that follow the application name according to your requirements. More information on the available parameters is provided in the [Managed Mode Parameters](#managed-mode-params) section.
+`whatsapp-jpeg-repair` is the application name; do not alter this text. However, you can add, remove or alter any parameters that follow the application name according to your requirements. More information on the available parameters is provided in the [Managed Mode Parameters](#managed-mode-params) section.
 
-Once you have finished making changes to the `runme.bat` file, save it, close Notepad, then double-click on `runme.bat`. This will launch `WhatsAppJpegRepair` with all the parameters you provided in the `runme.bat` file.
+Once you have finished making changes to the `runme.bat` file, save it, close Notepad, then double-click on `runme.bat`. This will launch `whatsapp-jpeg-repair` with all the parameters you provided in the `runme.bat` file.
 
 ### macOS and Linux users
 
@@ -85,7 +85,7 @@ This will set the `executable` attribute for the `prepare.sh` script file. Then 
 
 It will set the required attributes for both the application file and the runme.sh file.
 
-You can now put the files downloaded from WhatsApp into the `whatsapp-files` folder. Launch the `WhatsAppJpegRepair` application by double-clicking on it. Then retrieve the repaired files from the `repaired-files` folder.
+You can now put the files downloaded from WhatsApp into the `whatsapp-files` folder. Launch the `whatsapp-jpeg-repair` application by double-clicking on it. Then retrieve the repaired files from the `repaired-files` folder.
 
 Mac OS users should note that they will need to close the displayed window manually when the text `[Process completed]` appears.
 
@@ -94,18 +94,18 @@ Please note that Linux users will not see an additional window, which may be inc
 To control the application's output, open a Terminal window in the application's folder and enter the following command:
 
 ```bash
-./WhatsAppJpegRepair
+./whatsapp-jpeg-repair
 ```
 
 You can use the `runme.sh` script to add extra options to the application command line. Open the file with a text editor and scroll down to the line.
 
 ```bash
-./WhatsAppJpegRepair --dont-wait-to-close=false --use-current-modification-time=false --delete-whatsapp-files=false
+./whatsapp-jpeg-repair --dont-wait-to-close=false --use-current-modification-time=false --delete-whatsapp-files=false
 ```
 
 This line shows the application being launched with three random options selected. Feel free to use any other options you think are necessary.
 
-Do not alter the text `./WhatsAppJpegRepair` as this is the name of the application itself. However, you can add, remove or alter any parameters that follow the application name according to your requirements. More information on the available parameters is provided in the [Managed Mode Parameters](#managed-mode-params) section.
+Do not alter the text `./whatsapp-jpeg-repair` as this is the name of the application itself. However, you can add, remove or alter any parameters that follow the application name according to your requirements. More information on the available parameters is provided in the [Managed Mode Parameters](#managed-mode-params) section.
 
 Once you have finished editing the `runme.sh` file, save it and close the text editor. Then, open a terminal window in the application folder. And run the command:
 
@@ -113,7 +113,7 @@ Once you have finished editing the `runme.sh` file, save it and close the text e
 ./runme.sh
 ```
 
-This will launch `WhatsAppJpegRepair` with all the parameters you provided in the `runme.sh` file.
+This will launch `whatsapp-jpeg-repair` with all the parameters you provided in the `runme.sh` file.
 
 ## <a name="how-it-works">How it Works: Direct vs Managed Mode</a>
 
@@ -121,20 +121,20 @@ The application supports two operating modes: `Direct Mode` and `Managed Mode`.
 
 ### Direct Mode
 
-`Direct Mode` is used when an image file is dragged and dropped onto the WhatsAppJpegRepair application file. In this case, the file will be repaired in situ.
+`Direct Mode` is used when an image file is dragged and dropped onto the whatsapp-jpeg-repair application file. In this case, the file will be repaired in situ.
 
 This mode is also used when passing an arbitrary number of file paths via the command line, as demonstrated below.
 
 For macOS/Linux environment:
 
 ```bash
-./WhatsAppJpegRepair /home/yourusername/Documents/photo126.jpeg /home/yourusername/Documents/Scans/photo18.jpeg /home/yourusername/Documents/Archive/photo154.jpeg
+./whatsapp-jpeg-repair /home/yourusername/Documents/photo126.jpeg /home/yourusername/Documents/Scans/photo18.jpeg /home/yourusername/Documents/Archive/photo154.jpeg
 ```
 
 For Windows environment:
 
 ```console
-WhatsAppJpegRepair c:\Users\yourusername\Documents\photo126.jpeg c:\Users\yourusername\Documents\Scans\photo18.jpeg c:\Users\yourusername\Documents\Archive\photo154.jpeg
+whatsapp-jpeg-repair c:\Users\yourusername\Documents\photo126.jpeg c:\Users\yourusername\Documents\Scans\photo18.jpeg c:\Users\yourusername\Documents\Archive\photo154.jpeg
 ```
 
 All of these files: `photo126.jpeg`, `photo18.jpeg` and `photo154.jpeg` will be processed and saved in the same location.
@@ -165,7 +165,7 @@ chmod +x ./your-new-script.sh
 | `--dont-wait-to-close`            | `-c`      | Exit immediately after completion                 | `false`          |
 | `--help`                          | `-h`      | Show all available options                        | -                |
 
-Note: The `-c`, `--dont-wait-to-close` flag is automatically ignored in non-interactive sessions. If the application detects that output is being redirected to a file (e.g., `WhatsAppJpegRepair 2>log.txt`), it will exit immediately upon completion without waiting for a keypress.
+Note: The `-c`, `--dont-wait-to-close` flag is automatically ignored in non-interactive sessions. If the application detects that output is being redirected to a file (e.g., `whatsapp-jpeg-repair 2>log.txt`), it will exit immediately upon completion without waiting for a keypress.
 
 ## <a name="migration-guide">Migration Guide</a>
 
@@ -186,13 +186,12 @@ This table shows the correspondence between the old and new parameter names.
 ## <a name="faq">Frequently Asked Questions</a>
 
 1. Windows user: What is the purpose of the .bat files in the application folder?
-2. Linux user: What is the purpose of the .sh files in the application folder?
-3. macOS user: What is the purpose of the .command and .sh files in the application folder?
-4. How can the same file modification time be applied to the repaired file as to the source file?
-5. How can the application be launched with the output redirected to a file?
-6. Why does nothing happen when I try to run a `.sh`, `.command` or application executable file?
-7. Why do I get permission errors when I run the application?
-8. What should I do if I have an idea for an improvement or want to report a bug?
+2. macOS/Linux user: What is the purpose of the .sh files in the application folder?
+3. How can the same file modification time be applied to the repaired file as to the source file?
+4. How can the application be launched with the output redirected to a file?
+5. Why does nothing happen when I try to run a `.sh`, `.command` or application executable file?
+6. Why do I get permission errors when I run the application?
+7. What should I do if I have an idea for an improvement or want to report a bug?
 
 Здесь можно описать всякое такое, как открыть консоль, что делать при ошибке прав на Mac/Linux и т.д.
 
