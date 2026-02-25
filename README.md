@@ -232,4 +232,20 @@ The app now only processes JPEG-related image files with the following extension
 
 ## <a name="building-from-source">Building from Source</a>
 
-Тут написать про порядок сборки.
+Step 1: Make sure you have the **Make** tool installed. This tool is usually preinstalled on Linux and Mac operating systems. Windows users can install Make via [Chocolatey](https://chocolatey.org/). To do this, run the following command in Terminal:
+
+```
+choco install make
+```
+
+Step 2: Clone the project source to your local hard drive.
+
+Step 3: Open a terminal window in the cloned application folder where the **Makefile** is located.
+
+Step 4: Run the command:
+
+```bash
+make build
+```
+
+Step 5: Navigate to the created **./dist** folder
