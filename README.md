@@ -204,13 +204,141 @@ The app now only processes JPEG-related image files with the following extension
 
 ### <a name="bat-purpose">1. Windows user: What is the purpose of the .bat files in the application folder?</a>
 
+This optional file contains the application call command with various flags. This file is provided for convenience. You can edit the file, adding or removing any parameters supported by the application. Once saved, you can run the file by double-clicking on it.
+
 ### <a name="sh-purpose">2. macOS/Linux user: What is the purpose of the **.sh** files in the application folder?</a>
+
+The **prepare.sh** file is very important and should not be edited. Simply set the **executable** attribute using the following terminal command:
+
+```bash
+chmod +x ./prepare.sh.
+```
+
+After that, you only need to run it once. You will not need to run it again for the installed version of the application. This sets the correct attributes for the application file and the auxiliary **runme.sh** file. The **runme.sh** file is designed for convenience. It contains a call to the application with an arbitrary set of parameters. You can edit this set of parameters to include only those you consider necessary. After that, you can execute this file in the terminal:
+
+```bash
+./runme.sh.
+```
 
 ### <a name="custom-source-folder">3. How can I specify a custom folder from which the application will take files for processing?</a>
 
+To specify the path to a custom folder from which the application will take files for processing, use the **--src-path** parameter or its shortcut, **-s**.
+
+Examples:
+
+For Linux/macOS environment:
+
+```bash
+./whatsapp-jpeg-repair --src-path=/home/username/Documents/brokenFiles
+```
+
+or
+
+```bash
+./whatsapp-jpeg-repair -s=/home/username/Documents/brokenFiles
+```
+
+For Windows environment:
+
+```bash
+whatsapp-jpeg-repair --src-path=C:\BrokenFiles
+```
+
+or
+
+```bash
+whatsapp-jpeg-repair -s=C:\BrokenFiles
+```
+
+Please note that we only specify the folder containing the source files here. All other parameters will take their default values. In particular, you will need to look for the results of the processing in the **repaired-files** folder, which is located in the same folder as the application executable file. To customise both the source and destination folders, specify the most suitable paths for your task in both the source and destination parameters.
+
 ### <a name="custom-dest-folder">4. How can I specify a custom folder in which the application can store the results of file processing?</a>
 
+To specify the path to a custom folder from which the application will store result files, use the **--dest-path** parameter or its shortcut, **-d**.
+
+Examples:
+
+For Linux/macOS environment:
+
+```bash
+./whatsapp-jpeg-repair --dest-path=/home/username/Documents/repairedFiles
+```
+
+or
+
+```bash
+./whatsapp-jpeg-repair -d=/home/username/Documents/repairedFiles
+```
+
+For Windows environment:
+
+```bash
+whatsapp-jpeg-repair --dest-path=C:\Users\YourUserName\Documents\RepairedFiles
+```
+
+or
+
+```bash
+whatsapp-jpeg-repair -d=C:\Users\YourUserName\Documents\RepairedFiles
+```
+
+Please note that we only specify the folder for saving the results of file processing here. All other parameters are set to their default values. In particular, the folder in which the application searches for files that need repairing is the **whatsApp-files** folder, which is located in the same folder as the application's executable file. To customise both the source and destination folders, specify the most suitable paths for your task in both the source and destination parameters.
+
 ### <a name="mod-time">5. How can the same modification time be applied to the repaired file as to the original file?</a>
+
+By default, the application automatically sets the modification time of processed files to be the same as the original file's. To change this behavior and set the modification time of the processed file to the actual processing time, use the **--use-current-modification-time** or **-t** parameters.
+
+Examples:
+
+For Linux/macOS environment:
+
+```bash
+./whatsapp-jpeg-repair --use-current-modification-time=true
+```
+
+or
+
+```bash
+./whatsapp-jpeg-repair -t=true
+```
+
+or
+
+```bash
+./whatsapp-jpeg-repair --use-current-modification-time
+```
+
+or
+
+```bash
+./whatsapp-jpeg-repair -t
+```
+
+For Windows environment:
+
+```bash
+whatsapp-jpeg-repair --use-current-modification-time=true
+```
+
+or
+
+```bash
+whatsapp-jpeg-repair -t=true
+```
+
+or
+
+```bash
+whatsapp-jpeg-repair --use-current-modification-time
+```
+
+or
+
+```bash
+whatsapp-jpeg-repair -t
+```
+
+Please note that setting a parameter with a logical type without assigning a value is equivalent to setting it to true.
 
 ### <a name="delete-source-files">6. What steps should I take to ensure that the source files are deleted after processing?</a>
 
@@ -248,4 +376,4 @@ Step 4: Run the command:
 make build
 ```
 
-Step 5: Navigate to the created **./dist** folder
+Step 5: To access the built application files, navigate to the created **./dist** folder.
