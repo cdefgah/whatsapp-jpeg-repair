@@ -314,7 +314,7 @@ The procedure is the same for Linux and macOS, except the executable file is spe
 
 Please note that setting a parameter with a logical type without assigning a value is equivalent to setting it to true.
 
-### <a name="delete-source-files">6. What steps should I take to ensure that the source files are deleted after processing?</a>
+### <a name="delete-source-files">7. What steps should I take to ensure that the source files are deleted after processing?</a>
 
 To delete the source files after processing, use the **--delete-whatsapp-files** option, or the shortened version, **-w** .
 
