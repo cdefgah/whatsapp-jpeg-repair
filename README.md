@@ -30,7 +30,7 @@ Application executable file and all command-line flags have been renamed in v3.0
 
 ---
 
-## <a name="how-to-instal">How to Install</a>
+## <a name="how-to-install">How to Install</a>
 
 Download the application archive. Navigate to the [application releases](https://github.com/cdefgah/whatsapp-jpeg-repair/releases). Expand the **Assets** section, then download the application zip archive that is suitable for your operating system.
 
