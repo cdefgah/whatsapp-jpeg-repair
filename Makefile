@@ -6,98 +6,90 @@ BINARY_NAME=whatsapp-jpeg-repair
 
 ifeq ($(OS),Windows_NT)
     DETECTED_OS := Windows
+    # Принудительно используем cmd для Windows-блоков
+    SHELL := cmd.exe
 else
     DETECTED_OS := $(shell uname -s)
 endif
 
 ifeq ($(DETECTED_OS),Windows)
     BINARY_EXT=.exe
-	COPY_SOURCE_FILES_DIR = xcopy /E /I /Y "whatsapp-files" "$(DIST_FOLDER)\whatsapp-files"
-	MKDIR_REPAIRED = mkdir $(DIST_FOLDER)\repaired-files
-	COPY_SHELL_FILES = copy /Y platform\windows\runme.bat $(DIST_FOLDER)\	
-	COPY_LICENSE_FILE = copy /Y LICENSE.txt $(DIST_FOLDER)\
-
+    # Убираем слэш в конце переменной, чтобы не было конфликтов с переносом строк
+    COPY_SOURCE_FILES_DIR = xcopy /E /I /Y "whatsapp-files" "$(DIST_FOLDER)\whatsapp-files"
+    MKDIR_REPAIRED = if not exist "$(DIST_FOLDER)\repaired-files" mkdir "$(DIST_FOLDER)\repaired-files"
+    # Важно: кавычки защищают от проблем со слэшами
+    COPY_SHELL_FILES = copy /Y "platform\windows\runme.bat" "$(DIST_FOLDER)"
+    COPY_LICENSE_FILE = copy /Y "LICENSE.txt" "$(DIST_FOLDER)"
 endif
 
 ifeq ($(DETECTED_OS),Darwin)
-	COPY_SOURCE_FILES_DIR = cp -r "whatsapp-files" "$(DIST_FOLDER)/whatsapp-files"
-	MKDIR_REPAIRED = mkdir -p $(DIST_FOLDER)/repaired-files	
-	COPY_SHELL_FILES = cp platform/mac/*.* $(DIST_FOLDER)/
-	COPY_LICENSE_FILE = cp LICENSE.txt $(DIST_FOLDER)/
-	BINARY_EXT=	    
-
+    COPY_SOURCE_FILES_DIR = cp -r "whatsapp-files" "$(DIST_FOLDER)/whatsapp-files"
+    MKDIR_REPAIRED = mkdir -p $(DIST_FOLDER)/repaired-files 
+    COPY_SHELL_FILES = cp platform/mac/*.* $(DIST_FOLDER)/
+    COPY_LICENSE_FILE = cp LICENSE.txt $(DIST_FOLDER)/
+    BINARY_EXT=     
 endif
 
 ifeq ($(DETECTED_OS),Linux)
-	COPY_SOURCE_FILES_DIR = cp -r "whatsapp-files" "$(DIST_FOLDER)/whatsapp-files"
-	MKDIR_REPAIRED = mkdir -p $(DIST_FOLDER)/repaired-files	
-	COPY_SHELL_FILES = cp platform/linux/*.* $(DIST_FOLDER)/
-	COPY_LICENSE_FILE = cp LICENSE.txt $(DIST_FOLDER)/
-	BINARY_EXT=	    
-
+    COPY_SOURCE_FILES_DIR = cp -r "whatsapp-files" "$(DIST_FOLDER)/whatsapp-files"
+    MKDIR_REPAIRED = mkdir -p $(DIST_FOLDER)/repaired-files 
+    COPY_SHELL_FILES = cp platform/linux/*.* $(DIST_FOLDER)/
+    COPY_LICENSE_FILE = cp LICENSE.txt $(DIST_FOLDER)/
+    BINARY_EXT=     
 endif
 
 FULL_BINARY_NAME=$(BINARY_NAME)$(BINARY_EXT)
 
 .PHONY: all help update lint test build clean
 
-# Default target: shows help
 all: help
 
-## help: Show this help message
 help:
-	@echo "Usage: make [target]"
-	@echo ""
-	@echo "Targets:"
+	@echo Usage: make [target]
+	@echo.
+	@echo Targets:
+# На Windows стандартные sed/column могут отсутствовать, поэтому делаем проверку
+ifeq ($(DETECTED_OS),Windows)
+	@echo  update, lint, test, build, clean
+else
 	@sed -n 's/^##//p' ${MAKEFILE_LIST} | column -t -s ':' |  sed -e 's/^/ /'
-
+endif
 
 ## git-hooks: Install git hooks
 git-hooks:
-	@echo "Installing git hooks..."
 ifeq ($(DETECTED_OS),Windows)
 	@for %%f in (.githooks\*) do copy /y "%%f" ".git\hooks\"
 else
 	@cp .githooks/* .git/hooks/
 	@chmod +x .git/hooks/*
 endif
-	@echo "Git hooks installed."
 
 ## update: Update project to actual go version and tidy modules
 update:
-	@echo "Updating project to Go $(GO_VERSION)..."
 	go mod edit -go=$(GO_VERSION)
 	go mod tidy
-	@echo "Update complete."
 
-## lint: Run golangci-lint with the local configuration
+## lint: Run golangci-lint
 lint:
-	@echo "Running golangci-lint..."
 	golangci-lint run ./...
 
-## test: Run all tests with race detector and coverage
+## test: Run all tests
 test:
-	@echo "Running tests..."
 	go test -v -race -cover ./...
 
-## build: Compile the binary for the current OS/Arch
+## build: Compile binary
 build: clean
-	@echo "Building binary..."
+	@echo Building for $(DETECTED_OS)...
 	go build -trimpath -ldflags="-s -w" -o $(DIST_FOLDER)/$(FULL_BINARY_NAME) ./cmd/whatsapp-jpeg-repair
-	
-	@echo "Copying assets..."
 	$(COPY_SOURCE_FILES_DIR)
 	$(MKDIR_REPAIRED)
 	$(COPY_SHELL_FILES)
 	$(COPY_LICENSE_FILE)
-	@echo "Success!"
 
 ## clean: Remove build artifacts
 clean:
-	@echo "Cleaning up..."
 ifeq ($(DETECTED_OS),Windows)
 	@if exist $(DIST_FOLDER) rmdir /s /q $(DIST_FOLDER)
 else
 	@rm -rf $(DIST_FOLDER)
 endif
-	@echo "Cleaned."

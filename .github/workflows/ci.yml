@@ -1,15 +1,14 @@
 name: Build and Release
 
-# The script runs when a tag is created, for example: git tag v3.0.0 && git push origin v3.0.0
 on:
   push:
     tags:
-      - "v*.*.*"
+      - "v*.*.*" # Сработает при пуше тега, например v3.0.0
 
 jobs:
-  # 1. Running tests and generating PDFs
+  # 1. ТЕСТЫ, ЛИНТЕР И ГЕНЕРАЦИЯ PDF
   test-and-prep:
-    name: Test and Prepare
+    name: Test, Lint and Prepare PDF
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -18,10 +17,17 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version-file: "go.mod" # Takes the Go version from go.mod
+          go-version-file: "go.mod"
 
       - name: Run Tests
         run: make test
+
+      - name: Install and Run golangci-lint
+        run: |
+          # Устанавливаем линтер из исходников, используя текущую версию Go (1.26)
+          go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.64.8
+          # Запускаем его
+          golangci-lint run ./...
 
       - name: Setup Node.js (for md-to-pdf)
         uses: actions/setup-node@v4
@@ -31,7 +37,9 @@ jobs:
       - name: Generate PDF from README
         run: |
           npm install -g md-to-pdf
-          md-to-pdf README.md
+          # Создаем конфиг для запуска Chromium без песочницы (исправляет ошибку No usable sandbox)
+          echo '{"launch_options": {"args": ["--no-sandbox", "--disable-setuid-sandbox"]}}' > pdf-config.json
+          md-to-pdf --config-file pdf-config.json README.md
           mv README.pdf Readme.pdf
 
       - name: Upload PDF artifact
@@ -40,31 +48,36 @@ jobs:
           name: readme-pdf
           path: Readme.pdf
 
-  # 2. Assembly for all platforms
+  # 2. СБОРКА ДЛЯ ВСЕХ ПЛАТФОРМ
   build:
     name: Build ${{ matrix.name }}
     needs: test-and-prep
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        # Configuring the OS runner and target Go-architecture
         include:
           - os: windows-latest
+            goos: windows
             goarch: amd64
             name: win_x64
           - os: windows-latest
+            goos: windows
             goarch: 386
             name: win32
           - os: windows-latest
+            goos: windows
             goarch: arm64
             name: win_arm64
           - os: macos-latest
+            goos: darwin
             goarch: arm64
             name: macOS_arm64
           - os: macos-latest
+            goos: darwin
             goarch: amd64
             name: macOS_x64
           - os: ubuntu-latest
+            goos: linux
             goarch: amd64
             name: linux_x64
 
@@ -77,83 +90,90 @@ jobs:
         with:
           go-version-file: "go.mod"
 
-      - name: Download Readme.pdf
+      - name: Download Readme.pdf artifact
         uses: actions/download-artifact@v4
         with:
           name: readme-pdf
           path: .
 
-      - name: Build Binary
-        env:
-          GOARCH: ${{ matrix.goarch }}
-          CGO_ENABLED: 0 # Disable CGO for cross-compilation
-        run: make build
-
-      - name: Move Readme.pdf to dist
-        shell: bash
-        run: mv Readme.pdf dist/
-
       - name: Extract Version
         id: get_version
         shell: bash
         run: |
-          # Converting tag 'v3.0.0' в '3_0_0'
-          VERSION=$(echo ${{ github.ref_name }} | sed 's/^v//' | tr '.' '_')
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          # Превращает v3.0.0 в 3_0_0
+          VERSION_CLEAN=$(echo ${{ github.ref_name }} | sed 's/^v//' | tr '.' '_')
+          echo "VERSION_CLEAN=$VERSION_CLEAN" >> $GITHUB_ENV
 
-      - name: Zip output
+      - name: Build Binary
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: 0
+        run: make build
+
+      - name: Copy PDF to dist
+        # Используем shell: bash для кроссплатформенности команды mv/cp в этом шаге
+        shell: bash
+        run: cp Readme.pdf dist/
+
+      - name: Create Zip Archive
         uses: thedoctor0/zip-release@0.7.6
         with:
           type: "zip"
           directory: "dist"
-          filename: "../whatsapp_jpeg_repair_${{ env.VERSION }}_${{ matrix.name }}.zip"
+          filename: "../whatsapp_jpeg_repair_${{ env.VERSION_CLEAN }}_${{ matrix.name }}.zip"
 
       - name: Upload Zip Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: artifact-${{ matrix.name }}
-          path: whatsapp_jpeg_repair_${{ env.VERSION }}_${{ matrix.name }}.zip
+          name: zip-${{ matrix.name }}
+          path: whatsapp_jpeg_repair_${{ env.VERSION_CLEAN }}_${{ matrix.name }}.zip
 
-  # 3. Publishing release to GitHub
+  # 3. СОЗДАНИЕ РЕЛИЗА
   release:
     name: Create GitHub Release
     needs: build
     runs-on: ubuntu-latest
     permissions:
-      contents: write # Required to create release
+      contents: write
     steps:
-      - name: Download all artifacts
+      - name: Download all zips
         uses: actions/download-artifact@v4
         with:
-          path: artifacts
-          pattern: artifact-*
+          path: all_zips
+          pattern: zip-*
           merge-multiple: true
 
-      - name: Extract Version
-        id: get_version
+      - name: Prepare Version Strings
         run: |
-          VERSION=$(echo ${{ github.ref_name }} | sed 's/^v//' | tr '.' '_')
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          # VERSION_CLEAN для имен файлов (3_0_0)
+          echo "VERSION_CLEAN=$(echo ${{ github.ref_name }} | sed 's/^v//' | tr '.' '_')" >> $GITHUB_ENV
+          # VERSION_DISPLAY для заголовка (3.0.0)
+          echo "VERSION_DISPLAY=$(echo ${{ github.ref_name }} | sed 's/^v//')" >> $GITHUB_ENV
 
-      - name: Generate Release Notes
+      - name: Generate Release Table
         run: |
           cat <<EOF > release_notes.md
-          ## Release ${{ github.ref_name }}
+          [What's new in this release](https://github.com/cdefgah/whatsapp-jpeg-repair/blob/master/CHANGELOG.md)
 
           ### Which file should I download?
 
-          | Operating System | Platform                                                    | Which file should I download?              |
+          | Operating System | Platform | Which file should I download? |
           | ---------------- | ----------------------------------------------------------- | ------------------------------------------ |
-          | Windows 64-bit   | Intel/AMD PC and Laptops                                    | whatsapp_jpeg_repair_${{ env.VERSION }}_win_x64.zip      |
-          | Windows 32-bit   | Intel/AMD PC and Laptops                                    | whatsapp_jpeg_repair_${{ env.VERSION }}_win32.zip        |
-          | Windows          | New ARM Laptops (Microsoft Surface, Asus Zenbook A14, etc.) | whatsapp_jpeg_repair_${{ env.VERSION }}_win_arm64.zip    |
-          | macOS            | Apple Silicon (M1/M2/M3/etc)                                | whatsapp_jpeg_repair_${{ env.VERSION }}_macOS_arm64.zip  |
-          | macOS            | Intel Processor                                             | whatsapp_jpeg_repair_${{ env.VERSION }}_macOS_x64.zip    |
-          | Linux 64-bit     | Intel/AMD PC and Laptops                                    | whatsapp_jpeg_repair_${{ env.VERSION }}_linux_x64.zip    |
+          | Windows 64-bit   | Intel/AMD PC and Laptops | whatsapp_jpeg_repair_${{ env.VERSION_CLEAN }}_win_x64.zip |
+          | Windows 32-bit   | Intel/AMD PC and Laptops | whatsapp_jpeg_repair_${{ env.VERSION_CLEAN }}_win32.zip |
+          | Windows | New ARM Laptops (Microsoft Surface, Asus Zenbook A14, etc.) | whatsapp_jpeg_repair_${{ env.VERSION_CLEAN }}_win_arm64.zip |
+          | macOS | Apple Silicon (M1/M2/M3/etc) | whatsapp_jpeg_repair_${{ env.VERSION_CLEAN }}_macOS_arm64.zip |
+          | macOS | Intel Processor | whatsapp_jpeg_repair_${{ env.VERSION_CLEAN }}_macOS_x64.zip |
+          | Linux 64-bit | Intel/AMD PC and Laptops | whatsapp_jpeg_repair_${{ env.VERSION_CLEAN }}_linux_x64.zip |
           EOF
 
-      - name: Release
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           body_path: release_notes.md
-          files: artifacts/*.zip
+          files: all_zips/*.zip
+          name: "WhatsApp Jpeg Image Repair. Version ${{ env.VERSION_DISPLAY }}"
+          tag_name: ${{ github.ref_name }}
+          draft: false
+          prerelease: false
