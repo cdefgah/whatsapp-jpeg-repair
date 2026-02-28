@@ -1,6 +1,6 @@
 # WhatsApp Jpeg Image Repair
 
-## version 3.0.0 (released on March XX, 2026)
+## version 3.0.0 (released on March 1, 2026)
 
 [What's new](https://github.com/cdefgah/whatsapp-jpeg-repair/blob/master/CHANGELOG.md)
 
@@ -27,6 +27,7 @@ Application executable file and all command-line flags have been renamed in v3.0
 - [Migration Guide](#migration-guide)
 - [Frequently Asked Questions](#faq)
 - [Building from Source](#building-from-source)
+- [License](#license)
 
 ---
 
@@ -441,3 +442,7 @@ make build
 ```
 
 Step 5: To access the built application files, navigate to the created **./dist** folder.
+
+## <a name="license">License</a>
+
+The application is distributed under the [GNU General Public License v3.0](https://github.com/cdefgah/whatsapp-jpeg-repair/blob/master/LICENSE.txt)
