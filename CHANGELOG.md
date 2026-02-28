@@ -1,14 +1,13 @@
 # WhatsAppJpegRepair changelog
 
-## Version 3.0.0 (TBA)
+## Version 3.0.0 (March 1, 2026)
 
-Breaking changes. Introduced POSIX-compliant command line options instead of old ones.
-Please check README for more details.
-Added new option to process nested folders.
-The app now only processes JPEG-related image files with the following extensions: `.jpg`, `.jpeg`, `.jpe`, `.jif`, `.jfif` and `.jfi`, which are case insensitive. Files with other extensions will be ignored. This is because WhatsApp converts received images to JPEG format. The previous version of the application processed all files indiscriminately. It converted non-JPEG files that did not require repair into JPEG format while retaining their original extensions.
-
-Mac users can now launch the application hassle-free with Gatekeeper (please refer to the README instructions).
-Если в managed-режиме в target-папке попадётся файл, который рискует быть перезаписанным, то будет создана его резервная копия.
+- Breaking changes: The application executable and command line parameter names have been renamed;
+- A new option has been added to process nested folders;
+- The app now only processes the following JPEG-related image file extensions: **.jpg**, **.jpeg**, **.jpe**, **.jif**, **.jfif**, and **.jfi**, which are case-insensitive. Files with different extensions will be ignored. This is because WhatsApp converts received images to JPEG format. Previous versions of the application processed all files indiscriminately. It converted non-JPEG files that did not require repair into JPEG format while retaining their original extensions;
+- In managed mode, if a file with the same name and extension as the resulting file exists in the target folder, a backup copy of that file will be created;
+- The wait at the end of the program will not be executed if the application is not running in interactive mode (e.g., in a Docker container) or if its output is redirected to a file;
+- macOS users can now launch the application without any hassle with Gatekeeper. Please refer to the README instructions for more information.
 
 ## Version 2.2.1 (Aug 1, 2024)
 
