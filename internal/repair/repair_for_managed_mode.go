@@ -24,16 +24,16 @@ type ImageRepairerForManagedMode struct {
 }
 
 // NewImageRepairerForManagedMode creates new instance of image repairer for managed mode.
-func NewImageRepairerForManagedMode(fs afero.Fs, options options.ManagedModeOptions, stderr io.Writer, clock Clock) *ImageRepairerForManagedMode {
+func NewImageRepairerForManagedMode(fsref afero.Fs, opts options.ManagedModeOptions, stderr io.Writer, clock Clock) *ImageRepairerForManagedMode {
 	return &ImageRepairerForManagedMode{
 		ImageRepairerBase: ImageRepairerBase{
-			fs:     fs,
+			fs:     fsref,
 			stats:  &Stats{},
 			stderr: stderr,
 			clock:  clock,
 		},
 
-		options: options,
+		options: opts,
 	}
 }
 

@@ -3,10 +3,9 @@ name: Build and Release
 on:
   push:
     tags:
-      - "v*.*.*" # Сработает при пуше тега, например v3.0.0
+      - "v*.*.*" # will trigger when a tag is pushed, like v3.0.0
 
 jobs:
-  # 1. ТЕСТЫ, ЛИНТЕР И ГЕНЕРАЦИЯ PDF
   test-and-prep:
     name: Test, Lint and Prepare PDF
     runs-on: ubuntu-latest
@@ -25,7 +24,7 @@ jobs:
       - name: Install and Run golangci-lint
         run: |
           # Устанавливаем линтер из исходников, используя текущую версию Go (1.26)
-          go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.64.8
+          go install github.com/golangci/golangci-lint/cmd/golangci-lint@v2.10.1
           # Запускаем его
           golangci-lint run ./...
 
@@ -48,7 +47,6 @@ jobs:
           name: readme-pdf
           path: Readme.pdf
 
-  # 2. СБОРКА ДЛЯ ВСЕХ ПЛАТФОРМ
   build:
     name: Build ${{ matrix.name }}
     needs: test-and-prep
@@ -112,7 +110,6 @@ jobs:
         run: make build
 
       - name: Copy PDF to dist
-        # Используем shell: bash для кроссплатформенности команды mv/cp в этом шаге
         shell: bash
         run: cp Readme.pdf dist/
 
@@ -129,7 +126,6 @@ jobs:
           name: zip-${{ matrix.name }}
           path: whatsapp_jpeg_repair_${{ env.VERSION_CLEAN }}_${{ matrix.name }}.zip
 
-  # 3. СОЗДАНИЕ РЕЛИЗА
   release:
     name: Create GitHub Release
     needs: build
@@ -154,7 +150,8 @@ jobs:
       - name: Generate Release Table
         run: |
           cat <<EOF > release_notes.md
-          [What's new in this release](https://github.com/cdefgah/whatsapp-jpeg-repair/blob/master/CHANGELOG.md)
+
+          **[What's new in this release](https://github.com/cdefgah/whatsapp-jpeg-repair/blob/master/CHANGELOG.md)**
 
           ### Which file should I download?
 

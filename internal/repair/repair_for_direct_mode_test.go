@@ -256,7 +256,7 @@ func TestImageRepairerForDirectMode_CreateBackupFile(t *testing.T) {
 				tt.setupFs(memFs)
 			}
 
-			var finalFs afero.Fs = memFs
+			var finalFs = memFs
 			if tt.wrapFsAsReadonly {
 				finalFs = afero.NewReadOnlyFs(memFs)
 			}

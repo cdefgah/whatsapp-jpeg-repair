@@ -251,11 +251,13 @@ func ProcessAllFiles(ctx context.Context, it filesystem.FilePathIterator, p Sing
 // isInteractive returns true if app is running in interactive mode
 func isInteractive(in io.Reader, out io.Writer) bool {
 	fIn, okIn := in.(*os.File)
+	// nolint:gosec // G115: fd is a small integer for standard streams
 	if !okIn || !term.IsTerminal(int(fIn.Fd())) {
 		return false
 	}
 
 	fOut, okOut := out.(*os.File)
+	// nolint:gosec // G115: fd is a small integer for standard streams
 	if !okOut || !term.IsTerminal(int(fOut.Fd())) {
 		return false
 	}
