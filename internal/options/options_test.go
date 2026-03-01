@@ -75,7 +75,6 @@ func TestNewDefaultManagedModeOptions(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			got := NewDefaultManagedModeOptions(tc.cwd)
 
-			// Проверяем пути
 			expectedSrc := filepath.Join(tc.cwd, PredefinedSourceFilesFolder)
 			if got.SourceFolderPath != expectedSrc {
 				t.Errorf("SourceFolderPath mismatch: got %q, want %q", got.SourceFolderPath, expectedSrc)

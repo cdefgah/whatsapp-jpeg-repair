@@ -6,7 +6,6 @@ BINARY_NAME=whatsapp-jpeg-repair
 
 ifeq ($(OS),Windows_NT)
     DETECTED_OS := Windows
-    # Принудительно используем cmd для Windows-блоков
     SHELL := cmd.exe
 else
     DETECTED_OS := $(shell uname -s)
@@ -14,10 +13,10 @@ endif
 
 ifeq ($(DETECTED_OS),Windows)
     BINARY_EXT=.exe
-    # Убираем слэш в конце переменной, чтобы не было конфликтов с переносом строк
+
     COPY_SOURCE_FILES_DIR = xcopy /E /I /Y "whatsapp-files" "$(DIST_FOLDER)\whatsapp-files"
     MKDIR_REPAIRED = if not exist "$(DIST_FOLDER)\repaired-files" mkdir "$(DIST_FOLDER)\repaired-files"
-    # Важно: кавычки защищают от проблем со слэшами
+
     COPY_SHELL_FILES = copy /Y "platform\windows\runme.bat" "$(DIST_FOLDER)"
     COPY_LICENSE_FILE = copy /Y "LICENSE.txt" "$(DIST_FOLDER)"
 endif
@@ -48,7 +47,7 @@ help:
 	@echo Usage: make [target]
 	@echo.
 	@echo Targets:
-# На Windows стандартные sed/column могут отсутствовать, поэтому делаем проверку
+# On Windows, the standard sed/column may be missing, so we check for it.
 ifeq ($(DETECTED_OS),Windows)
 	@echo  update, lint, test, build, clean
 else

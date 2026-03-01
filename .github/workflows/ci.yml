@@ -36,7 +36,7 @@ jobs:
       - name: Generate PDF from README
         run: |
           npm install -g md-to-pdf
-          # Создаем конфиг для запуска Chromium без песочницы (исправляет ошибку No usable sandbox)
+          # Creating a configuration to run Chromium without a sandbox (addresses the No usable sandbox error)
           echo '{"launch_options": {"args": ["--no-sandbox", "--disable-setuid-sandbox"]}}' > pdf-config.json
           md-to-pdf --config-file pdf-config.json README.md
           mv README.pdf Readme.pdf
@@ -98,7 +98,7 @@ jobs:
         id: get_version
         shell: bash
         run: |
-          # Превращает v3.0.0 в 3_0_0
+          # Converting v3.0.0 в 3_0_0
           VERSION_CLEAN=$(echo ${{ github.ref_name }} | sed 's/^v//' | tr '.' '_')
           echo "VERSION_CLEAN=$VERSION_CLEAN" >> $GITHUB_ENV
 
@@ -142,9 +142,9 @@ jobs:
 
       - name: Prepare Version Strings
         run: |
-          # VERSION_CLEAN для имен файлов (3_0_0)
+          # VERSION_CLEAN for file names (3_0_0)
           echo "VERSION_CLEAN=$(echo ${{ github.ref_name }} | sed 's/^v//' | tr '.' '_')" >> $GITHUB_ENV
-          # VERSION_DISPLAY для заголовка (3.0.0)
+          # VERSION_DISPLAY for title (3.0.0)
           echo "VERSION_DISPLAY=$(echo ${{ github.ref_name }} | sed 's/^v//')" >> $GITHUB_ENV
 
       - name: Generate Release Table
