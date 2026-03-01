@@ -233,7 +233,7 @@ Example for Windows environment:
 whatsapp-jpeg-repair --src-path=C:\BrokenFiles --dest-path=C:\Users\YourUserName\Documents\RepairedFiles --use-current-modification-time=true
 ```
 
-The procedure is the same for Linux and macOS, except the executable file is specified as **./whatsapp-jpeg-repair** .
+The procedure is the same for Linux and macOS, except the executable file is specified as **./whatsapp-jpeg-repair**
 
 ### <a name="custom-source-folder">4. How can I specify a custom folder from which the application will take files for processing?</a>
 
@@ -253,7 +253,7 @@ or
 whatsapp-jpeg-repair -s=C:\BrokenFiles
 ```
 
-The procedure is the same for Linux and macOS, except the executable file is specified as **./whatsapp-jpeg-repair** .
+The procedure is the same for Linux and macOS, except the executable file is specified as **./whatsapp-jpeg-repair**
 
 Please note that we only specify the folder containing the source files here. All other parameters will take their default values. In particular, you will need to look for the results of the processing in the **repaired-files** folder, which is located in the same folder as the application executable file. To customise both the source and destination folders, specify the most suitable paths for your task in both the source and destination parameters.
 
@@ -275,7 +275,7 @@ or
 whatsapp-jpeg-repair -d=C:\Users\YourUserName\Documents\RepairedFiles
 ```
 
-The procedure is the same for Linux and macOS, except the executable file is specified as ./whatsapp-jpeg-repair.
+The procedure is the same for Linux and macOS, except the executable file is specified as **./whatsapp-jpeg-repair**
 
 Please note that we only specify the folder for saving the results of file processing here. All other parameters are set to their default values. In particular, the folder in which the application searches for files that need repairing is the **whatsApp-files** folder, which is located in the same folder as the application's executable file. To customise both the source and destination folders, specify the most suitable paths for your task in both the source and destination parameters.
 
@@ -311,7 +311,7 @@ or
 whatsapp-jpeg-repair -t
 ```
 
-The procedure is the same for Linux and macOS, except the executable file is specified as **./whatsapp-jpeg-repair** .
+The procedure is the same for Linux and macOS, except the executable file is specified as **./whatsapp-jpeg-repair**
 
 Please note that setting a parameter with a logical type without assigning a value is equivalent to setting it to true.
 
@@ -343,7 +343,7 @@ or
 whatsapp-jpeg-repair -w
 ```
 
-The procedure is the same for Linux and macOS, except the executable file is specified as **./whatsapp-jpeg-repair** .
+The procedure is the same for Linux and macOS, except the executable file is specified as **./whatsapp-jpeg-repair**
 
 Please note that setting a parameter with a logical type without assigning a value is equivalent to setting it to true.
 
@@ -357,7 +357,7 @@ To complete this task, we must launch the application with the additional **--pr
 whatsapp-jpeg-repair --src-path=C:\Users\Username\Documents\ImageArchive --dest-path=C:\Users\Username\Documents\ProcessedFiles --process-nested-folders
 ```
 
-The procedure is the same for Linux and macOS, except the executable file is specified as **./whatsapp-jpeg-repair** .
+The procedure is the same for Linux and macOS, except the executable file is specified as **./whatsapp-jpeg-repair**
 
 ### <a name="dont-wait">9. How can I stop the program from waiting for me to press Enter after it has finished running?</a>
 
@@ -371,7 +371,7 @@ For example (Windows environment):
 whatsapp-jpeg-repair 2>log.txt
 ```
 
-The procedure is the same for Linux and macOS, except the executable file is specified as **./whatsapp-jpeg-repair** .
+The procedure is the same for Linux and macOS, except the executable file is specified as **./whatsapp-jpeg-repair**
 
 In this case, everything that would normally be displayed on the screen will be written to the **log.txt** file, and then the application will end.
 
@@ -391,7 +391,7 @@ or
 whatsapp-jpeg-repair -h
 ```
 
-The procedure is the same for Linux and macOS, except the executable file is specified as **./whatsapp-jpeg-repair** .
+The procedure is the same for Linux and macOS, except the executable file is specified as **./whatsapp-jpeg-repair**
 
 ### <a name="single-file-in-direct-mode">11. What if I want to process a file so that it is processed directly on the spot?</a>
 
@@ -407,7 +407,7 @@ For example (Windows environment):
 whatsapp-jpeg-repair 2>log.txt
 ```
 
-The procedure is the same for Linux and macOS, except the executable file is specified as **./whatsapp-jpeg-repair** .
+The procedure is the same for Linux and macOS, except the executable file is specified as **./whatsapp-jpeg-repair**
 
 ### <a name="cant-run-script-file">13. Why is nothing happening when I try to run a **.sh** file?</a>
 

@@ -21,12 +21,12 @@ jobs:
       - name: Run Tests
         run: make test
 
-      - name: Install and Run golangci-lint
-        run: |
-          # Устанавливаем линтер из исходников, используя текущую версию Go (1.26)
-          go install github.com/golangci/golangci-lint/cmd/golangci-lint@v2.10.1
-          # Запускаем его
-          golangci-lint run ./...
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v7
+        with:
+          version: v2.10.1
+          # The installation mode `goinstall` always uses `CGO_ENABLED=1`.
+          install-mode: goinstall
 
       - name: Setup Node.js (for md-to-pdf)
         uses: actions/setup-node@v4
