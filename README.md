@@ -176,6 +176,8 @@ Note: The old parameter format (camelCase with a single dash) is now deprecated.
 
 This table shows the correspondence between the old and new parameter names.
 
+**Please note that double hyphens are now used for the full names of new parameters, and single hyphens are used for abbreviated names consisting of one letter.**
+
 | Old parameter name                  | New parameter name                  | Shorthand |
 | :---------------------------------- | :---------------------------------- | :-------- |
 | **-srcPath**                        | **--src-path**                      | **-s**    |
