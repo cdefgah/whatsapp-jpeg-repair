@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.0.1] - 2026-03-11
+
+### Changed
+
+- JPEG compression is now lossless. Previous versions used a default setting of 75% compression.
+
 ## [3.0.0] - 2026-03-01
 
 ### Added

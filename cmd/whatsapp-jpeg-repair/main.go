@@ -33,7 +33,7 @@ func main() {
 	appOutput := os.Stderr
 	stdin := os.Stdin
 
-	fmt.Fprintln(appOutput, "whatsapp-jpeg-repair version 3.0.0 Copyright (c) 2021 by Rafael Osipov (rafael.osipov@outlook.com)")
+	fmt.Fprintln(appOutput, "whatsapp-jpeg-repair version 3.0.1 Copyright (c) 2021 by Rafael Osipov (rafael.osipov@outlook.com)")
 	fmt.Fprintln(appOutput, "This application repairs JPEG images saved from WhatsApp to prevent errors when opening them in Adobe Photoshop.")
 	fmt.Fprintln(appOutput, "\nProject web-site, source code and documentation: https://github.com/cdefgah/whatsapp-jpeg-repair")
 	fmt.Fprintln(appOutput)

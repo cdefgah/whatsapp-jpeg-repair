@@ -1,6 +1,6 @@
 # WhatsApp Jpeg Image Repair
 
-## version 3.0.0 (released on March 1, 2026)
+## version 3.0.1 (released on March 11, 2026)
 
 [What's new](https://github.com/cdefgah/whatsapp-jpeg-repair/blob/master/CHANGELOG.md)
 
@@ -190,27 +190,32 @@ The app now only processes JPEG-related image files with the following extension
 
 ## <a name="faq">Frequently Asked Questions</a>
 
-1. [Windows user: What is the purpose of the .bat files in the application folder?](#bat-purpose)
-2. [macOS/Linux user: What is the purpose of the **.sh** files in the application folder?](#sh-purpose)
-3. [How should parameters and their combinations be passed correctly when launching an application?](#param-rules)
-4. [How can I specify a custom folder from which the application will take files for processing?](#custom-source-folder)
-5. [How can I specify a custom folder in which the application can store the results of file processing?](#custom-dest-folder)
-6. [How can the same modification time be applied to the repaired file as to the original file?](#mod-time)
-7. [What steps should I take to ensure that the source files are deleted after processing?](#delete-source-files)
-8. [What is the best course of action if I want all my source files, including those in subfolders, to be processed?](#recursive-processing)
-9. [How can I stop the program from waiting for me to press Enter after it has finished running?](#dont-wait)
-10. [How can I display information on all the possible operating modes and command line parameters?](#show-help)
-11. [What if I want to process a file so that it is processed directly on the spot?](#single-file-in-direct-mode)
-12. [How can the application be launched so that its output is redirected to a file?](#redirect-app-output)
-13. [Why is nothing happening when I try to run a **.sh** or **.bat** file?](#cant-run-script-file)
-14. [Why am I getting permission errors when I run the application?](#permission-problems)
-15. [How should I go about reporting a bug or suggesting an improvement?](#how-to-report-bug)
+1. [Which compression level is used when saving JPEG files?](#compression-level)
+2. [Windows user: What is the purpose of the .bat files in the application folder?](#bat-purpose)
+3. [macOS/Linux user: What is the purpose of the **.sh** files in the application folder?](#sh-purpose)
+4. [How should parameters and their combinations be passed correctly when launching an application?](#param-rules)
+5. [How can I specify a custom folder from which the application will take files for processing?](#custom-source-folder)
+6. [How can I specify a custom folder in which the application can store the results of file processing?](#custom-dest-folder)
+7. [How can the same modification time be applied to the repaired file as to the original file?](#mod-time)
+8. [What steps should I take to ensure that the source files are deleted after processing?](#delete-source-files)
+9. [What is the best course of action if I want all my source files, including those in subfolders, to be processed?](#recursive-processing)
+10. [How can I stop the program from waiting for me to press Enter after it has finished running?](#dont-wait)
+11. [How can I display information on all the possible operating modes and command line parameters?](#show-help)
+12. [What if I want to process a file so that it is processed directly on the spot?](#single-file-in-direct-mode)
+13. [How can the application be launched so that its output is redirected to a file?](#redirect-app-output)
+14. [Why is nothing happening when I try to run a **.sh** or **.bat** file?](#cant-run-script-file)
+15. [Why am I getting permission errors when I run the application?](#permission-problems)
+16. [How should I go about reporting a bug or suggesting an improvement?](#how-to-report-bug)
 
-### <a name="bat-purpose">1. Windows user: What is the purpose of the .bat files in the application folder?</a>
+### <a name="compression-level">1. Which compression level is used when saving JPEG files?</a>
+
+Before version **3.0.1**, the application used a default compression setting of 75%. Starting with version **3.0.1**, however, it uses lossless compression.
+
+### <a name="bat-purpose">2. Windows user: What is the purpose of the .bat files in the application folder?</a>
 
 This optional file contains the application call command with various flags. This file is provided for convenience. You can edit the file, adding or removing any parameters supported by the application. Once saved, you can run the file by double-clicking on it.
 
-### <a name="sh-purpose">2. macOS/Linux user: What is the purpose of the **.sh** files in the application folder?</a>
+### <a name="sh-purpose">3. macOS/Linux user: What is the purpose of the **.sh** files in the application folder?</a>
 
 The **prepare.sh** file is very important and should not be edited. Simply set the **executable** attribute using the following terminal command:
 
@@ -224,7 +229,7 @@ After that, you only need to run it once. You will not need to run it again for 
 ./runme.sh.
 ```
 
-### <a name="param-rules">3. How should parameters and their combinations be passed correctly when launching an application?</a>
+### <a name="param-rules">4. How should parameters and their combinations be passed correctly when launching an application?</a>
 
 You can pass any number of supported parameters when launching the application. Parameters are separated by spaces.
 For example, the following command launches the application with custom settings for the source and output files and specifies that the current time be used as the last modification time for all output files.
@@ -237,7 +242,7 @@ whatsapp-jpeg-repair --src-path=C:\BrokenFiles --dest-path=C:\Users\YourUserName
 
 The procedure is the same for Linux and macOS, except the executable file is specified as **./whatsapp-jpeg-repair**
 
-### <a name="custom-source-folder">4. How can I specify a custom folder from which the application will take files for processing?</a>
+### <a name="custom-source-folder">5. How can I specify a custom folder from which the application will take files for processing?</a>
 
 To specify the path to a custom folder from which the application will take files for processing, use the **--src-path** parameter or its shortcut, **-s**.
 
@@ -261,7 +266,7 @@ Please note that we only specify the folder containing the source files here. Al
 
 Note: If the path contains spaces, it must be enclosed in double quotation marks.
 
-### <a name="custom-dest-folder">5. How can I specify a custom folder in which the application can store the results of file processing?</a>
+### <a name="custom-dest-folder">6. How can I specify a custom folder in which the application can store the results of file processing?</a>
 
 To specify the path to a custom folder from which the application will store result files, use the **--dest-path** parameter or its shortcut, **-d**.
 
@@ -283,7 +288,7 @@ Please note that we only specify the folder for saving the results of file proce
 
 Note: If the path contains spaces, it must be enclosed in double quotation marks.
 
-### <a name="mod-time">6. How can the same modification time be applied to the repaired file as to the original file?</a>
+### <a name="mod-time">7. How can the same modification time be applied to the repaired file as to the original file?</a>
 
 By default, the application automatically sets the modification time of processed files to be the same as the original file's. To change this behavior and set the modification time of the processed file to the actual processing time, use the **--use-current-modification-time** or **-t** parameters.
 
@@ -317,7 +322,7 @@ The procedure is the same for Linux and macOS, except the executable file is spe
 
 Please note that setting a parameter with a logical type without assigning a value is equivalent to setting it to true.
 
-### <a name="delete-source-files">7. What steps should I take to ensure that the source files are deleted after processing?</a>
+### <a name="delete-source-files">8. What steps should I take to ensure that the source files are deleted after processing?</a>
 
 To delete the source files after processing, use the **--delete-whatsapp-files** option, or the shortened version, **-w** .
 
@@ -349,7 +354,7 @@ The procedure is the same for Linux and macOS, except the executable file is spe
 
 Please note that setting a parameter with a logical type without assigning a value is equivalent to setting it to true.
 
-### <a name="recursive-processing">8. What is the best course of action if I want all my source files, including those in subfolders, to be processed?</a>
+### <a name="recursive-processing">9. What is the best course of action if I want all my source files, including those in subfolders, to be processed?</a>
 
 Let's assume the source files are located in **C:\Users\Username\Documents\ImageArchive**, and that there are many nested folders containing files that should also be processed. You want to process all the files in that folder, including all the nested folders, and place the resulting files in the folder: **C:\Users\Username\Documents\ProcessedFiles**
 
@@ -361,7 +366,7 @@ whatsapp-jpeg-repair --src-path=C:\Users\Username\Documents\ImageArchive --dest-
 
 The procedure is the same for Linux and macOS, except the executable file is specified as **./whatsapp-jpeg-repair**
 
-### <a name="dont-wait">9. How can I stop the program from waiting for me to press Enter after it has finished running?</a>
+### <a name="dont-wait">10. How can I stop the program from waiting for me to press Enter after it has finished running?</a>
 
 When started manually, the application waits for the Enter key to be pressed after processing the files to exit. This allows the user time to read the information in the window, in case the application is started from the graphical shell of the operating system. You can disable this wait time by passing the parameter **--dont-wait-to-close** or **-c** .
 
@@ -377,7 +382,7 @@ The procedure is the same for Linux and macOS, except the executable file is spe
 
 In this case, everything that would normally be displayed on the screen will be written to the **log.txt** file, and then the application will end.
 
-### <a name="show-help">10. How can I display information on all the possible operating modes and command line parameters?</a>
+### <a name="show-help">11. How can I display information on all the possible operating modes and command line parameters?</a>
 
 To accomplish this, you must either call the application with an invalid parameter or use the **--help** or **-h** parameter.
 
@@ -395,11 +400,11 @@ whatsapp-jpeg-repair -h
 
 The procedure is the same for Linux and macOS, except the executable file is specified as **./whatsapp-jpeg-repair**
 
-### <a name="single-file-in-direct-mode">11. What if I want to process a file so that it is processed directly on the spot?</a>
+### <a name="single-file-in-direct-mode">12. What if I want to process a file so that it is processed directly on the spot?</a>
 
 In the operating system's graphical shell, drag the file requiring processing onto the application's executable file icon.
 
-### <a name="redirect-app-output">12. How can the application be launched so that its output is redirected to a file?</a>
+### <a name="redirect-app-output">13. How can the application be launched so that its output is redirected to a file?</a>
 
 Any information written by the application to the console is written to the **stderr** stream. Nothing is written to the **stdout** stream since the application only outputs progress information during operation. To redirect the application output, add a line like the following to the end of the command line parameters, separated by a space: **2>log.txt**, where **log.txt** is the name of the file to which the output will be redirected.
 
@@ -411,15 +416,15 @@ whatsapp-jpeg-repair 2>log.txt
 
 The procedure is the same for Linux and macOS, except the executable file is specified as **./whatsapp-jpeg-repair**
 
-### <a name="cant-run-script-file">13. Why is nothing happening when I try to run a **.sh** file?</a>
+### <a name="cant-run-script-file">14. Why is nothing happening when I try to run a **.sh** file?</a>
 
 If nothing happens when you run **./runme.sh**, make sure that you have set the executable attribute for **./prepare.sh** and that you have run it.
 
-### <a name="permission-problems">14. Why am I getting permission errors when I run the application?</a>
+### <a name="permission-problems">15. Why am I getting permission errors when I run the application?</a>
 
 If you encountered this problem after launching the application, then either you placed the application in a folder to which you do not have write access, or the application is attempting to write processed files to a folder to which you do not have write access.
 
-### <a name="how-to-report-bug">15. How should I go about reporting a bug or suggesting an improvement?</a>
+### <a name="how-to-report-bug">16. How should I go about reporting a bug or suggesting an improvement?</a>
 
 1. Open this page in the browser: [https://github.com/cdefgah/whatsapp-jpeg-repair](https://github.com/cdefgah/whatsapp-jpeg-repair)
 2. Post your report in the "Issues" section at the top of the page.

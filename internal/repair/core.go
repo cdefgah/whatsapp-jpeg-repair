@@ -156,8 +156,12 @@ func (ir *ImageRepairerBase) writeImage(ctx context.Context, filePath string, im
 	}
 	defer file.Close()
 
+	options := jpeg.Options{
+		Quality: 100, // lossless compression
+	}
+
 	bw := bufio.NewWriter(file)
-	errEncode := jpeg.Encode(bw, img, nil)
+	errEncode := jpeg.Encode(bw, img, &options)
 
 	if errEncode != nil {
 		return fmt.Errorf("encode %s: %w", filePath, errEncode)

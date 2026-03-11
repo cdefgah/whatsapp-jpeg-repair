@@ -3,7 +3,7 @@ name: Build and Release
 on:
   push:
     tags:
-      - "v*.*.*" # will trigger when a tag is pushed, like v3.0.0
+      - "v*.*.*" # will trigger when a tag is pushed, like v3.0.1
 
 jobs:
   test-and-prep:
@@ -98,7 +98,7 @@ jobs:
         id: get_version
         shell: bash
         run: |
-          # Converting v3.0.0 в 3_0_0
+          # Converting v3.0.1 to 3_0_1
           VERSION_CLEAN=$(echo ${{ github.ref_name }} | sed 's/^v//' | tr '.' '_')
           echo "VERSION_CLEAN=$VERSION_CLEAN" >> $GITHUB_ENV
 
