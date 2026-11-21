@@ -114,7 +114,7 @@ Once you have finished editing the **runme.sh** file, save it and close the text
 
 This will launch **whatsapp-jpeg-repair** with all the parameters you provided in the **runme.sh** file.
 
-## <a name="how-it-works">How it Works: Direct vs Managed Mode</a>
+## <a name="how-it-works">How it works: Direct vs Managed Mode</a>
 
 The application supports two operating modes: **Direct Mode** and **Managed Mode**.
 
